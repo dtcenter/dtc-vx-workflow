@@ -273,17 +273,6 @@ def generate_FV3LAM_wflow(
             file.write(field_table_append)
 
         #
-        # Copy the CCPP physics suite definition file from its location in the
-        # clone of the FV3 code repository to the experiment directory (EXPT-
-        # DIR).
-        #
-        logging.debug("Copying CCPP suite definition file from forecast model repository")
-        shutil.copy(
-            workflow_config["CCPP_PHYS_SUITE_IN_CCPP_FP"],
-            workflow_config["CCPP_PHYS_SUITE_FP"],
-        )
-
-        #
         # Copy the field dictionary file from its location in the
         # clone of the FV3 code repository to the experiment directory
         #

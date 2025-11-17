@@ -1,4 +1,4 @@
-name: srw_app
+name: vx_workflow
 channels:
   - conda-forge
   - ufs-community

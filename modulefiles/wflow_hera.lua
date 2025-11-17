@@ -11,6 +11,6 @@ load("conda")
 
 if mode() == "load" then
    LmodMsgRaw([===[Please do the following to activate conda:
-       > conda activate srw_app
+       > conda activate vx_workflow
 ]===])
 end

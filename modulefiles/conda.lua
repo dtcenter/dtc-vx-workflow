@@ -8,8 +8,7 @@ local shell=myShellType()
 conflict(pkgName)
 
 local mod_path, mod_file = splitFileName(myFileName())
-local conda_loc_file = pathJoin(mod_path, "..", "conda_loc")
-local base = capture("cat " .. conda_loc_file)
+local base = pathJoin(mod_path, "..", "conda")
 local conda_file = pathJoin(base, "etc", "profile.d", "conda." .. shell)
 local command = "source " .. conda_file
 

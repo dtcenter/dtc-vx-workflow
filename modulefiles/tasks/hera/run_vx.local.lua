@@ -24,4 +24,4 @@ if (mode() == "unload") then
 end
 load("ufs-pyenv")
 load("conda")
-setenv("SRW_ENV", "srw_app")
+setenv("SRW_ENV", "vx_workflow")
