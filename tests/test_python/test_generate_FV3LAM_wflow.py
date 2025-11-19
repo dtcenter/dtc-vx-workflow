@@ -30,11 +30,6 @@ class Testing(unittest.TestCase):
         src_config_yaml_filename = "config.community.yaml"
         self._run_generate_FV3LAM_wflow_test_(src_config_yaml_filename)
 
-    def test_generate_FV3LAM_wflow_aqm_use_case(self) -> None:
-        """Test generating a workflow for an AQM use case."""
-        src_config_yaml_filename = Path("aqm-use-cases/config.aqm.AEROMMA.yaml")
-        self._run_generate_FV3LAM_wflow_test_(src_config_yaml_filename)
-
     def setUp(self) -> None:
         define_macos_utilities()
         set_env_var("DEBUG", False)

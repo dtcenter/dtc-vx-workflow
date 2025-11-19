@@ -24,8 +24,6 @@ from uwtools.config.formats.yaml import YAMLConfig
 from python_utils import (
     dict_find,
     check_for_preexist_dir_file,
-    has_tag_with_value,
-    load_xml_file,
 )
 
 from set_cycle_and_obs_timeinfo import (

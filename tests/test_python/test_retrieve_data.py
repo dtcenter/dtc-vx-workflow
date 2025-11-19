@@ -46,15 +46,11 @@ class FunctionalTesting(unittest.TestCase):
         # 2019061200 - First operational FV3GFS cycle
         # 2020022518, 2020022600 - Changes to operational FV3GFS files between these cycles
         # 2020022612, 2020022618 - Changes to RAP hpss filenames between these cycles
-        # 2021032018, 2021032100 - nemsio format replaced with netcdf between these cycles
         # 2022062700, 2022062706 - Changes to RAP hpss filenames between these cycles
         self.dates={}
         self.dates["FV3GFSgrib2"]  = ['2019061200',
                                       '2020022600',
                                       threedaysago.strftime('%Y%m%d') + '12']
-        self.dates["FV3GFSnemsio"] = ['2019061200',
-                                      '2020022518',
-                                      '2021032018']
         self.dates["FV3GFSnetcdf"] = ['2021032100',
                                       threedaysago.strftime('%Y%m%d') + '00']
         self.dates["RAPhpss"]      = ['2018071118',
@@ -93,38 +89,6 @@ class FunctionalTesting(unittest.TestCase):
                 path = os.path.join(tmp_dir, "*")
                 files_on_disk = glob.glob(path)
                 self.assertEqual(len(files_on_disk), 3)
-
-    @unittest.skipIf(os.environ.get("CI") == "true", "Skipping HPSS tests")
-    def test_fv3gfs_nemsio_lbcs_from_hpss(self):
-
-        """Get FV3GFS nemsio files from HPSS for LBCS"""
-
-        for date in self.dates["FV3GFSnemsio"]:
-            with tempfile.TemporaryDirectory(dir=self.path) as tmp_dir:
-                os.chdir(tmp_dir)
-
-                # fmt: off
-                args = [
-                    '--file_set', 'fcst',
-                    '--config', self.config,
-                    '--cycle_date', date,
-                    '--data_stores', 'hpss',
-                    '--data_type', 'FV3GFS',
-                    '--fcst_hrs', '24',
-                    '--output_path', tmp_dir,
-                    '--ics_or_lbcs', 'LBCS',
-                    '--debug',
-                    '--file_fmt', 'nemsio',
-                ]
-                # fmt: on
-
-                retrieve_data.main(args)
-
-                # Verify files exist in temp dir
-
-                path = os.path.join(tmp_dir, "*")
-                files_on_disk = glob.glob(path)
-                self.assertEqual(len(files_on_disk), 1)
 
     @unittest.skipIf(os.environ.get("CI") == "true", "Skipping HPSS tests")
     def test_fv3gfs_netcdf_lbcs_from_hpss(self):
@@ -442,54 +406,3 @@ class FunctionalTesting(unittest.TestCase):
             files_on_disk = glob.glob(path)
             self.assertEqual(len(files_on_disk), 8)
 
-    def test_ufs_ics_from_aws(self):
-
-        """Get UFS-CASE-STUDY ICS from aws"""
-
-        with tempfile.TemporaryDirectory(dir=self.path) as tmp_dir:
-            os.chdir(tmp_dir)
-
-            # fmt: off
-            args = [
-                '--file_set', 'anl',
-                '--config', self.config,
-                '--cycle_date', '2020072300',
-                '--data_stores', 'aws',
-                '--data_type', 'UFS-CASE-STUDY',
-                '--fcst_hrs', '0',
-                '--output_path', tmp_dir,
-                '--ics_or_lbcs', 'ICS',
-                '--debug',
-                '--file_fmt', 'nemsio',
-                '--check_file',
-            ]
-            # fmt: on
-
-            # Testing that there is no failure
-            retrieve_data.main(args)
-
-    def test_ufs_lbcs_from_aws(self):
-
-        """Get UFS-CASE-STUDY LBCS from aws for 3 hour boundary conditions"""
-
-        with tempfile.TemporaryDirectory(dir=self.path) as tmp_dir:
-            os.chdir(tmp_dir)
-
-            # fmt: off
-            args = [
-                '--file_set', 'fcst',
-                '--config', self.config,
-                '--cycle_date', '2020072300',
-                '--data_stores', 'aws',
-                '--data_type', 'UFS-CASE-STUDY',
-                '--fcst_hrs', '3', '6', '3',
-                '--output_path', tmp_dir,
-                '--ics_or_lbcs', 'LBCS',
-                '--debug',
-                '--file_fmt', 'nemsio',
-                '--check_file',
-            ]
-            # fmt: on
-
-            # Testing that there is no failure
-            retrieve_data.main(args)

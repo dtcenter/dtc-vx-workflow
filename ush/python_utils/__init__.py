@@ -18,7 +18,6 @@ from .environment import (
 from .print_input_args import print_input_args
 from .print_msg import print_info_msg, print_err_msg_exit, log_info
 from .run_command import run_command
-from .xml_parser import load_xml_file, has_tag_with_value
 from .config_parser import (
     load_json_config,
     cfg_to_json_str,

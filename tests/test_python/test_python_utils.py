@@ -52,17 +52,6 @@ class Testing(unittest.TestCase):
         util.find_pattern_in_str(pattern, content)
         self.assertEqual(("lsm_ruc",), match)
 
-    def test_xml_parser(self):
-        """ Given an input CCPP xml file, check that the XML is loaded
-        as expected, and has a tag."""
-        test_file = os.path.join(
-              self.ushdir,
-              "test_data",
-              "suite_FV3_GSD_SAR.xml",
-              )
-        tree = util.load_xml_file(test_file)
-        self.assertTrue(util.has_tag_with_value(tree, "scheme", "lsm_ruc"))
-
     def test_check_for_preexist_dir_file(self):
         """ Test that when an existing directory should be renamed, it
         still exists and that a new directory is made"""
