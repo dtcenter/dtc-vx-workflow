@@ -405,4 +405,3 @@ class FunctionalTesting(unittest.TestCase):
             path = os.path.join(tmp_dir, "*")
             files_on_disk = glob.glob(path)
             self.assertEqual(len(files_on_disk), 8)
-

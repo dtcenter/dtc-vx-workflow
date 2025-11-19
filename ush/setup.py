@@ -655,31 +655,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if "data" in expt_config:
         expt_config.pop("data")
 
-    # Check for the user-specified directories for external model files if
-    # USE_USER_STAGED_EXTRN_FILES is set to TRUE
-    task_keys = zip(
-        [get_extrn_ics, get_extrn_lbcs],
-        ["EXTRN_MDL_SOURCE_BASEDIR_ICS", "EXTRN_MDL_SOURCE_BASEDIR_LBCS"],
-    )
-
-    for task, data_key in task_keys:
-        use_staged_extrn_files = task["USE_USER_STAGED_EXTRN_FILES"]
-        if use_staged_extrn_files:
-            basedir = task[data_key]
-            # Check for the base directory up to the first templated field.
-            idx = basedir.find("$")
-            if idx == -1:
-                idx = len(basedir)
-
-            if not os.path.exists(basedir[:idx]):
-                raise FileNotFoundError(
-                    f'''
-                    The user-staged-data directory does not exist.
-                    Please point to the correct path where your external
-                    model files are stored.
-                      {data_key} = \"{basedir}\"'''
-                )
-
     #
     # -----------------------------------------------------------------------
     #

@@ -6,36 +6,15 @@ metadata:
 user:
   RUN_ENVIR: community
 workflow:
-  CCPP_PHYS_SUITE: FV3_GFS_v17_p8
   PREDEF_GRID_NAME: RRFS_CONUScompact_25km
   DATE_FIRST_CYCL: '2022020300'
   DATE_LAST_CYCL: '2022020300'
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-    - parm/wflow/prep.yaml
-    - parm/wflow/coldstart.yaml
-    - parm/wflow/post.yaml
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
-    - parm/wflow/test.yaml
-task_run_fcst:
-  fv3:
-    execution:
-      batchargs:
-        walltime: 01:00:00
-task_get_extrn_ics:
-  envvars:
-    USE_USER_STAGED_EXTRN_FILES: true
-    EXTRN_MDL_NAME_ICS: FV3GFS
-    FV3GFS_FILE_FMT_ICS: netcdf
-task_get_extrn_lbcs:
-  envvars:
-    USE_USER_STAGED_EXTRN_FILES: true
-    EXTRN_MDL_NAME_LBCS: FV3GFS
-    FV3GFS_FILE_FMT_LBCS: netcdf
-    LBC_SPEC_INTVL_HRS: 3
 global:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 10
@@ -43,6 +22,7 @@ verification:
   VX_FIELD_GROUPS: [ "APCP", "ASNOW", "REFC", "RETOP", "SFC", "UPA" ]
   OBS_NOHRSC_FN_TEMPLATES: [ 'ASNOW',
                              '{valid?fmt=%Y%m%d}/sfav2_CONUS_{{ "%02d" % verification.NOHRSC_OBS_AVAIL_INTVL_HRS }}h_{valid?fmt=%Y%m%d%H}_grid184.grb2' ]
+  VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/UFS/workdir/test_develop/2025-11-18/intel/expt_dirs/MET_ensemble_verification_winter_wx'
   VX_TASKS: 4
   VX_MASK: ["CONUS"]
 
