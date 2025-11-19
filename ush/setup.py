@@ -189,8 +189,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                          set to a compatible handling method
         FileNotFoundError: If the path to a particular file does not exist or if the file itself
                            does not exist at the expected path
-        TypeError: If ``USE_CUSTOM_POST_CONFIG_FILE`` or ``USE_CRTM`` are set to true but no
-                   corresponding custom configuration file or CRTM fix file directory is set
         KeyError: If an invalid value is provided (i.e., for ``GRID_GEN_METHOD``)
     """
 
@@ -618,39 +616,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                 },
             }
 
-    #
-    # -----------------------------------------------------------------------
-    #
-    # ICS and LBCS settings and validation
-    #
-    # -----------------------------------------------------------------------
-    #
-    def _get_location(xcs, fmt, expt_cfg):
-        ics_lbcs = expt_cfg.get("data", {}).get("ics_lbcs")
-        if ics_lbcs is not None:
-            loc = ics_lbcs.get(xcs)
-            if not isinstance(loc, dict):
-                return loc
-            return loc.get(fmt, "")
-        return ""
-
-    # Get the paths to any platform-supported data streams
-    get_extrn_ics = expt_config["task_get_extrn_ics"]["envvars"]
-    extrn_mdl_sysbasedir_ics = _get_location(
-        get_extrn_ics["EXTRN_MDL_NAME_ICS"],
-        get_extrn_ics["FV3GFS_FILE_FMT_ICS"],
-        expt_config,
-    )
-    get_extrn_ics["EXTRN_MDL_SYSBASEDIR_ICS"] = extrn_mdl_sysbasedir_ics
-
-    get_extrn_lbcs = expt_config["task_get_extrn_lbcs"]["envvars"]
-    extrn_mdl_sysbasedir_lbcs = _get_location(
-        get_extrn_lbcs["EXTRN_MDL_NAME_LBCS"],
-        get_extrn_lbcs["FV3GFS_FILE_FMT_LBCS"],
-        expt_config,
-    )
-    get_extrn_lbcs["EXTRN_MDL_SYSBASEDIR_LBCS"] = extrn_mdl_sysbasedir_lbcs
-
     # remove the data key -- it's not needed beyond this point
     if "data" in expt_config:
         expt_config.pop("data")
@@ -716,53 +681,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                 {"attrs": {"group": "long_forecast"}, "spec": spec}
             )
 
-    # check the availability of restart intervals for restart capability of forecast
-    do_fcst_restart = fcst_config["envvars"]["DO_FCST_RESTART"]
-    lbc_spec_intvl_hrs = get_extrn_lbcs["LBC_SPEC_INTVL_HRS"]
-    if do_fcst_restart:
-        restart_interval = fcst_config["envvars"]["RESTART_INTERVAL"]
-        restart_hrs = []
-        if " " in str(restart_interval):
-            restart_hrs = restart_interval.split()
-        else:
-            restart_hrs.append(str(restart_interval))
-
-        for interval in restart_hrs:
-            if int(interval) % lbc_spec_intvl_hrs != 0:
-                raise ValueError(
-                    f"""
-                The restart interval is not divided by LBC_SPEC_INTVL_HRS:
-                  RESTART_INTERVAL = {interval}
-                  LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}"""
-                )
-
     # Check to make sure that mandatory forecast variables are set.
     global_sect = expt_config["global"]
 
     # Make sure the post output domain is set
     predef_grid_name = workflow_config["PREDEF_GRID_NAME"]
-
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Set the output directory locations
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Use env variables for NCO variables and create NCO directories
-    workflow_manager = expt_config["platform"]["WORKFLOW_MANAGER"]
-    if (
-        run_envir == "nco"
-        and workflow_manager == "rocoto"
-        and global_sect["DO_ENSEMBLE"]
-    ):
-        # Update the rocoto string for the fcst output location if
-        # running an ensemble in nco mode
-
-        ptmp = expt_config["nco"]["PTMP"]
-        envir = expt_config["nco"]["envir_default"]
-        rocoto_config["entities"]["FCST_DIR"] = \
-            f"{ptmp}/{envir}/tmp/run_fcst_mem#mem#.{{ workflow.WORKFLOW_ID }}_@Y@m@d@H"
 
     # create experiment dir
     Path(exptdir).mkdir(parents=True)
