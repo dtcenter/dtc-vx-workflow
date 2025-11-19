@@ -10,7 +10,6 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   platform
   workflow
   global
@@ -316,11 +315,7 @@ if [ $err -ne 0 ]; then
   message_txt="Error rendering template for METplus config.
      Contents of input are:
 $settings"
-  if [ "${RUN_ENVIR}" = "nco" ] && [ "${MACHINE}" = "WCOSS2" ]; then
-    err_exit "${message_txt}"
-  else
-    print_err_msg_exit "${message_txt}"
-  fi
+  print_err_msg_exit "${message_txt}"
 fi
 #
 #-----------------------------------------------------------------------

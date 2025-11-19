@@ -17,12 +17,10 @@ from pathlib import Path
 from textwrap import dedent
 
 
-from uwtools.api.config import get_ini_config, get_yaml_config, validate
+from uwtools.api.config import get_yaml_config, validate
 from uwtools.api.template import render
-from uwtools.config.formats.yaml import YAMLConfig
 
 from python_utils import (
-    dict_find,
     check_for_preexist_dir_file,
 )
 
@@ -33,7 +31,6 @@ from set_cycle_and_obs_timeinfo import (
     check_temporal_consistency_cumul_fields,
     get_obs_retrieve_times_by_day,
 )
-from set_gridparams_ESGgrid import set_gridparams_ESGgrid
 
 
 def load_config_for_setup(ushdir, default_config_path, user_config_path):
@@ -238,8 +235,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             Setting VERBOSE to \"TRUE\" because DEBUG has been set to \"TRUE\"..."""
         )
         workflow_config["VERBOSE"] = True
-
-    verbose = workflow_config["VERBOSE"]
 
     # The forecast length (in integer hours) cannot contain more than 3 characters.
     # Thus, its maximum value is 999.
@@ -630,9 +625,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     expt_config.dereference()
     workflow_config = expt_config["workflow"]
-    fcst_config = expt_config["task_run_fcst"]
-
-    run_envir = expt_config["user"]["RUN_ENVIR"]
 
     # set varying forecast lengths only when fcst_len_hrs=-1
     if fcst_len_hrs == -1:
@@ -683,9 +675,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Check to make sure that mandatory forecast variables are set.
     global_sect = expt_config["global"]
-
-    # Make sure the post output domain is set
-    predef_grid_name = workflow_config["PREDEF_GRID_NAME"]
 
     # create experiment dir
     Path(exptdir).mkdir(parents=True)

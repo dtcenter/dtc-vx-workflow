@@ -2,7 +2,6 @@ metadata:
   description: >-
     Sample community config
 user:
-  RUN_ENVIR: community
   MACHINE: HERA
   ACCOUNT: an_account
 workflow:

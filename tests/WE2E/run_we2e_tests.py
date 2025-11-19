@@ -45,7 +45,6 @@ def run_we2e_tests(homedir, args) -> None:
     ushdir = Path(homedir, "ush")
 
     # Set some variables based on input arguments
-    run_envir = args.run_envir
     machine = args.machine.lower()
 
     # Derecho requires long delay between calls to rocotorun due to system-level cacheing of
@@ -54,11 +53,6 @@ def run_we2e_tests(homedir, args) -> None:
         if args.delay < 60:
             logging.info("Derecho requires 60 second delay between calls to rocotorun")
             args.delay=60
-
-    # Check for invalid input
-    if run_envir:
-        if run_envir not in ["nco", "community"]:
-            raise KeyError(f"Invalid 'run_envir' provided: {run_envir}")
 
     alltests = glob.glob("test_configs/**/config*.yaml", recursive=True)
     testdirs = next(os.walk("test_configs"))[1]
@@ -91,8 +85,6 @@ def run_we2e_tests(homedir, args) -> None:
                         logging.debug(f"Skipping non-test file {filename}")
                 logging.debug(f"Will check all tests:\n{tests_to_check}")
             elif user_spec_tests[0] in ["fundamental", "comprehensive", "coverage"]:
-                # I am writing this section of code under protest; we should use args.run_envir to
-                # check for run_envir-specific files!
                 prefix = f"machine_suites/{user_spec_tests[0]}"
                 testfilenames = [
                     f"{prefix}.{machine}.{args.compiler}.nco",
@@ -103,13 +95,6 @@ def run_we2e_tests(homedir, args) -> None:
                 ]
                 for i, testfilename in enumerate(testfilenames):
                     if Path(testfilename).is_file():
-                        if i == 1 and not run_envir:
-                            run_envir = "community"
-                            logging.debug(
-                                f"{testfilename} exists for this platform and run_envir"
-                                "has not been specified\n"
-                                "Setting run_envir = {run_envir} for all tests"
-                            )
                         break
 
                 logging.debug(f"Reading test file: {testfilename}")
@@ -203,9 +188,6 @@ def run_we2e_tests(homedir, args) -> None:
                 "USE_CRON_TO_RELAUNCH": args.launch == "cron",
                 },
         }
-
-        if run_envir:
-            test_config_updates["user"].update({"RUN_ENVIR": run_envir})
 
         workflow = test_config_updates["workflow"]
         # Adds an item to the dict only if it has a value
@@ -665,13 +647,6 @@ if __name__ == "__main__":
 
     optional.add_argument(
         "--modulefile", type=str, help="Modulefile used for building the app"
-    )
-    optional.add_argument(
-        "--run_envir",
-        type=str,
-        help='Overrides RUN_ENVIR variable to a new value ("nco" or "community") '
-        "for all experiments",
-        default="",
     )
     optional.add_argument(
         "--expt_basedir",

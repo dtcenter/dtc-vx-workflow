@@ -10,13 +10,11 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   platform
   workflow
   global
   verification
   constants
-  task_run_post.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -132,22 +130,17 @@ set_vx_params \
 #
 vx_fcst_input_basedir=$( eval echo "${VX_FCST_INPUT_BASEDIR}" )
 vx_output_basedir=$( eval echo "${VX_OUTPUT_BASEDIR}" )
-if [ "${RUN_ENVIR}" = "nco" ]; then
-  slash_cdate_or_null=""
-else
-  slash_cdate_or_null="/${CDATE}"
-fi
 
 if [ "${grid_or_point}" = "grid" ]; then
 
   case "${FIELDNAME_IN_MET_FILEDIR_NAMES}" in
     "APCP"*)
-      OBS_INPUT_DIR="${vx_output_basedir}${slash_cdate_or_null}/obs/metprd/PcpCombine_obs"
+      OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
       FCST_INPUT_DIR="${vx_output_basedir}"
       ;;
     "ASNOW"*)
-      OBS_INPUT_DIR="${vx_output_basedir}${slash_cdate_or_null}/obs/metprd/PcpCombine_obs"
+      OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
       FCST_INPUT_DIR="${vx_output_basedir}"
       ;;
@@ -183,11 +176,7 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
   ensmem_indx=$(printf "%0${VX_NDIGITS_ENSMEM_NAMES}d" "$((i+1))")
   ensmem_name="mem${ensmem_indx}"
 
-  if [ "${RUN_ENVIR}" = "nco" ]; then
-    cdate_ensmem_subdir_or_null=""
-  else
     cdate_ensmem_subdir_or_null="${CDATE}/${ensmem_name}"
-  fi
 
   time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*${SECS_PER_HOUR}" )
 
@@ -205,7 +194,7 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
 
 done
 
-OUTPUT_BASE="${vx_output_basedir}${slash_cdate_or_null}"
+OUTPUT_BASE="${vx_output_basedir}/${CDATE}"
 OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}"
 STAGING_DIR="${OUTPUT_BASE}/stage/${FIELDNAME_IN_MET_FILEDIR_NAMES}"
 #
@@ -443,11 +432,7 @@ if [ $err -ne 0 ]; then
   message_txt="Error rendering template for METplus config.
      Contents of input are:
 $settings"
-  if [ "${RUN_ENVIR}" = "nco" ] && [ "${MACHINE}" = "WCOSS2" ]; then
-    err_exit "${message_txt}"
-  else
-    print_err_msg_exit "${message_txt}"
-  fi
+  print_err_msg_exit "${message_txt}"
 fi
 #
 #-----------------------------------------------------------------------

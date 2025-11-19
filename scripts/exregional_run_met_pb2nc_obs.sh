@@ -10,7 +10,6 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   platform
   workflow
   global
@@ -274,16 +273,6 @@ metplus_config_tmpl_fn="${MetplusToolName}_obs"
 # Thus, another method is necessary to associate the configuration file
 # with the cycle for which it is used.
 #
-# Note also that if considering an ensemble forecast, we include the
-# ensemble member name to the config file name.  This is necessary in
-# NCO mode (i.e. when RUN_ENVIR = "nco") because in that mode, the
-# directory tree under which the configuration file is placed does not
-# contain member information, so the file names must include it.  It is
-# not necessary in community mode (i.e. when RUN_ENVIR = "community")
-# because in that case, the directory structure does contain the member
-# information, but we still include that info in the file name so that
-# the behavior in the two modes is as similar as possible.
-#
 metplus_config_fn="${metplus_config_tmpl_fn}_NDAS_${CDATE}"
 metplus_log_fn="${metplus_config_fn}_NDAS"
 #
@@ -362,11 +351,7 @@ if [ $err -ne 0 ]; then
   message_txt="Error rendering template for METplus config.
      Contents of input are:
 $settings"
-  if [ "${RUN_ENVIR}" = "nco" ] && [ "${MACHINE}" = "WCOSS2" ]; then
-    err_exit "${message_txt}"
-  else
-    print_err_msg_exit "${message_txt}"
-  fi
+  print_err_msg_exit "${message_txt}"
 fi
 #
 #-----------------------------------------------------------------------

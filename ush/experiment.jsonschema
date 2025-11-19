@@ -62,21 +62,6 @@
     "platform": {
       "additionalProperties": true,
       "properties": {
-        "FIXaer": {
-          "type": "string"
-        },
-        "FIXgsm": {
-          "type": "string"
-        },
-        "FIXlut": {
-          "type": "string"
-        },
-        "FIXorg": {
-          "type": "string"
-        },
-        "FIXsfc": {
-          "type": "string"
-        },
         "NCORES_PER_NODE": {
           "minimum": 1,
           "type": "integer"
@@ -101,83 +86,9 @@
         }
       },
       "required": [
-        "NCORES_PER_NODE",
-        "FIXaer",
-        "FIXgsm",
-        "FIXlut",
-        "FIXorg",
-        "FIXsfc"
+        "NCORES_PER_NODE"
       ],
       "type": "object"
-    },
-    "task_get_extrn_ics": {
-      "additionalProperties": true,
-      "properties": {
-        "envvars": {
-          "properties": {
-            "EXTRN_MDL_NAME_ICS": {
-              "enum": [
-                "FV3GFS",
-                "GDAS",
-                "GEFS",
-                "GSMGFS",
-                "HRRR",
-                "NAM",
-                "RAP",
-                "RRFS",
-                "UFS-CASE-STUDY"
-              ],
-              "type": "string"
-            },
-            "FV3GFS_FILE_FMT_ICS": {
-              "enum": [
-                "nemsio",
-                "grib2",
-                "netcdf"
-              ],
-              "type": "string"
-            },
-          "type": "object"
-          }
-        },
-        "USE_USER_STAGED_EXTRN_FILES": {
-          "type": "boolean"
-        }
-      }
-    },
-    "task_get_extrn_lbcs": {
-      "additionalProperties": true,
-      "properties": {
-        "envvars": {
-          "properties": {
-            "EXTRN_MDL_NAME_LBCS": {
-              "enum": [
-                "FV3GFS",
-                "GDAS",
-                "GEFS",
-                "GSMGFS",
-                "HRRR",
-                "NAM",
-                "RAP",
-                "RRFS",
-                "UFS-CASE-STUDY"
-              ],
-              "type": "string"
-            },
-            "FV3GFS_FILE_FMT_LBCS": {
-              "enum": [
-                "nemsio",
-                "grib2",
-                "netcdf"
-              ],
-              "type": "string"
-            },
-            "USE_USER_STAGED_EXTRN_FILES": {
-              "type": "boolean"
-            }
-          }
-        }
-      }
     },
     "user": {
       "additionalProperties": true,
@@ -185,8 +96,6 @@
         "MACHINE": {
           "enum": [
             "DERECHO",
-            "GAEAC5",
-            "GAEAC6",
             "HERA",
             "HERCULES",
             "JET",
@@ -195,16 +104,8 @@
             "NOAACLOUD",
             "ORION",
             "SINGULARITY",
-            "STAMPEDE",
             "URSA",
             "WCOSS2"
-          ],
-          "type": "string"
-        },
-        "RUN_ENVIR": {
-          "enum": [
-            "nco",
-            "community"
           ],
           "type": "string"
         }

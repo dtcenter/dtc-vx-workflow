@@ -10,13 +10,11 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   platform
   workflow
   global
   verification
   constants
-  task_run_post.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -151,12 +149,6 @@ vx_output_basedir=$( eval echo "${VX_OUTPUT_BASEDIR}" )
 if [ "${FCST_OR_OBS}" = "FCST" ]; then
   ensmem_indx=$(printf "%0${VX_NDIGITS_ENSMEM_NAMES}d" $(( 10#${ENSMEM_INDX})))
   ensmem_name="mem${ensmem_indx}"
-  if [ "${RUN_ENVIR}" = "nco" ]; then
-    slash_cdate_or_null=""
-    slash_ensmem_subdir_or_null=""
-    slash_obs_or_null=""
-  else
-    slash_cdate_or_null="/${CDATE}"
   #
   # Since other aspects of a deterministic run use the "mem000" string (e.g.
   # in rocoto workflow task names, in log file names), it seems reasonable
@@ -174,9 +166,7 @@ if [ "${FCST_OR_OBS}" = "FCST" ]; then
     else
       slash_ensmem_subdir_or_null=""
     fi
-  fi
 elif [ "${FCST_OR_OBS}" = "OBS" ]; then
-  slash_cdate_or_null="/${CDATE}"
   if [ $(boolify "${DO_ENSEMBLE}") = "TRUE" ]; then
     slash_obs_or_null="/obs"
   else
@@ -195,7 +185,7 @@ if [ "${FCST_OR_OBS}" = "FCST" ]; then
   FCST_INPUT_DIR="${vx_fcst_input_basedir}"
   FCST_INPUT_FN_TEMPLATE=$( eval echo ${FCST_SUBDIR_TEMPLATE:+${FCST_SUBDIR_TEMPLATE}/}${FCST_FN_TEMPLATE} )
 
-  OUTPUT_BASE="${vx_output_basedir}${slash_cdate_or_null}${slash_ensmem_subdir_or_null}"
+  OUTPUT_BASE="${vx_output_basedir}/${CDATE}${slash_ensmem_subdir_or_null}"
   OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}_fcst"
   OUTPUT_FN_TEMPLATE=$( eval echo ${FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT} )
   STAGING_DIR="${OUTPUT_BASE}/stage/${FIELDNAME_IN_MET_FILEDIR_NAMES}"
@@ -225,7 +215,7 @@ elif [ "${FCST_OR_OBS}" = "OBS" ]; then
   fn_template=$(eval echo \${OBS_${OBTYPE}_FN_TEMPLATES[1]})
   OBS_INPUT_FN_TEMPLATE=$( eval echo ${fn_template} )
 
-  OUTPUT_BASE="${vx_output_basedir}${slash_cdate_or_null}${slash_obs_or_null}"
+  OUTPUT_BASE="${vx_output_basedir}/${CDATE}${slash_obs_or_null}"
   OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}_obs"
   fn_template=$(eval echo \${OBS_${OBTYPE}_${FIELD_GROUP}_FN_TEMPLATE_PCPCOMBINE_OUTPUT})
   OUTPUT_FN_TEMPLATE=$( eval echo ${fn_template} )
@@ -453,11 +443,7 @@ if [ $err -ne 0 ]; then
   message_txt="Error rendering template for METplus config.
      Contents of input are:
 $settings"
-  if [ "${RUN_ENVIR}" = "nco" ] && [ "${MACHINE}" = "WCOSS2" ]; then
-    err_exit "${message_txt}"
-  else
-    print_err_msg_exit "${message_txt}"
-  fi
+  print_err_msg_exit "${message_txt}"
 fi
 #
 #-----------------------------------------------------------------------

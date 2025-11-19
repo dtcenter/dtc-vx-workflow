@@ -36,7 +36,6 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   workflow
   task_integration_test.envvars
 )
@@ -87,11 +86,7 @@ This is the J-job script for the regional integration test task
 #
 #-----------------------------------------------------------------------
 #
-if [ "${RUN_ENVIR}" != "nco" ]; then
-  export fcst_dir="${FCST_DIR}${SLASH_ENSMEM_SUBDIR}"
-else
-  export fcst_dir="${FCST_DIR}"
-fi
+export fcst_dir="${FCST_DIR}"
 #
 #-----------------------------------------------------------------------
 #

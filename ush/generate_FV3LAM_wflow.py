@@ -12,19 +12,12 @@ import logging
 import os
 import shutil
 import sys
-from glob import glob
 from pathlib import Path
 from stat import S_IXUSR
 from string import Template
 from textwrap import dedent
 
 from python_utils import (
-    cfg_to_yaml_str,
-    check_for_preexist_dir_file,
-    dict_find,
-    export_vars,
-    flatten_dict,
-    import_vars,
     list_to_str,
     log_info,
 )
@@ -33,7 +26,6 @@ from setup import setup
 from get_crontab_contents import add_crontab_line
 from check_python_version import check_python_version
 
-from uwtools.api.config import get_nml_config, get_yaml_config, realize
 from uwtools.api import rocoto as uwrocoto
 
 
@@ -159,7 +151,6 @@ def generate_FV3LAM_wflow(
             debug=debug,
         )
 
-    platform_config = expt_config["platform"]
     #
     # -----------------------------------------------------------------------
     #

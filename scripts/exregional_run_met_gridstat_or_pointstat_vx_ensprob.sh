@@ -10,13 +10,11 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   platform
   workflow
   global
   verification
   constants
-  task_run_post.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -121,21 +119,16 @@ set_vx_params \
 #-----------------------------------------------------------------------
 #
 vx_output_basedir=$( eval echo "${VX_OUTPUT_BASEDIR}" )
-if [ "${RUN_ENVIR}" = "nco" ]; then
-  slash_cdate_or_null=""
-else
-  slash_cdate_or_null="/${CDATE}"
-fi
 
 if [ "${grid_or_point}" = "grid" ]; then
 
   case "${FIELDNAME_IN_MET_FILEDIR_NAMES}" in
     "APCP"*)
-      OBS_INPUT_DIR="${vx_output_basedir}${slash_cdate_or_null}/obs/metprd/PcpCombine_obs"
+      OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
       ;;
     "ASNOW"*)
-      OBS_INPUT_DIR="${vx_output_basedir}${slash_cdate_or_null}/obs/metprd/PcpCombine_obs"
+      OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
       ;;
     "REFC")
@@ -155,10 +148,10 @@ elif [ "${grid_or_point}" = "point" ]; then
 
 fi
 OBS_INPUT_FN_TEMPLATE=$( eval echo ${OBS_INPUT_FN_TEMPLATE} )
-FCST_INPUT_DIR="${vx_output_basedir}${slash_cdate_or_null}/metprd/GenEnsProd"
+FCST_INPUT_DIR="${vx_output_basedir}/${CDATE}/metprd/GenEnsProd"
 FCST_INPUT_FN_TEMPLATE=$( eval echo 'gen_ens_prod_${VX_FCST_MODEL_NAME}_${FIELDNAME_IN_MET_FILEDIR_NAMES}_${OBTYPE}_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc' )
 
-OUTPUT_BASE="${vx_output_basedir}${slash_cdate_or_null}"
+OUTPUT_BASE="${vx_output_basedir}/${CDATE}"
 OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}_ensprob"
 STAGING_DIR="${OUTPUT_BASE}/stage/${FIELDNAME_IN_MET_FILEDIR_NAMES}_ensprob"
 #
@@ -386,11 +379,7 @@ if [ $err -ne 0 ]; then
   message_txt="Error rendering template for METplus config.
      Contents of input are:
 $settings"
-  if [ "${RUN_ENVIR}" = "nco" ] && [ "${MACHINE}" = "WCOSS2" ]; then
-    err_exit "${message_txt}"
-  else
-    print_err_msg_exit "${message_txt}"
-  fi
+  print_err_msg_exit "${message_txt}"
 fi
 #
 #-----------------------------------------------------------------------

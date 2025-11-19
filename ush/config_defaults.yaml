@@ -10,19 +10,6 @@ metadata:
 #
 user:
 
-  ###
-  # (Default: ``"nco"``)
-  # 
-  # This variable determines the workflow mode. The user can choose between two options: "nco" and "community". The "nco" mode uses a directory structure that mimics what is used in operations at NOAA/NCEP Central Operations (NCO) and at the NOAA/NCEP/Environmental Modeling Center (EMC), which works with NCO on pre-implementation testing. Specifics of the conventions used in "nco" mode can be found in the following :nco:`WCOSS Implementation Standards <>` document:
-  #
-  #   | NCEP Central Operations
-  #   | WCOSS Implementation Standards
-  #   | January 19, 2022
-  #   | Version 11.0.0
-  #
-  # Setting ``RUN_ENVIR`` to "community" is recommended in most cases for users who are not running in NCO's production environment. Valid values: ``"nco"`` | ``"community"``
-  #
-  RUN_ENVIR: "nco"
   #
   #-----------------------------------------------------------------------
   #
@@ -1055,90 +1042,6 @@ workflow:
   WARMSTART_CYCLE_DIR: "/path/to/warm/start/cycle/dir"
 
 #----------------------------
-# NCO specific variables
-#-----------------------------
-nco:
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set variables that are only used in NCO mode (i.e. when RUN_ENVIR is 
-  # set to "nco"). All variables have the suffix [_default] meaning the default value.
-  # This is because they are supposed to be defined in job cards for the 
-  # production using ecFlow.
-  #
-  # Definitions: 
-  #
-  # envir_default, NET_default, model_ver_default, RUN_default:
-  # Standard environment variables defined in the NCEP Central Operations WCOSS
-  # Implementation Standards document as follows:
-  #
-  #   envir_default:
-  #   Set to "test" during the initial testing phase, "para" when running
-  #   in parallel (on a schedule), and "prod" in production.
-  #
-  #   NET_default:
-  #   Model name (first level of com directory structure)
-  #
-  #   model_ver_default:
-  #   Version number of package in three digits (second level of com directory)
-  #
-  #   RUN_default:
-  #   Name of model run (third level of com directory structure).
-  #   In general, same as ${NET_default}.
-  #
-  # PTMP:
-  # User-defined path to the com type directories (OPSROOT=$PTMP/$envir).
-  #
-  # DBNROOT_default: 
-  # Root directory for the data-alerting utilities.
-  #
-  # SENDECF_default: 
-  # Boolean variable used to control ecflow_client child commands.
-  #
-  # SENDDBN_default: 
-  # Boolean variable used to control sending products off WCOSS2.
-  #
-  # SENDDBN_NTC_default: 
-  # Boolean variable used to control sending products with WMO 
-  # headers off WCOSS2.
-  #
-  # SENDCOM_default: 
-  # Boolean variable to control data copies to $COMOUT.
-  #
-  # SENDWEB_default: 
-  # Boolean variable used to control sending products to a web server, 
-  # often ncorzdm.
-  #
-  # KEEPDATA_default: 
-  # Boolean variable used to specify whether or not the working 
-  # directory should be kept upon successful job completion.
-  #
-  # MAILTO_default: 
-  # List of email addresses to send email to.
-  #
-  # MAILCC_default: 
-  # List of email addresses to CC on email.
-  #
-  #-----------------------------------------------------------------------
-  #
-  envir_default: "test"
-  NET_default: "srw"
-  RUN_default: "srw"
-  model_ver_default: "v1.0.0"
-
-  PTMP: '{{ workflow.EXPT_BASEDIR }}/../nco_dirs' 
-
-  DBNROOT_default: ""
-  SENDECF_default: "NO"
-  SENDDBN_default: "NO"
-  SENDDBN_NTC_default: "NO"
-  SENDCOM_default: "YES"
-  SENDWEB_default: "NO"
-  KEEPDATA_default: "YES"
-  MAILTO_default: ""
-  MAILCC_default: ""
-
-#----------------------------
 # MAKE GRID config parameters
 #-----------------------------
 task_make_grid:
@@ -2096,7 +1999,7 @@ verification:
   # Template for base (i.e. top-level) directory in which METplus will place
   # its output.
   #
-  VX_OUTPUT_BASEDIR: '{{ "$COMOUT/metout" if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
+  VX_OUTPUT_BASEDIR: '{{ workflow.EXPTDIR }}'
   #
   # METplus-Specific Parameters
   # -------------------------------
@@ -2367,7 +2270,7 @@ verification:
   # This is used in forming the names of the verification output files and
   # is also included in the contents of those files.
   #
-  VX_FCST_MODEL_NAME: '{{ nco.NET_default }}.{{ workflow.PREDEF_GRID_NAME | lower() }}'
+  VX_FCST_MODEL_NAME: 'srw.{{ workflow.PREDEF_GRID_NAME | lower() }}'
   #
   # VX_FCST_OUTPUT_INTVL_HRS:
   # The forecast output interval (in hours) to assume for verification
@@ -2384,19 +2287,19 @@ verification:
   # containing the forecast files to use as inputs to the verification
   # tasks.
   #
-  VX_FCST_INPUT_BASEDIR: '{{ "$COMOUT/../.." if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
+  VX_FCST_INPUT_BASEDIR: '{{ workflow.EXPTDIR }}'
   #
   # FCST_SUBDIR_TEMPLATE:
   # METplus template for the name of the subdirectory containing forecast
   # files to use as inputs to the verification tasks.
   #
-  FCST_SUBDIR_TEMPLATE: '{% if user.RUN_ENVIR == "nco" %}{{ nco.NET_default }}.{init?fmt=%Y%m%d?shift=-${time_lag}}/{init?fmt=%H?shift=-${time_lag}}{% else %}{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd{% endif %}'
+  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd'
   #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
   # to the verification tasks.
   # 
-  FCST_FN_TEMPLATE: '{{ nco.NET_default }}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
+  FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
   #
   # FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT:
   # METplus template for the names of the NetCDF files generated by the
@@ -2404,7 +2307,7 @@ verification:
   # forecast output.  These files will contain forecast accumulated
   # precipitation in NetCDF format for various accumulation intervals.
   #
-  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ nco.NET_default }}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.{{ verification.VX_FCST_MODEL_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc'
+  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'srw.t{init?fmt=%H}z.prslev.{{ verification.VX_FCST_MODEL_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc'
   #
   # VX_NDIGITS_ENSMEM_NAMES:
   # Number of digits to assume/use in the forecast ensemble member identifier

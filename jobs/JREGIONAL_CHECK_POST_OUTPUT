@@ -33,7 +33,6 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  nco
   workflow
 )
 for sect in ${sections[*]} ; do
