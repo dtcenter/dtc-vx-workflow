@@ -15,9 +15,7 @@ sections=(
   workflow
   global
   verification
-  cpl_aqm_parm
   constants
-  fixed_files
   task_run_post.envvars
 )
 for sect in ${sections[*]} ; do

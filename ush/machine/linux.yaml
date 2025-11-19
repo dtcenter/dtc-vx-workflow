@@ -29,8 +29,3 @@ data:
   ics_lbcs:
     FV3GFS: /home/username/DATA/UFS/FV3GFS
 
-rocoto:
-  tasks:
-    metatask_run_ensemble:
-      task_run_fcst_mem#mem#:
-        native: '--cpus-per-task {{ task_run_fcst.fv3.execution.threads // 1 }} --exclusive'

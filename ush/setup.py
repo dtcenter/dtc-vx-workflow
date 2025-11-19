@@ -21,7 +21,6 @@ from uwtools.api.config import get_ini_config, get_yaml_config, validate
 from uwtools.api.template import render
 from uwtools.config.formats.yaml import YAMLConfig
 
-from link_fix import link_fix
 from python_utils import (
     dict_find,
     check_for_preexist_dir_file,
@@ -36,7 +35,6 @@ from set_cycle_and_obs_timeinfo import (
     check_temporal_consistency_cumul_fields,
     get_obs_retrieve_times_by_day,
 )
-from set_predef_grid_params import set_predef_grid_params
 from set_gridparams_ESGgrid import set_gridparams_ESGgrid
 
 
@@ -102,10 +100,6 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     logging.debug(f"Loading machine defaults file {machine_file}")
     machine_config = get_yaml_config(machine_file)
 
-    # Load the fixed files configuration
-    fix_file_config = get_yaml_config(
-        ushdir.parent / "parm" / "fixed_files_mapping.yaml"
-    )
 
     # Load the constants file
     constants = get_yaml_config(ushdir / "constants.yaml")
@@ -119,7 +113,6 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
         constants,
         workflow_config,
         machine_config,
-        fix_file_config,
         user_config,
     ):
         default_config.update_from(cfg)
@@ -331,32 +324,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     rocoto_config = expt_config["rocoto"]
     rocoto_tasks = rocoto_config["tasks"]
-    run_make_grid = rocoto_tasks.get("task_make_grid") is not None
-    run_make_orog = rocoto_tasks.get("task_make_orog") is not None
-    run_make_sfc_climo = rocoto_tasks.get("task_make_sfc_climo") is not None
-
-    # Also set some flags that will be needed later
-    run_make_ics = dict_find(rocoto_tasks, "task_make_ics")
-    run_make_lbcs = dict_find(rocoto_tasks, "task_make_lbcs")
-    run_run_fcst = dict_find(rocoto_tasks, "task_run_fcst")
-    run_any_coldstart_task = run_make_ics or \
-                             run_make_lbcs or \
-                             run_run_fcst
-    run_run_post = dict_find(rocoto_tasks, "task_run_post")
-
-    # Necessary tasks are turned on
-    pregen_basedir = expt_config["platform"]["DOMAIN_PREGEN_BASEDIR"]
-    if pregen_basedir is None and not (
-        run_make_grid and run_make_orog and run_make_sfc_climo
-    ):
-        raise ValueError(
-            f"""
-            DOMAIN_PREGEN_BASEDIR must be set when any of the following
-            tasks are not included in the workflow:
-                RUN_MAKE_GRID = {run_make_grid}
-                RUN_MAKE_OROG = {run_make_orog}
-                RUN_MAKE_SFC_CLIMO = {run_make_sfc_climo}"""
-        )
 
     # A batch system account is specified
     if expt_config["platform"]["WORKFLOW_MANAGER"] != "":
@@ -395,12 +362,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         partition = expt_config["platform"].get(part)
         if not partition:
             _remove_tag(rocoto_tasks, "partition")
-
-    # When not running subhourly post, remove those tasks, if they exist
-    if not expt_config["task_run_post"]["envvars"]["SUB_HOURLY_POST"]:
-        post_meta = rocoto_tasks.get("metatask_run_ens_post", {})
-        post_meta.pop("metatask_run_sub_hourly_post", None)
-        post_meta.pop("metatask_sub_hourly_last_hour_post", None)
 
     date_first_cycl = workflow_config["DATE_FIRST_CYCL"]
     date_last_cycl = workflow_config["DATE_LAST_CYCL"]
@@ -645,9 +606,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         #
         # -------------------------------------------------------------------
         #
-        run_post = rocoto_config["tasks"].get("metatask_run_ens_post")
         run_vx_check = rocoto_config["tasks"].get("metatask_check_post_output_all_mems")
-        if not run_post and run_vx_check:
+        if run_vx_check:
             run_vx_check["task_check_post_output_mem#mem#"]["dependency"] = {
                 "or": {
                     "and": {
@@ -722,39 +682,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                       {data_key} = \"{basedir}\"'''
                 )
 
-    # Make sure the vertical coordinate file and LEVP for both make_lbcs and make_ics is the same.
-    make_ics_config = expt_config["task_make_ics"]["envvars"]
-    make_lbcs_config = expt_config["task_make_ics"]["envvars"]
-    if ics_vcoord := make_ics_config["VCOORD_FILE"] != (
-        lbcs_vcoord := make_lbcs_config["VCOORD_FILE"]
-    ):
-        raise ValueError(
-            f"""
-             The VCOORD_FILE must be set to the same value for both the
-             make_ics task and the make_lbcs task. They are currently
-             set to:
-
-             make_ics:
-               VCOORD_FILE: {ics_vcoord}
-
-             make_lbcs:
-               VCOORD_FILE: {lbcs_vcoord}
-             """
-        )
-    if ics_levp := make_ics_config["LEVP"] != (lbcs_levp := make_lbcs_config["LEVP"]):
-        raise ValueError(
-            f"""
-             The number of vertical levels LEVP must be set to the same value for both the
-             make_ics task and the make_lbcs tasks. They are currently set to:
-
-             make_ics:
-               LEVP: {ics_levp}
-
-             make_lbcs:
-               LEVP: {lbcs_levp}
-             """
-        )
-
     #
     # -----------------------------------------------------------------------
     #
@@ -766,7 +693,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     expt_config.dereference()
     workflow_config = expt_config["workflow"]
     fcst_config = expt_config["task_run_fcst"]
-    grid_config = expt_config["task_make_grid"]
 
     run_envir = expt_config["user"]["RUN_ENVIR"]
 
@@ -837,164 +763,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                   LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}"""
                 )
 
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Set parameters according to the type of horizontal grid generation
-    # method specified.
-    #
-    # -----------------------------------------------------------------------
-    #
-
-    grid_gen_method = workflow_config["GRID_GEN_METHOD"]
-    if grid_gen_method == "ESGgrid":
-        grid_params = set_gridparams_ESGgrid(
-            lon_ctr=grid_config["ESGgrid_LON_CTR"],
-            lat_ctr=grid_config["ESGgrid_LAT_CTR"],
-            nx=grid_config["ESGgrid_NX"],
-            ny=grid_config["ESGgrid_NY"],
-            pazi=grid_config["ESGgrid_PAZI"],
-            halo_width=grid_config["ESGgrid_WIDE_HALO_WIDTH"],
-            delx=grid_config["ESGgrid_DELX"],
-            dely=grid_config["ESGgrid_DELY"],
-            constants=expt_config["constants"],
-        )
-        expt_config["grid_params"] = grid_params
-    elif not run_any_coldstart_task:
-        logger.warning("No coldstart tasks specified, not setting grid parameters")
-    else:
-        errmsg = dedent(
-            f"""
-            Valid value of GRID_GEN_METHOD is ESGgrid.
-            The value provided is:
-              GRID_GEN_METHOD = {grid_gen_method}
-            """
-        )
-        raise KeyError(errmsg) from None
-
     # Check to make sure that mandatory forecast variables are set.
     global_sect = expt_config["global"]
-    if run_run_fcst:
-        vlist = [
-            "LAYOUT_X",
-            "LAYOUT_Y",
-            "BLOCKSIZE",
-        ]
-        msg = "Mandatory variable task_run_fcst.{val} has not been set."
-        for val in vlist:
-            if not fcst_config.get(val):
-                raise ValueError(msg.format(val=val))
-        if not isinstance(fcst_config["envvars"]["DT_ATMOS"], int):
-            raise ValueError(msg.format(val="envvars.DT_ATMOS"))
-
-        # Check whether the forecast length (FCST_LEN_HRS) is evenly divisible
-        # by the BC update interval (LBC_SPEC_INTVL_HRS). If so, generate an
-        # array of forecast hours at which the boundary values will be updated.
-
-        rem = fcst_len_hrs % lbc_spec_intvl_hrs
-        if rem != 0 and fcst_len_hrs > 0:
-            raise ValueError(
-                f"""
-                The forecast length (FCST_LEN_HRS) is not evenly divisible by the lateral
-                boundary conditions update interval (LBC_SPEC_INTVL_HRS):
-                  FCST_LEN_HRS = {fcst_len_hrs}
-                  LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}
-                  rem = FCST_LEN_HRS%%LBC_SPEC_INTVL_HRS = {rem}"""
-            )
-
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Post-processing validation and settings
-    #
-    # -----------------------------------------------------------------------
-    #
-
-    # If using external CRTM fix files to allow post-processing of synthetic
-    # satellite products from the UPP, make sure the CRTM fix file directory exists.
-    if global_sect["USE_CRTM"]:
-        crtm_dir = global_sect["CRTM_DIR"]
-        if crtm_dir:
-            crtm_dir = Path(crtm_dir)
-        else:
-            raise ValueError("CRTM_DIR is not set.")
-        if not crtm_dir.exists():
-            raise FileNotFoundError(
-                dedent(
-                    f"""
-                The user-supplied CRTM fix file directory does not exist:
-                CRTM_DIR = {str(crtm_dir)}
-                """
-                )
-            )
-
-    # If performing sub-hourly model output and post-processing, check that
-    # the output interval DT_SUBHOURLY_POST_MNTS (in minutes) is specified
-    # correctly.
-    post_config = expt_config["task_run_post"]
-    if post_config["envvars"]["SUB_HOURLY_POST"]:
-
-        # Subhourly post should be set with minutes between 1 and 59 for
-        # real subhourly post to be performed.
-        dt_subhourly_post_mnts = post_config["envvars"]["DT_SUBHOURLY_POST_MNTS"]
-        if dt_subhourly_post_mnts == 0:
-            logger.warning(
-                f"""
-                When performing sub-hourly post (i.e. SUB_HOURLY_POST set to \"TRUE\"),
-                DT_SUBHOURLY_POST_MNTS must be set to a value greater than 0; otherwise,
-                sub-hourly output is not really being performed:
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"
-                Resetting SUB_HOURLY_POST to \"FALSE\".  If you do not want this, you
-                must set DT_SUBHOURLY_POST_MNTS to something other than zero."""
-            )
-            post_config["SUB_HOURLY_POST"] = False
-
-        if dt_subhourly_post_mnts < 1 or dt_subhourly_post_mnts > 59:
-            raise ValueError(
-                f'''
-                When SUB_HOURLY_POST is set to \"TRUE\",
-                DT_SUBHOURLY_POST_MNTS must be set to an integer between 1 and 59,
-                inclusive but:
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"'''
-            )
-
-        # Check that DT_SUBHOURLY_POST_MNTS (after converting to seconds) is
-        # evenly divisible by the forecast model's main time step DT_ATMOS.
-        dt_atmos = fcst_config["envvars"]["DT_ATMOS"]
-        rem = dt_subhourly_post_mnts * 60 % dt_atmos
-        if rem != 0:
-            raise ValueError(
-                f"""
-                When SUB_HOURLY_POST is set to \"TRUE\") the post
-                processing interval in seconds must be evenly divisible
-                by the time step DT_ATMOS used in the forecast model,
-                i.e. the remainder must be zero.  In this case, it is
-                not:
-
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"
-                  DT_ATMOS = \"{dt_atmos}\"
-                  remainder = (DT_SUBHOURLY_POST_MNTS*60) %% DT_ATMOS = {rem}
-
-                Please reset DT_SUBHOURLY_POST_MNTS and/or DT_ATMOS so
-                that this remainder is zero."""
-            )
 
     # Make sure the post output domain is set
     predef_grid_name = workflow_config["PREDEF_GRID_NAME"]
-    post_output_domain_name = post_config["envvars"]["POST_OUTPUT_DOMAIN_NAME"]
-
-    if not post_output_domain_name:
-        if not predef_grid_name and run_run_post:
-            raise ValueError(
-                f"""
-                The domain name used in naming the run_post output files
-                (POST_OUTPUT_DOMAIN_NAME) has not been set:
-                POST_OUTPUT_DOMAIN_NAME = \"{post_output_domain_name}\"
-                If this experiment is not using a predefined grid (i.e. if
-                PREDEF_GRID_NAME is set to a null string), POST_OUTPUT_DOMAIN_NAME
-                must be set in the configuration file (\"{user_config_fn}\"). """
-            )
-        post_output_domain_name = predef_grid_name
 
     #
     # -----------------------------------------------------------------------
@@ -1043,120 +816,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
               workflow."""
         )
         raise ValueError(msg)
-
-    #
-    # -----------------------------------------------------------------------
-    # NOTE: currently this is executed no matter what, should it be
-    # dependent on the logic described below??
-    # If not running the TN_MAKE_GRID, TN_MAKE_OROG, and/or TN_MAKE_SFC_CLIMO
-    # tasks, create symlinks under the FIXlam directory to pregenerated grid,
-    # orography, and surface climatology files.
-    #
-    # -----------------------------------------------------------------------
-    #
-    fixlam = workflow_config["FIXlam"]
-    Path(fixlam).mkdir(parents=True)
-
-    #
-    # Use the pregenerated domain files if the tasks to generate them
-    # are turned off. Link the files, and check that they all contain
-    # the same resolution input.
-    #
-
-    # Flags for creating symlinks to pre-generated grid, orography, and sfc_climo files.
-    # These consider dependencies of other tasks on each pre-processing task.
-    fixed_files = expt_config["fixed_files"]
-
-    task_defs = rocoto_config["tasks"]
-    prep_tasks = ["GRID", "OROG", "SFC_CLIMO"]
-    res_in_fixlam_filenames = None
-    for prep_task in prep_tasks:
-        res_in_fns = ""
-        sect_key = f"task_make_{prep_task.lower()}"
-        # If the user doesn't want to run the given task, link the fix
-        # file from the staged files.
-        if not task_defs.get(sect_key) and run_run_fcst:
-            dir_key = f"{prep_task}_DIR"
-
-            task_dir = Path(pregen_basedir, predef_grid)
-            if not Path(task_dir).exists():
-                msg = dedent(
-                    f"""
-                    The directory ({dir_key}) that should contain the pregenerated
-                    {prep_task.lower()} files does not exist:
-                      {dir_key} = \"{task_dir}\"
-                    """
-                )
-                raise FileNotFoundError(msg)
-
-            expt_config[sect_key][dir_key] = str(task_dir)
-            msg = dedent(
-                f"""
-               {dir_key} will point to a location containing pre-generated files.
-               Setting {dir_key} = {task_dir}
-               """
-            )
-            logger.warning(msg)
-
-            # Link the fix files and check that their resolution is
-            # consistent
-            res_in_fns = link_fix(
-                verbose=verbose,
-                file_group=prep_task.lower(),
-                source_dir=task_dir,
-                target_dir=workflow_config["FIXlam"],
-                ccpp_phys_suite=ccpp_physics_suite,
-                constants=expt_config["constants"],
-                dot_or_uscore=workflow_config["DOT_OR_USCORE"],
-                nhw=grid_params["NHW"],
-                run_task=False,
-                sfc_climo_fields=fixed_files["SFC_CLIMO_FIELDS"],
-            )
-            if not res_in_fixlam_filenames:
-                res_in_fixlam_filenames = res_in_fns
-            else:
-                if res_in_fixlam_filenames != res_in_fns:
-                    raise ValueError(
-                        dedent(
-                            f"""
-                        The resolution of the pregenerated files for
-                        {prep_task} do not match those that were alread
-                        set:
-
-                        Resolution in {prep_task}: {res_in_fns}
-                        Resolution expected: {res_in_fixlam_filenames}
-                        """
-                        )
-                    )
-
-    workflow_config["RES_IN_FIXLAM_FILENAMES"] = res_in_fixlam_filenames
-    if res_in_fixlam_filenames:
-        workflow_config["CRES"] = f"C{res_in_fixlam_filenames}"
-    elif cres := os.getenv("CRES"):
-        workflow_config["CRES"] = cres
-
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Turn off post task if it's not consistent with the forecast's
-    # user-setting of WRITE_DOPOST
-    #
-    # -----------------------------------------------------------------------
-    #
-    if fcst_config["envvars"]["WRITE_DOPOST"]:
-        # Turn off run_post
-        task_name = "metatask_run_ens_post"
-        removed_task = task_defs.pop(task_name, None)
-        if removed_task:
-            logger.warning(
-                dedent(
-                    f"""
-                     Inline post is turned on, deactivating post-processing tasks:
-                     Removing {task_name} from task definitions
-                     list.
-                     """
-                )
-            )
 
     #
     # -----------------------------------------------------------------------

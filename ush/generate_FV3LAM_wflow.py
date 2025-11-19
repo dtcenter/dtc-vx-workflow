@@ -159,72 +159,7 @@ def generate_FV3LAM_wflow(
             debug=debug,
         )
 
-    #
-    # Copy or symlink fix files
-    #
     platform_config = expt_config["platform"]
-    fixgsm = platform_config["FIXgsm"]
-    fixam = workflow_config["FIXam"]
-    fixgsm_files_to_copy_to_fixam = expt_config["fixed_files"][
-        "FIXgsm_FILES_TO_COPY_TO_FIXam"
-    ]
-    if symlink_fix_files := workflow_config["SYMLINK_FIX_FILES"]:
-        log_info(
-            f"""
-            Symlinking fixed files from system directory (FIXgsm) to a subdirectory (FIXam):
-              FIXgsm = '{fixgsm}'
-              FIXam = '{fixam}'""",
-            verbose=debug,
-        )
-
-        Path(fixam).symlink_to(fixgsm, target_is_directory=True)
-    else:
-
-        log_info(
-            f"""
-            Copying fixed files from system directory (FIXgsm) to a subdirectory (FIXam):
-              FIXgsm = '{fixgsm}'
-              FIXam = '{fixam}'""",
-            verbose=debug,
-        )
-
-        check_for_preexist_dir_file(fixam, "delete")
-        Path(fixam, "fix_co2_proj").mkdir(parents=True, exist_ok=True)
-        for fixfile in fixgsm_files_to_copy_to_fixam:
-            shutil.copy(Path(fixgsm, fixfile), Path(fixam, fixfile))
-    #
-    # -----------------------------------------------------------------------
-    #
-    # Copy MERRA2 aerosol climatology data.
-    #
-    # -----------------------------------------------------------------------
-    #
-    if expt_config["task_run_fcst"]["envvars"]["USE_MERRA_CLIMO"]:
-        fixaer = platform_config["FIXaer"]
-        fixlut = platform_config["FIXlut"]
-        fixclim = workflow_config["FIXclim"]
-        log_info(
-            f"""
-            Copying MERRA2 aerosol climatology data files from system directory
-            (FIXaer/FIXlut) to a subdirectory (FIXclim) in the experiment directory:
-              FIXaer = '{fixaer}'
-              FIXlut = '{fixlut}'
-              FIXclim = '{fixclim}'""",
-            verbose=debug,
-        )
-
-        check_for_preexist_dir_file(fixclim, "delete")
-        fixclim = Path(fixclim)
-        fixclim.mkdir(parents=True, exist_ok=True)
-
-        merra_files = glob(Path(fixaer, "merra2.aerclim*.nc").as_posix())
-        optics_files = glob(Path(fixlut, "optics*.dat").as_posix())
-        for fpath in merra_files + optics_files:
-            path = Path(fpath)
-            if symlink_fix_files:
-                (fixclim / path.name).symlink_to(path)
-            else:
-                shutil.copy(path, fixclim / path.name)
     #
     # -----------------------------------------------------------------------
     #

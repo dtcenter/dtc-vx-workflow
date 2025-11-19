@@ -15,7 +15,6 @@ sections=(
   workflow
   global
   verification
-  cpl_aqm_parm
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
