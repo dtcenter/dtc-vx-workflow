@@ -27,49 +27,31 @@ user:
   # The account under which to submit jobs to the queue.
   #
   # HOMEdir: 
-  # The path to the user's ufs-srweather-app clone. This path 
+  # The path to the user's vx workflow clone. This path 
   # is set in ush/setup.py as the parent directory to USHdir. 
   #
   # USHdir: 
-  # The path to the user's ush directory in their ufs-srweather-app clone. 
+  # The path to the user's ush directory in their vx workflow clone. 
   # This path is set automatically in the main function of setup.py and 
   # corresponds to the location of setup.py (i.e., the ush directory).
   # 
   # SCRIPTSdir: 
-  # The path to the user's scripts directory in their ufs-srweather-app clone.
+  # The path to the user's scripts directory in their vx workflow clone.
   # 
   # JOBSdir: 
-  # The path to the user's jobs directory in their ufs-srweather-app clone.
-  # 
-  # SORCdir: 
-  # The path to the user's sorc directory in their ufs-srweather-app clone.
+  # The path to the user's jobs directory in their vx workflow clone.
   # 
   # PARMdir: 
-  # The path to the user's parm directory in their ufs-srweather-app clone.
+  # The path to the user's parm directory in their vx workflow clone.
   # 
   # MODULESdir: 
-  # The path to the user's modulefiles directory in their ufs-srweather-app 
+  # The path to the user's modulefiles directory in their vx workflow 
   # clone.
   # 
-  # EXECdir: 
-  # The path to the user's exec directory in their ufs-srweather-app clone.
-  #
   # METPLUS_CONF: 
   # The path to the user's final METplus configuration file. By default, 
-  # METplus configuration files reside in ufs-srweather-app/parm/metplus.
+  # METplus configuration files reside in parm/metplus.
   #  
-  # UFS_WTHR_MDL_DIR: 
-  # The path to the location where the weather 
-  # model code is located within the ufs-srweather-app clone. This 
-  # parameter is set in setup.py and uses information from the 
-  # Externals.cfg file to build the correct path. It is built with 
-  # knowledge of HOMEdir and often corresponds to ufs-srweather-app/
-  # sorc/ufs-weather-model.
-  # 
-  # ARL_NEXUS_DIR: 
-  # The path to the user's NEXUS directory. By default, NEXUS source 
-  # code resides in ufs-srweather-app/sorc/arl_nexus
-  #
   #-----------------------------------------------------------------------
   MACHINE: "BIG_COMPUTER"
   ACCOUNT: ""
@@ -78,13 +60,10 @@ user:
   USHdir: '{{ user.USHdir }}'
   SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
   JOBSdir: '{{ user.HOMEdir }}/jobs'
-  SORCdir: '{{ user.HOMEdir }}/sorc'
   PARMdir: '{{ user.HOMEdir }}/parm'
   MODULESdir: '{{ user.HOMEdir }}/modulefiles'
   EXECdir: '{{ user.HOMEdir }}/{{ workflow.EXEC_SUBDIR }}'
   METPLUS_CONF: '{{ user.PARMdir }}/metplus'
-  UFS_WTHR_MDL_DIR: '{{ user.UFS_WTHR_MDL_DIR }}'
-  ARL_NEXUS_DIR: '{{ user.SORCdir }}/arl_nexus'
 
 #----------------------------
 # PLATFORM config parameters
@@ -226,12 +205,6 @@ platform:
   # RUN_CMD_SERIAL:
   # The run command for some serial jobs 
   #
-  # RUN_CMD_NEXUS:
-  # The run command for the AQM NEXUS tasks.
-  #
-  # RUN_CMD_AQMLBC:
-  # The run command for the AQM_LBCS task.
-  #
   #-----------------------------------------------------------------------
   #
   RUN_CMD_SERIAL: ""
@@ -239,9 +212,6 @@ platform:
   RUN_CMD_FCST: ""
   RUN_CMD_POST: ""
   RUN_CMD_PRDGEN: ""
-  RUN_CMD_NEXUS: ""
-  RUN_CMD_AQMLBC: ""
-  RUN_CMD_SMOKE_DUST: mpirun -n $nprocs python
   #
   #-----------------------------------------------------------------------
   #
@@ -286,9 +256,6 @@ platform:
   # on a given platform. This path contains a limited dataset and likely 
   # will not be useful for most user experiments. 
   # 
-  # TEST_AQM_INPUT_BASEDIR: 
-  # The path to user-staged AQM fire emission data for WE2E testing. 
-  # 
   # TEST_PREGEN_BASEDIR: 
   # Similar to DOMAIN_PREGEN_BASEDIR, this variable sets the base 
   # directory containing pregenerated grid, orography, and surface 
@@ -320,7 +287,6 @@ platform:
   #-----------------------------------------------------------------------
   #
   TEST_EXTRN_MDL_SOURCE_BASEDIR: ""
-  TEST_AQM_INPUT_BASEDIR: ""
   TEST_PREGEN_BASEDIR: ""
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: ""
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: ""
@@ -331,64 +297,6 @@ platform:
   TEST_AERONET_OBS_DIR: ""
   TEST_AIRNOW_OBS_DIR: ""
   TEST_VX_FCST_INPUT_BASEDIR: ""
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set parameters associated with the fixed (i.e. static) files.  Definitions:
-  #
-  # FIXgsm:
-  # System directory in which the majority of fixed (i.e. time-independent) 
-  # files that are needed to run the FV3-LAM model are located
-  #
-  # FIXaer:
-  # System directory where MERRA2 aerosol climatology files are located.
-  # Only used if running with a physics suite that uses Thompson microphysics.
-  #
-  # FIXlut:
-  # System directory where the lookup tables for optics properties are located.
-  # Only used if running with a physics suite that uses Thompson microphysics.
-  #
-  # FIXorg:
-  # System directory where orography data are located
-  #
-  # FIXsfc:
-  # System directory where surface climatology data are located
-  #
-  # FIXshp:
-  # System directory where the graphics shapefiles are located.
-  # 
-  # FIXaqm:
-  # System directory where AQM data files are located
-  #
-  # FIXemis:
-  # System directory where AQM emission data files are located.
-  #
-  # FIXsmoke:
-  # System directory where Smoke and Dust data files are located.
-  #
-  # FIXupp:
-  # System directory where UPP fixed files are located
-  #
-  # FIXcrtm:
-  # System directory where CRTM fixed files are located
-  #
-  # FIXcrtmupp:
-  # System directory where CRTM fixed files specifically for UPP are located
-  #
-  #-----------------------------------------------------------------------
-  #
-  FIXgsm: ""
-  FIXaer: ""
-  FIXlut: ""
-  FIXorg: ""
-  FIXsfc: ""
-  FIXshp: ""
-  FIXaqm: ""
-  FIXemis: ""
-  FIXsmoke: ""
-  FIXupp: ""
-  FIXcrtm: ""
-  FIXcrtmupp: ""
   #
   #-----------------------------------------------------------------------
   #
@@ -522,153 +430,23 @@ workflow:
   # Name of file containing the namelist settings for the code that generates
   # a "ESGgrid" type of regional grid.
   #
-  # FV3_NML_FN: 
-  # Name of the forecast model's namelist file. It includes the information in 
-  # FV3_NML_BASE_SUITE_FN (i.e., input.nml.FV3),  FV3_NML_YAML_CONFIG_FN (i.e., FV3.input.yml), and the user configuration file (i.e., config.yaml).
-  #
-  # FV3_NML_BASE_SUITE_FN:
-  # Name of Fortran namelist file containing the forecast model's base suite
-  # namelist, i.e. the portion of the namelist that is common to all physics
-  # suites.
-  #
-  # FV3_NML_YAML_CONFIG_FN:
-  # Name of YAML configuration file containing the forecast model's namelist
-  # settings for various physics suites.
-  #
-  # FV3_NML_BASE_ENS_FN:
-  # Name of Fortran namelist file containing the forecast model's base 
-  # ensemble namelist, i.e. the the namelist file that is the starting point 
-  # from which the namelist files for each of the enesemble members are
-  # generated.
-  #
-  # FV3_EXEC_FN:
-  # Name to use for the forecast model executable when it is copied from
-  # the directory in which it is created in the build step to the executables
-  # directory (EXECDIR; this is set during experiment generation).
-  #
-  # DATA_TABLE_FN: 
-  # Name of the file that contains the data table read in by the forecast model. 
-  # 
-  # DIAG_TABLE_FN: 
-  # Prefix for the name of the file that specifies 
-  # the output fields of the forecast model. 
-  # 
-  # FIELD_TABLE_FN: 
-  # Prefix for the name of the file that specifies 
-  # the tracers that the forecast model will read in from the IC/LBC files.
-  # 
-  # DIAG_TABLE_TMPL_FN:
-  # Name of a template file that specifies the output fields of the
-  # forecast model (ufs-weather-model: diag_table) followed by the name
-  # of the ccpp_phys_suite.  Its default value is the name of the file
-  # that the ufs weather model 
-  # expects to read in.
-  #
-  # FIELD_TABLE_TMPL_FN:
-  # Name of a template file that specifies the tracers in IC/LBC files of the 
-  # forecast model (ufs-weather-mode: field_table) followed by [dot_ccpp_phys_suite]. 
-  # Its default value is the name of the file that the ufs weather model expects 
-  # to read in.
-  #
   # MODEL_CONFIG_FN:
   # Name of a template file that contains settings and configurations for the 
   # NUOPC/ESMF main component (ufs-weather-model: model_config). Its default 
   # value is the name of the file that the ufs weather model expects to read in.
-  #
-  # UFS_CONFIG_FN:
-  # Name of a template file that contains information about the various UFS 
-  # components and their run sequence (ufs-weather-model: ufs.configure). 
-  # Its default value is the name of the file that the ufs weather model expects 
-  # to read in.
-  #
-  # AQM_RC_FN: 
-  # Name of resource file for NOAA Air Quality Model (AQM). 
-  # 
-  # AQM_RC_TMPL_FN:
-  # Template file name of resource file for NOAA Air Quality Model (AQM)
-  #  
-  # FIRE_NML_FN:
-  # Name of namelist file for UFS_FIRE capability.
   #-----------------------------------------------------------------------
   #
   CONSTANTS_FN: "constants.yaml"
 
   RGNL_GRID_NML_FN: "regional_grid.nml"
 
-  FV3_NML_FN: "input.nml"
-  FV3_NML_BASE_SUITE_FN: "{{ workflow.FV3_NML_FN }}.FV3"
-  FV3_NML_YAML_CONFIG_FN: "FV3.input.yml"
-  FV3_NML_BASE_ENS_FN: "{{ workflow.FV3_NML_FN }}.base_ens"
-  FV3_EXEC_FN: "ufs_model"
-
-  DATA_TABLE_FN: "data_table"
-  DIAG_TABLE_FN: "diag_table"
-  FIELD_TABLE_FN: "field_table"
-  DIAG_TABLE_TMPL_FN: 'diag_table.{{ workflow.CCPP_PHYS_SUITE }}'
-  FIELD_TABLE_TMPL_FN: 'field_table.{{ workflow.CCPP_PHYS_SUITE }}'
   MODEL_CONFIG_FN: "model_configure"
-  UFS_CONFIG_FN: "ufs.configure"
-  AQM_RC_FN: "aqm.rc"
-  AQM_RC_TMPL_FN: "aqm.rc"
-  FIRE_NML_FN: "namelist.fire"
 
-  # 
-  #-----------------------------------------------------------------------
-  # FV3_NML_BASE_SUITE_FP: 
-  # Path to the FV3_NML_BASE_SUITE_FN file. 
-  # 
-  # FV3_NML_YAML_CONFIG_FP: 
-  # Path to the FV3_NML_YAML_CONFIG_FN file.
-  # 
-  # FV3_NML_BASE_ENS_FP: 
-  # Path to the FV3_NML_BASE_ENS_FN file. 
-  # 
-  # DATA_TABLE_TMPL_FP: 
-  # Path to the DATA_TABLE_FN file. 
-  # 
-  # DIAG_TABLE_TMPL_FP: 
-  # Path to the DIAG_TABLE_TMPL_FN file. 
-  # 
-  # FIELD_TABLE_TMPL_FP: 
-  # Path to the FIELD_TABLE_TMPL_FN file. 
-  # 
-  # MODEL_CONFIG_TMPL_FP: 
-  # Path to the MODEL_CONFIG_FN file.
-  # 
-  # UFS_CONFIG_TMPL_FP: 
-  # Path to the UFS_CONFIG_FN file. 
-  # 
-  # AQM_RC_TMPL_FP: 
-  # Path to the AQM_RC_TMPL_FN file. 
-  #  
-  #-----------------------------------------------------------------------
-  #
-  FV3_NML_BASE_SUITE_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_BASE_SUITE_FN }}'
-  FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_YAML_CONFIG_FN }}'
-  FV3_NML_BASE_ENS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_BASE_ENS_FN }}'
-  DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DATA_TABLE_FN }}'
-  DIAG_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DIAG_TABLE_TMPL_FN }}'
-  FIELD_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.FIELD_TABLE_TMPL_FN }}'
   MODEL_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.MODEL_CONFIG_FN }}'
-  UFS_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.UFS_CONFIG_FN }}'
-  AQM_RC_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.AQM_RC_TMPL_FN }}'
-  FIRE_NML_BASE_FP: '{{ user.PARMdir }}/{{ workflow.FIRE_NML_FN }}'
 
   # 
   #-----------------------------------------------------------------------
   # These are staged in the exptdir at configuration time
-  # 
-  # DATA_TABLE_FP: 
-  # Path to the data table in the experiment directory. 
-  # 
-  # FIELD_TABLE_FP: 
-  # Path to the field table in the experiment directory. 
-  # 
-  # UFS_CONFIG_FP: 
-  # Path to the UFS_CONFIG_FN file in the experiment directory. 
-  # 
-  # FV3_NML_FP: 
-  # Path to the FV3_NML_FN file in the experiment directory.
   # 
   # FCST_MODEL:
   # Name of forecast model (default=ufs-weather-model)
@@ -722,15 +500,8 @@ workflow:
   # 
   #-----------------------------------------------------------------------
   #
-  DATA_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.DATA_TABLE_FN }}'
-  FIELD_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIELD_TABLE_FN }}'
-  UFS_CONFIG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.UFS_CONFIG_FN }}'
-  FV3_NML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}'
-  FV3_NML_STOCH_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}_stoch'
-  FIRE_NML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIRE_NML_FN }}'
-
   FCST_MODEL: "ufs-weather-model"
-  WFLOW_XML_FN: "FV3LAM_wflow.xml"
+  WFLOW_XML_FN: "vx_wflow.xml"
   GLOBAL_VAR_DEFNS_FN: "var_defns.yaml"
   ROCOTO_YAML_FN: "rocoto_defns.yaml"
   EXTRN_MDL_VAR_DEFNS_FN: "extrn_mdl_var_defns"
@@ -741,131 +512,6 @@ workflow:
   ROCOTO_YAML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.ROCOTO_YAML_FN }}'
   WFLOW_LAUNCH_SCRIPT_FP: '{{ user.USHdir }}/{{ workflow.WFLOW_LAUNCH_SCRIPT_FN }}'
   WFLOW_LAUNCH_LOG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.WFLOW_LAUNCH_LOG_FN }}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set the fix file paths
-  #
-  # FIXdir:
-  # Location where fix files will be stored for a given experiment
-  #
-  # FIXam:
-  # Directory containing the fixed files (or symlinks) for various fields on
-  # global grids (which are usually much coarser than the native FV3-LAM grid).
-  #
-  # FIXclim:
-  # Directory containing the MERRA2 aerosol climatology data file and
-  # lookup tables for optics properties
-  #
-  # FIXlam:
-  # Directory containing the fixed files (or symlinks) for the grid,
-  # orography, and surface climatology on the native FV3-LAM grid.
-  #
-  # THOMPSON_MP_CLIMO_FN and _FP:
-  # Name and path of file that contains aerosol climatology data. It can
-  # be used to generate approximate versions of the aerosol fields
-  # needed by Thompson microphysics.  This file will be used to
-  # generate such approximate aerosol fields in the ICs and LBCs if
-  # Thompson MP is included in the physics suite and if the external
-  # model for ICs or LBCs does not already provide these fields.
-  #
-  #-----------------------------------------------------------------------
-  #
-  FIXdir: '{{ workflow.EXPTDIR }}'
-  FIXam: '{{ workflow.FIXdir }}/fix_am'
-  FIXclim: '{{ workflow.FIXdir }}/fix_clim'
-  FIXlam: '{{ workflow.FIXdir }}/fix_lam'
-
-  THOMPSON_MP_CLIMO_FN: "Thompson_MP_MONTHLY_CLIMO.nc"
-  THOMPSON_MP_CLIMO_FP: '{{ workflow.FIXam }}/{{ workflow.THOMPSON_MP_CLIMO_FN }}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set CCPP-associated parameters.  Definitions:
-  #
-  # CCPP_PHYS_SUITE:
-  # The physics suite that will run using CCPP (Common Community Physics
-  # Package).  The choice of physics suite determines the forecast model's 
-  # namelist file, the diagnostics table file, the field table file, and 
-  # the XML physics suite definition file that are staged in the experiment 
-  # directory or the cycle directories under it.
-  #
-  # *_FN and *_FP variables set the name and paths to the suite
-  # definition files used for the experiment
-  # 
-  # CCPP_PHYS_SUITE_FN: The name of the suite definition file (SDF) 
-  # used for the experiment. 
-  # 
-  # CCPP_PHYS_SUITE_IN_CCPP_FP: The full path to the suite definition 
-  # file (SDF) in the forecast model's directory structure (e.g., 
-  # /path/to/ufs-srweather-app/sorc/ufs-weather-model/FV3/ccpp/suites/$CCPP_PHYS_SUITE_FN) 
-  #
-  # CCPP_PHYS_SUITE_FP: The full path to the suite definition file 
-  # (SDF) in the experiment directory. 
-  # 
-  # CCPP_PHYS_DIR:
-  # The directory containing the CCPP physics source code. This path is needed to
-  # be able to use table(s) contained in that repository.
-  #-----------------------------------------------------------------------
-  #
-  CCPP_PHYS_SUITE: "FV3_GFS_v16"
-  CCPP_PHYS_SUITE_FN: 'suite_{{ workflow.CCPP_PHYS_SUITE }}.xml'
-  CCPP_PHYS_SUITE_IN_CCPP_FP: '{{ user.UFS_WTHR_MDL_DIR }}/UFSATM/ccpp/suites/{{ workflow.CCPP_PHYS_SUITE_FN }}'
-  CCPP_PHYS_SUITE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.CCPP_PHYS_SUITE_FN }}'
-  CCPP_PHYS_DIR: '{{ user.UFS_WTHR_MDL_DIR }}/UFSATM/ccpp/physics/physics/SFC_Models/Land/Noahmp'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set the field dictionary file name and paths.
-  #
-  # FIELD_DICT_FN: 
-  # The name of the field dictionary file. This file is a community-based 
-  # dictionary for shared coupling fields and is automatically generated 
-  # by the NUOPC Layer. 
-  #
-  # FIELD_DICT_IN_UWM_FP: 
-  # The full path to FIELD_DICT_FN within the forecast model's directory structure 
-  # (e.g., /path/to/ufs-srweather-app/sorc/ufs-weather-model/tests/parm/$FIELD_DICT_FN).
-  #
-  # FIELD_DICT_FP: 
-  # The full path to FIELD_DICT_FN in the experiment directory.
-  #
-  #-----------------------------------------------------------------------
-  #
-  FIELD_DICT_FN: "fd_ufs.yaml"
-  FIELD_DICT_IN_UWM_FP: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/{{ workflow.FIELD_DICT_FN }}'
-  FIELD_DICT_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIELD_DICT_FN }}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set GRID_GEN_METHOD. This variable specifies the method to use to 
-  # generate a regional grid in the horizontal. The values that it can 
-  # take on are:
-  #
-  # * "ESGgrid":
-  #   This will generate a regional grid using the map projection developed
-  #   by Jim Purser of EMC.
-  #
-  # Note that:
-  #
-  # 1) If the experiment uses a predefined grid (i.e. if 
-  #    PREDEF_GRID_NAME is set to the name of a valid predefined 
-  #    grid), then GRID_GEN_METHOD will be reset to the value of 
-  #    GRID_GEN_METHOD for that grid.  This will happen regardless of 
-  #    whether GRID_GEN_METHOD is assigned a value in the user-
-  #    specified experiment configuration file. In other words, any value 
-  #    assigned in the experiment configuration file will be overwritten.
-  #
-  # 2) If the experiment is not using one of the predefined grids (i.e. if 
-  #    PREDEF_GRID_NAME is set to a null string), then GRID_GEN_METHOD must 
-  #    be set in the experiment configuration file.  Otherwise, 
-  #    the experiment generation will fail because the generation 
-  #    scripts check to ensure that the grid name is set to a non-empty 
-  #    string before creating the experiment directory.
-  #
-  #-----------------------------------------------------------------------
-  #
-  GRID_GEN_METHOD: ""
   #
   #-----------------------------------------------------------------------
   #
@@ -1011,13 +657,9 @@ workflow:
   # be set manually; it is not inherited from the build system in the 
   # ufs-srweather-app directory.
   #
-  # SYMLINK_FIX_FILES:
-  # Symlink fix files to experiment directory if true; otherwise copy the files.
-  #
   #------------------------------------------------------------------------
   #
   COMPILER: "intel"
-  SYMLINK_FIX_FILES: true
   #
   #-----------------------------------------------------------------------
   #
@@ -1124,292 +766,6 @@ task_make_grid:
 #----------------------------
 # EXTRN ICS config parameters
 #-----------------------------
-task_get_extrn_ics:
-  execution:
-    batchargs:
-      nodes: 1
-      tasks_per_node: 1
-      walltime: 01:30:00
-  envvars:
-    #
-    #-----------------------------------------------------------------------
-    #
-    # Set initial and lateral boundary condition generation parameters.
-    # Definitions:
-    #
-    # EXTRN_MDL_NAME_ICS:
-    # The name of the external model that will provide fields from which initial
-    # condition files, surface files, and 0-th hour boundary condition files will
-    # be generated for input into the forecast model.
-    #
-    # EXTRN_MDL_ICS_OFFSET_HRS:
-    # Users may wish to start a forecast using forecast data from a previous cycle
-    # of an external model. This variable indicates how many hours earlier
-    # the external model started than the FV3 forecast configured here.
-    # For example, if the forecast should start from a 6-hour
-    # forecast of the GFS, then EXTRN_MDL_ICS_OFFSET_HRS: "6".
-    #
-    # FV3GFS_FILE_FMT_ICS:
-    # If using the FV3GFS model as the source of the ICs (i.e., if EXTRN_MDL_NAME_ICS
-    # is set to "FV3GFS"), this variable specifies the format of the model
-    # files to use when generating the ICs.
-    #
-    #-----------------------------------------------------------------------
-    #
-    EXTRN_MDL_NAME_ICS: "FV3GFS"
-    EXTRN_MDL_ICS_OFFSET_HRS: 0
-    FV3GFS_FILE_FMT_ICS: "netcdf"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # Base directories in which to search for external model files.
-    #
-    # EXTRN_MDL_SYSBASEDIR_ICS:
-    # A known location of a real data stream on a given platform. This is typically
-    # a real-time data stream as on Hera, Jet, or WCOSS. External model files
-    # for generating ICs on the native grid should be accessible via this data stream.
-    # The way the full path containing these files is constructed depends on the
-    # user-specified external model for ICs, i.e. EXTRN_MDL_NAME_ICS.
-    #
-    # Note that this must be defined as a null string here so that if it is
-    # specified by the user in the experiment configuration file, it remains
-    # set to those values, and if not, it gets set to machine-dependent
-    # values.
-    #
-    #-----------------------------------------------------------------------
-    #
-    EXTRN_MDL_SYSBASEDIR_ICS: ''
-    #
-    #-----------------------------------------------------------------------
-    #
-    # User-staged external model directories and files.  Definitions:
-    #
-    # USE_USER_STAGED_EXTRN_FILES:
-    # Flag that determines whether or not the workflow will look for the
-    # external model files needed for generating ICs in user-specified
-    # directories.
-    #
-    # EXTRN_MDL_SOURCE_BASEDIR_ICS:
-    # Directory in which to look for external model files for generating ICs.
-    # If USE_USER_STAGED_EXTRN_FILES is set to true, the workflow looks in
-    # this directory for a subdirectory named "YYYYMMDDHH" consisting of the
-    # starting date and cycle hour of
-    # the forecast, where YYYY is the 4-digit year, MM the 2-digit month, DD
-    # the 2-digit day of the month, and HH the 2-digit hour of the day) for
-    # the external model files specified by the array EXTRN_MDL_FILES_ICS
-    # (these files will be used to generate the ICs on the native FV3-LAM
-    # grid). This variable is not used if USE_USER_STAGED_EXTRN_FILES is
-    # set to false.
-    #
-    # EXTRN_MDL_FILES_ICS:
-    # Array containing templates of the names of the files to search for in
-    # the directory specified by EXTRN_MDL_SOURCE_BASEDIR_ICS.  This
-    # variable is not used if USE_USER_STAGED_EXTRN_FILES is set to false.
-    # A single template should be used for each model file type that is
-    # used. You may use any of the Python-style templates
-    # allowed in the ush/retrieve_data.py script. To see the full list of
-    # supported templates, run that script with a -h option. For example, to
-    # set FV3GFS nemsio input files, add:
-    #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.atmf{fcst_hr:03d}.nemsio \
-    #   gfs.t{hh}z.sfcf{fcst_hr:03d}.nemsio )
-    # Or for FV3GFS grib files:
-    #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.pgrb2.0p25.f{fcst_hr:03d} )
-    #
-    #-----------------------------------------------------------------------
-    #
-    USE_USER_STAGED_EXTRN_FILES: false
-    EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
-    EXTRN_MDL_FILES_ICS: ""
-
-#----------------------------
-# EXTRN LBCS config parameters
-#-----------------------------
-task_get_extrn_lbcs:
-  execution:
-    batchargs:
-      nodes: 1
-      tasks_per_node: 1
-      walltime: 01:30:00
-  envvars:
-    #
-    #-----------------------------------------------------------------------
-    #
-    # EXTRN_MDL_NAME_LBCS:
-    # The name of the external model that will provide fields from which
-    # lateral boundary condition (LBC) files (except for the 0-th hour LBC
-    # file) will be generated for input into the forecast model.
-    #
-    # LBC_SPEC_INTVL_HRS:
-    # The interval (in integer hours) with which LBC files will be generated.
-    # We will refer to this as the boundary update interval.  Note that the
-    # model specified in EXTRN_MDL_NAME_LBCS must have data available at a
-    # frequency greater than or equal to that implied by LBC_SPEC_INTVL_HRS.
-    # For example, if LBC_SPEC_INTVL_HRS is set to 6, then the model must have
-    # data availble at least every 6 hours. It is up to the user to ensure
-    # that this is the case.
-    #
-    # EXTRN_MDL_LBCS_OFFSET_HRS:
-    # Users may wish to use lateral boundary conditions from a forecast that
-    # was started earlier than the initial time for the forecast
-    # configured here. This variable indicates how many hours earlier
-    # the external model started than the forecast configured here.
-    # For example, the forecast should use lateral boundary
-    # conditions from a GFS forecast started 6 hours earlier, then
-    # EXTRN_MDL_LBCS_OFFSET_HRS: 6. Defaults to 0 except for RAP, which
-    # uses a 3 hour offset. The default value is model-dependent and is set
-    # in ush/set_extrn_mdl_params.py.
-    #
-    # FV3GFS_FILE_FMT_LBCS:
-    # If using the FV3GFS model as the source of the LBCs (i.e., if
-    # EXTRN_MDL_NAME_LBCS is set to "FV3GFS"), this variable specifies the
-    # format of the model files to use when generating the LBCs.
-    #
-    #-----------------------------------------------------------------------
-    #
-    EXTRN_MDL_NAME_LBCS: "FV3GFS"
-    LBC_SPEC_INTVL_HRS: 6
-    EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
-    FV3GFS_FILE_FMT_LBCS: "netcdf"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # EXTRN_MDL_SYSBASEDIR_LBCS:
-    # Same as EXTRN_MDL_SYSBASEDIR_ICS but for LBCs.
-    #
-    # Note that this variable must be defined as a null string here so that if it is
-    # specified by the user in the experiment configuration file, it remains
-    # set to those values, and if not, it gets set to machine-dependent
-    # values.
-    #
-    #-----------------------------------------------------------------------
-    #
-    EXTRN_MDL_SYSBASEDIR_LBCS: ''
-    #
-    #-----------------------------------------------------------------------
-    #
-    # User-staged external model directories and files.  Definitions:
-    #
-    # USE_USER_STAGED_EXTRN_FILES:
-    # Analogous to USE_USER_STAGED_EXTRN_FILES in ICS but for LBCs.
-    #
-    # EXTRN_MDL_SOURCE_BASEDIR_LBCS:
-    # Analogous to EXTRN_MDL_SOURCE_BASEDIR_ICS but for LBCs instead of ICs.
-    #
-    # EXTRN_MDL_FILES_LBCS:
-    # Analogous to EXTRN_MDL_FILES_ICS but for LBCs instead of ICs.
-    #
-    #-----------------------------------------------------------------------
-    #
-    USE_USER_STAGED_EXTRN_FILES: false
-    EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
-    EXTRN_MDL_FILES_LBCS: ""
-
-#----------------------------
-# MAKE ICS config parameters
-#-----------------------------
-task_make_ics:
-  chgres_cube:
-    execution:
-      batchargs:
-        nodes: 4
-        tasks_per_node: 12
-        walltime: 00:30:00
-      threads: !int '{{ task_make_ics.envvars.OMP_NUM_THREADS_MAKE_ICS }}'
-  #-----------------------------------------------------------------------
-  # KMP_AFFINITY_MAKE_ICS: 
-  # Intel Thread Affinity Interface for the make_ics task. 
-  #
-  # OMP_NUM_THREADS_MAKE_ICS: 
-  # The number of OpenMP threads to use for parallel regions.
-  #
-  # OMP_STACKSIZE_MAKE_ICS: 
-  # Controls the size of the stack for threads created by the OpenMP 
-  # implementation.
-  #-----------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_ICS: "scatter"
-    OMP_NUM_THREADS_MAKE_ICS: 1
-    OMP_STACKSIZE_MAKE_ICS: "1024m"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # USE_FVCOM:
-    # Flag set to update surface conditions in FV3-LAM with fields generated
-    # from the Finite Volume Community Ocean Model (FVCOM). This will
-    # replace lake/sea surface temperature, ice surface temperature, and ice
-    # placement. This flag will be used in make_ics to modify sfc_data.nc
-    # after chgres_cube is run by running the routine process_FVCOM.exe
-    # FVCOM data must already be interpolated to the desired FV3-LAM grid.
-    #
-    # FVCOM_WCSTART:
-    # Define whether this is a "warm" start or a "cold" start. Setting this to
-    # "warm" will read in the sfc_data.nc file generated in a RESTART directory.
-    # Setting this to "cold" will read in the sfc_data.nc file generated from
-    # chgres_cube in the make_ics portion of the workflow.
-    #
-    # FVCOM_DIR:
-    # User defined directory where FVCOM data already interpolated to FV3-LAM
-    # grid is located. The file in this directory must be named fvcom.nc
-    #
-    # FVCOM_FILE:
-    # Name of file located in FVCOM_DIR that has FVCOM data interpolated to
-    # FV3-LAM grid. This file will be copied later to a new location and name
-    # changed to fvcom.nc
-    #
-    # LEVP:
-    # Number of vertical levels in the atmosphere. In order to change this
-    # number, the user will additionally need to create a vertical coordinate
-    # distribution file; this process is described in the Users Guide section
-    # "Changing the Number of Vertical Levels". This value should be the same
-    # in both make_ics and make_lbcs.
-    #
-    # VCOORD_FILE:
-    # Full path to the vertical coordinate distribution file. This file should
-    # be the same in both make_ics and make_lbcs.
-    #
-    #------------------------------------------------------------------------
-    #
-    USE_FVCOM: false
-    FVCOM_WCSTART: "cold"
-    FVCOM_DIR: ""
-    FVCOM_FILE: "fvcom.nc"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-    LEVP: 65
-
-#----------------------------
-# MAKE LBCS config parameters
-#-----------------------------
-task_make_lbcs:
-  chgres_cube:
-    execution:
-      batchargs:
-        nodes: 4
-        tasks_per_node: 12
-        walltime: 01:00:00
-      threads: !int '{{ task_make_lbcs.envvars.OMP_NUM_THREADS_MAKE_ICS }}'
-  #------------------------------------------------------------------------
-  #
-  # KMP_AFFINITY_MAKE_LBCS: 
-  # Intel Thread Affinity Interface for the make_lbcs task. 
-  # 
-  # OMP_NUM_THREADS_MAKE_LBCS: 
-  # The number of OpenMP threads to use for parallel regions.
-  # 
-  # OMP_STACKSIZE_MAKE_LBCS: 
-  # Controls the size of the stack for threads created by the OpenMP implementation.
-  #
-  # VCOORD_FILE: 
-  # Full path to the file used to set the vertical coordinates in FV3. 
-  # This file should be the same in both make_ics and make_lbcs.
-  #
-  #------------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_LBCS: "scatter"
-    OMP_NUM_THREADS_MAKE_LBCS: 1
-    OMP_STACKSIZE_MAKE_LBCS: "1024m"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-  LEVP: 65
-
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
 #-----------------------------
@@ -1466,9 +822,6 @@ task_run_fcst:
   # Controls the size of the stack for threads created by the OpenMP 
   # implementation.
   #
-  # FV3_EXEC_FP:
-  # Full path to the forecast model executable.
-  #
   # DT_ATMOS:
   # The main forecast model integration time step.  As described in the 
   # forecast model documentation, "It corresponds to the frequency with 
@@ -1508,30 +861,20 @@ task_run_fcst:
   # in the model configuration file "model_configure" in the forecast's
   # run directory).
   #
-  # USE_MERRA_CLIMO: Flag that determines whether MERRA2 aerosol climatology
-  # data and lookup tables for optics properties are obtained
-  #
   # DO_FCST_RESTART:
   # Flag to turn on/off restart capability of forecast task
-  #
-  # HISTORY_NATIVE_GRID:
-  # If true, write history files on the native FV3 cubed sphere grid. Note,
-  # this will override the output grid to cubed_sphere_grid when true which
-  # may break post-processing tasks.
   #-----------------------------------------------------------------------
   #
   envvars:
     KMP_AFFINITY_RUN_FCST: "scatter"
     OMP_NUM_THREADS_RUN_FCST: 2    # ATM_omp_num_threads in ufs.configure
     OMP_STACKSIZE_RUN_FCST: "1024m"
-    FV3_EXEC_FP: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}'
     DT_ATMOS: !int ""
     FHROT: 0
     RESTART_INTERVAL: 0
     WRITE_DOPOST: false
     PRINT_ESMF: false
     DO_FCST_RESTART: false
-    USE_MERRA_CLIMO: '{{ workflow.CCPP_PHYS_SUITE in ["FV3_GFS_v15_thompson_mynn_lam3km", "FV3_HRRR_gf", "FV3_GFS_v17_p8", "RRFS_sas"] }}'
     IO_LAYOUT_Y: '{{ task_run_fcst.IO_LAYOUT_Y }}'
     HISTORY_NATIVE_GRID: false
 
@@ -1678,8 +1021,6 @@ task_run_fcst:
   #
   QUILTING: true
 
-  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group) + fire.FIRE_NUM_TASKS if task_run_fcst.QUILTING else task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X) + fire.FIRE_NUM_TASKS }}'
-
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
 
@@ -1717,8 +1058,6 @@ task_integration_test:
       walltime: 00:05:00
       nodes: 1
       tasks_per_node: 1
-  envvars:
-    TEST_UFS_FIRE: false
 
 
 #----------------------------
@@ -1779,116 +1118,6 @@ global:
   NUM_ENS_MEMBERS: 0
   ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
   ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set default ad-hoc stochastic physics options.
-  # For detailed documentation of these parameters, see:
-  # https://stochastic-physics.readthedocs.io/en/ufs_public_release/namelist_options.html
-  #
-  #-----------------------------------------------------------------------
-  #
-  DO_SHUM: false
-  DO_SPPT: false
-  DO_SKEB: false
-  ISEED_SPPT: 1
-  ISEED_SHUM: 2
-  ISEED_SKEB: 3
-  NEW_LSCALE: true
-  SHUM_MAG: 0.006 #Variable "shum" in input.nml
-  SHUM_LSCALE: 150000
-  SHUM_TSCALE: 21600 #Variable "shum_tau" in input.nml
-  SHUM_INT: 3600 #Variable "shumint" in input.nml
-  SPPT_MAG: 0.7 #Variable "sppt" in input.nml
-  SPPT_LOGIT: true
-  SPPT_LSCALE: 150000
-  SPPT_TSCALE: 21600 #Variable "sppt_tau" in input.nml
-  SPPT_INT: 3600 #Variable "spptint" in input.nml
-  SPPT_SFCLIMIT: true
-  SKEB_MAG: 0.5 #Variable "skeb" in input.nml
-  SKEB_LSCALE: 150000
-  SKEB_TSCALE: 21600 #Variable "skeb_tau" in input.nml
-  SKEB_INT: 3600 #Variable "skebint" in input.nml
-  SKEBNORM: 1
-  SKEB_VDOF: 10
-  USE_ZMTNBLCK: false
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set default SPP stochastic physics options. 
-  # SPP perturbs specific tuning parameters within a physics parameterization 
-  # (unlike SPPT, which multiplies overall physics tendencies by a random  
-  # perturbation field *after* the call to the physics suite).Patterns evolve 
-  # and are applied at each time step. Each SPP option is an array, 
-  # applicable (in order) to the HRRR-based parameterization listed in SPP_VAR_LIST. 
-  # Enter each value of the array in config.yaml as shown below without commas
-  # or single quotes (e.g., SPP_VAR_LIST: [ "pbl" "sfc" "mp" "rad" "gwd" ] ). 
-  # Both commas and single quotes will be added by Jinja when creating the
-  # namelist.
-  #
-  # Note that SPP is currently only available for specific physics schemes 
-  # used in the RAP/HRRR physics suite. Users need to be aware of which SDF
-  # is chosen when turning this option on. 
-  #
-  #-----------------------------------------------------------------------
-  #
-  DO_SPP: false
-  SPP_VAR_LIST: [ "pbl", "sfc", "mp", "rad", "gwd" ]
-  SPP_MAG_LIST: [ 0.2, 0.2, 0.75, 0.2, 0.2 ] #Variable "spp_prt_list" in input.nml
-  SPP_LSCALE: [ 150000.0, 150000.0, 150000.0, 150000.0, 150000.0 ]
-  SPP_TSCALE: [ 21600.0, 21600.0, 21600.0, 21600.0, 21600.0 ] #Variable "spp_tau" in input.nml
-  SPP_SIGTOP1: [ 0.1, 0.1, 0.1, 0.1, 0.1 ]
-  SPP_SIGTOP2: [ 0.025, 0.025, 0.025, 0.025, 0.025 ]
-  SPP_STDDEV_CUTOFF: [ 1.5, 1.5, 2.5, 1.5, 1.5 ]
-  ISEED_SPP: [ 4, 5, 6, 7, 8 ]
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Turn on SPP in Noah or RUC LSM (support for Noah MP is in progress).
-  # Please be aware of the SDF that you choose if you wish to turn on LSM
-  # SPP.
-  #
-  # SPP in LSM schemes is handled in the &nam_sfcperts namelist block 
-  # instead of in &nam_sppperts, where all other SPP is implemented.
-  #
-  # Perturbations to soil moisture content (SMC) are only applied at the 
-  # first time step.
-  #
-  # LSM perturbations include SMC - soil moisture content (volume fraction),
-  # VGF - vegetation fraction, ALB - albedo, SAL - salinity, 
-  # EMI - emissivity, ZOL - surface roughness (cm), and STC - soil temperature.
-  #
-  # Only five perturbations at a time can be applied currently, but all seven
-  # are shown below.  In addition, only one unique iseed value is allowed 
-  # at the moment, and is used for each pattern.
-  #
-  DO_LSM_SPP: false #If true, sets lndp_type=2
-  LSM_SPP_TSCALE: [ 21600, 21600, 21600, 21600, 21600, 21600, 21600 ]
-  LSM_SPP_LSCALE: [ 150000, 150000, 150000, 150000, 150000, 150000, 150000 ]
-  ISEED_LSM_SPP: [ 9 ]
-  LSM_SPP_VAR_LIST: [ "smc", "vgf", "alb", "sal", "emi", "zol", "stc" ]
-  LSM_SPP_MAG_LIST: [ 0.017, 0.001, 0.001, 0.001, 0.001, 0.001, 0.2 ]
-  #
-  #-----------------------------------------------------------------------
-  # 
-  # HALO_BLEND:
-  # The number of cells to use for "blending" the external solution (obtained from 
-  # the LBCs) with the internal solution from the FV3LAM dycore.
-  # Specifically, it refers to the number of rows into the computational domain 
-  # that should be blended with the LBCs. To shut halo blending off, this can be set to zero.
-  #
-  #-----------------------------------------------------------------------
-  #
-  HALO_BLEND: 10
-  #
-  #-----------------------------------------------------------------------
-  #
-  # PRINT_DIFF_PGR:
-  # Option to turn on/off the pressure tendency diagnostic.
-  #
-  #-----------------------------------------------------------------------
-  #
-  PRINT_DIFF_PGR: false
 
 #
 #-----------------------------------------------------------------------

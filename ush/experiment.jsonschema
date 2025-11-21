@@ -1,32 +1,6 @@
 {
   "additionalProperties": true,
   "properties": {
-    "cpl_aqm_parm": {
-      "additionalProperties": true,
-      "properties": {
-        "CPL_AQM": {
-          "type": "boolean"
-        },
-        "DO_AQM_CANOPY": {
-          "type": "boolean"
-        },
-        "DO_AQM_CHEM_LBCS": {
-          "type": "boolean"
-        },
-        "DO_AQM_DUST": {
-          "type": "boolean"
-        },
-        "DO_AQM_GEFS_LBCS": {
-          "type": "boolean"
-        },
-        "DO_AQM_PRODUCT": {
-          "type": "boolean"
-        },
-        "DO_AQM_SAVE_AIRNOW_HIST": {
-          "type": "boolean"
-        }
-      }
-    },
     "global": {
       "additionalProperties": true,
       "properties": {
@@ -217,21 +191,6 @@
     "workflow": {
       "additionalProperties": true,
       "properties": {
-        "CCPP_PHYS_SUITE": {
-          "enum": [
-            "FV3_GFS_v15p2",
-            "FV3_GFS_v15_thompson_mynn_lam3km",
-            "FV3_GFS_v16",
-            "FV3_GFS_v17_p8",
-            "FV3_HRRR",
-            "FV3_HRRR_gf",
-            "FV3_RAP",
-            "FV3_RRFS_v1beta",
-            "FV3_WoFS_v0",
-            "RRFS_sas"
-          ],
-          "type": "string"
-        },
         "COLDSTART": {
           "type": "boolean"
         },

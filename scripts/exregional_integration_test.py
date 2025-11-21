@@ -100,71 +100,6 @@ class TestExptFiles(AbstractIntegrationTest):
             self.assertTrue(filename_fp.exists(), err_msg)
 
 
-class TestUfsFire(AbstractIntegrationTest):
-    _namelist_fire: NMLConfig | None = None
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        namelist_path = cls.get_context().fcst_dir.parent / "namelist.fire"
-        cls._namelist_fire = get_nml_config(namelist_path)
-        LOGGER.info(f"{cls._namelist_fire.as_dict()=}")
-
-    def get_namelist_fire(self) -> NMLConfig:
-        if self._namelist_fire is None:
-            raise ValueError
-        return self._namelist_fire
-
-    def test_output_files_created(self) -> None:
-        ctx = self.get_context()
-        fire_files = tuple(ctx.fcst_dir.glob("*fire_output_*nc"))
-        n_actual_files = len(fire_files)
-        LOGGER.info(f"{n_actual_files=}")
-        interval_output = self.get_namelist_fire()["time"]["interval_output"]
-        n_expected_files = int(((ctx.fcst_len * 60 * 60) / interval_output) + 1)
-        LOGGER.info(f"{n_expected_files=}")
-        self.assertEqual(n_actual_files, n_expected_files)
-
-    def test_namelist_creation(self) -> None:
-        base_params = {
-            "time": {"dt", "interval_output"},
-            "atm": {"interval_atm", "kde"},
-            "fire": {
-                "fire_num_ignitions",
-                "fire_wind_height",
-                "fire_print_msg",
-                "fire_atm_feedback",
-                "fire_viscosity",
-                "fire_upwinding",
-                "fire_lsm_zcoupling",
-                "fire_lsm_zcoupling_ref",
-            },
-        }
-        multifire_params = (
-            "fire_ignition_ros",
-            "fire_ignition_start_lat",
-            "fire_ignition_start_lon",
-            "fire_ignition_end_lat",
-            "fire_ignition_end_lon",
-            "fire_ignition_radius",
-            "fire_ignition_start_time",
-            "fire_ignition_end_time",
-        )
-
-        namelist_fire = self.get_namelist_fire()
-        # For each fire we need one of these settings in the namelist with an integer suffix
-        num_fires = namelist_fire["fire"]["fire_num_ignitions"]
-        multifire_params_with_suffix = [
-            f"{param}{ii + 1}"
-            for ii, param in itertools.product(range(num_fires), multifire_params)
-        ]
-        base_params["fire"].update(multifire_params_with_suffix)
-        LOGGER.info(f"{base_params=}")
-
-        # Convert the groups to sets for unordered comparison
-        actual_params = {k: set(v) for k, v in namelist_fire.items()}
-        self.assertEqual(actual_params, base_params)
-
-
 # -------------Start of script -------------------------#
 if __name__ == "__main__":
 
@@ -194,13 +129,6 @@ if __name__ == "__main__":
         help="Print debug messages.",
         required=False,
     )
-    parser.add_argument(
-        "--test_ufs_fire",
-        default=False,
-        action="store_true",
-        help="If true, run UFS-Fire tests.",
-        required=False,
-    )
     parser.add_argument("unittest_args", nargs="*")
     args = parser.parse_args()
     sys.argv[1:] = args.unittest_args
@@ -219,11 +147,6 @@ if __name__ == "__main__":
     TestExptFiles.set_context(config)
     suite = unittest.TestSuite()
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestExptFiles))
-
-    if args.test_ufs_fire is True:
-        LOGGER.info("adding UFS-Fire tests to the runner")
-        TestUfsFire.set_context(config)
-        suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestUfsFire))
 
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if not result.wasSuccessful():

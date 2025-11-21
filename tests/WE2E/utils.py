@@ -121,17 +121,17 @@ def create_expts_dict(expt_dir: str, delay: int):
 
     expts_dict=dict()
     for item in contents:
-        # Look for FV3LAM_wflow.xml to indicate directories with experiments in them
+        # Look for vx_wflow.xml to indicate directories with experiments in them
         fullpath = os.path.join(expt_dir, item)
         if not os.path.isdir(fullpath):
             # If user is providing an experiment subdir directly, print a warning
-            if item == "FV3LAM_wflow.xml":
+            if item == "vx_wflow.xml":
                 msg = "WARNING: found a rocoto XML in the provided directory!\n"
                 msg += "This script will only look for experiments in subdirectories\n"
                 msg += f"of the provided directory {expt_dir}\n"
                 logging.warning(msg)
             continue
-        xmlfile = os.path.join(expt_dir, item, 'FV3LAM_wflow.xml')
+        xmlfile = os.path.join(expt_dir, item, 'vx_wflow.xml')
         if os.path.isfile(xmlfile):
             expts_dict[item] = dict()
             expts_dict[item].update({"expt_dir": os.path.join(expt_dir,item)})
@@ -257,8 +257,8 @@ def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int 
     if (expt["status"] in ['DEAD','ERROR','COMPLETE']) and not refresh:
         return expt
     # Update experiment, read rocoto database
-    rocoto_db = f"{expt['expt_dir']}/FV3LAM_wflow.db"
-    rocoto_xml = f"{expt['expt_dir']}/FV3LAM_wflow.xml"
+    rocoto_db = f"{expt['expt_dir']}/vx_wflow.db"
+    rocoto_xml = f"{expt['expt_dir']}/vx_wflow.xml"
     if submit:
         if refresh:
             logging.debug(f"Updating database for experiment {name}")
@@ -520,8 +520,8 @@ def compare_rocotostat(expt_dict,name):
     """
 
     # Call rocotostat and store output
-    rocoto_db = f"{expt_dict['expt_dir']}/FV3LAM_wflow.db"
-    rocoto_xml = f"{expt_dict['expt_dir']}/FV3LAM_wflow.xml"
+    rocoto_db = f"{expt_dict['expt_dir']}/vx_wflow.db"
+    rocoto_xml = f"{expt_dict['expt_dir']}/vx_wflow.xml"
     rocotorun_cmd = ["rocotostat", f"-w {rocoto_xml}", f"-d {rocoto_db}", "-v 10"]
     p = subprocess.run(rocotorun_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     rsout = p.stdout
