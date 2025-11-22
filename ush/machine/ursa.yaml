@@ -10,7 +10,6 @@ platform:
   TEST_AERONET_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/aeronet'
   TEST_AIRNOW_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/airnow'
   TEST_GDAS_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/gdas'
-  DOMAIN_PREGEN_BASEDIR: '{{ platform.WE2E_TEST_DATA }}/FV3LAM_pregen'
   QUEUE_DEFAULT: batch
   QUEUE_FCST: batch
   PARTITION_DEFAULT: u1-compute
@@ -28,20 +27,8 @@ platform:
   SCHED_NATIVE_CMD_HPSS: "-n 1 --export=NONE"
   PRE_TASK_CMDS: '{ ulimit -s unlimited; ulimit -a; }'
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/input_model_data
-  TEST_PREGEN_BASEDIR: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/FV3LAM_pregen
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_VX_FCST_INPUT_BASEDIR: '{{ "/scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{{ "/{{workflow.PREDEF_GRID_NAME}}" }}{% raw %}{% endraw %}'
-  FIXaer: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_aer
-  FIXgsm: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_am
-  FIXlut: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_lut
-  FIXorg: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_orog
-  FIXsfc: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_sfc_climo
-  FIXshp: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/NaturalEarth
-  FIXaqm: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_aqm_v8/fix/fix_aqm
-  FIXemis: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_emis
-  FIXsmoke: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_smoke
-  FIXupp: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_upp
-  FIXcrtm: /scratch3/NCEPDEV/nems/role.epic/ursa/UFS_SRW_data/develop/fix/fix_crtm
   EXTRN_MDL_DATA_STORES: hpss aws nomads
 

@@ -26,10 +26,11 @@
 #
 #-----------------------------------------------------------------------
 #
-# Source the variable definitions file and the bash utility functions.
+# Source the conda setup and variable definitions files
 #
 #-----------------------------------------------------------------------
 #
+. $USHdir/../setup_conda.sh
 . $USHdir/source_util_funcs.sh
 sections=(
   user

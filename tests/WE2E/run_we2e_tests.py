@@ -16,7 +16,6 @@ from pathlib import Path
 from textwrap import dedent
 
 from monitor_jobs import monitor_jobs, write_monitor_file
-from utils import print_test_info
 
 from uwtools.api.config import get_yaml_config
 
@@ -667,12 +666,6 @@ if __name__ == "__main__":
         help="Overrides CRON_RELAUNCH_INTVL_MNTS for all experiments",
     )
     optional.add_argument(
-        "--print_test_info",
-        action="store_true",
-        help='Create a "WE2E_test_info.txt" file summarizing each test prior to'
-        "starting experiment",
-    )
-    optional.add_argument(
         "--debug_tests",
         action="store_true",
         help="Explicitly set DEBUG=TRUE for all experiments",
@@ -706,9 +699,6 @@ if __name__ == "__main__":
     if not user_args.tests:
         raise argparse.ArgumentTypeError("The --tests argument can not be empty")
 
-    # Print test details (if requested)
-    if user_args.print_test_info:
-        print_test_info()
     # Call main function
 
     try:

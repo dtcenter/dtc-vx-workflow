@@ -362,7 +362,7 @@ fi
 #
 print_info_msg "$VERBOSE" "
 Calling METplus to run MET's ${metplus_tool_name} tool on observations of type: ${OBTYPE}"
-${METPLUS_PATH}/ush/run_metplus.py \
+${METPLUS_ROOT}/ush/run_metplus.py \
   -c ${METPLUS_CONF}/common.conf \
   -c ${metplus_config_fp} || \
 print_err_msg_exit "

@@ -4,7 +4,8 @@
     exit 1
 }
 # Logic taken from UFS SRW Application (https://github.com/ufs-community/ufs-srweather-app)
-CONDA_BUILD_DIR="conda"
+VX_WFLOW_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+CONDA_BUILD_DIR="${VX_WFLOW_DIR}/conda"
 os=$(uname)
 if [ ! -d "${CONDA_BUILD_DIR}" ] ; then
   test $os == Darwin && os=MacOSX
@@ -24,8 +25,6 @@ conda activate
 if ! conda env list | grep -q "^vx_workflow\s" ; then
   mamba env create -n vx_workflow --file environment.yml
 fi
-
-CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
 
 if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
   export PATH=${CONDA_BUILD_DIR}/condabin:${CONDA_BUILD_DIR}/bin:${PATH}

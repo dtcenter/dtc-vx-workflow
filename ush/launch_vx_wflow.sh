@@ -35,7 +35,7 @@ scrfunc_dir=$( dirname "${scrfunc_fp}" )
 #-----------------------------------------------------------------------
 #
 # This script will be configured for a specific experiment when
-# generate_FV3LAM_wflow.py. That process fills in what is necessary so
+# generate_vx_wflow.py. That process fills in what is necessary so
 # this configured script in the experiment directory will need no
 # additional information at run time.
 #

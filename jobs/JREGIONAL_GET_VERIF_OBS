@@ -23,10 +23,11 @@
 #
 #-----------------------------------------------------------------------
 #
-# Source the variable definitions file and the bash utility functions.
+# Source the conda setup and variable definitions files
 #
 #-----------------------------------------------------------------------
 #
+. $USHdir/../setup_conda.sh
 . $USHdir/source_util_funcs.sh
 sections=(
   user
@@ -82,6 +83,7 @@ observation data for verification purposes.
 #
 #-----------------------------------------------------------------------
 #
+module load hpss
 $SCRIPTSdir/exregional_get_verif_obs.sh || \
 print_err_msg_exit "\
 Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."

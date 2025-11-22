@@ -7,14 +7,14 @@ rocoto:
     AERONET_OBS_DIR: '{{ verification.AERONET_OBS_DIR }}'
     AIRNOW_OBS_DIR: '{{ verification.AIRNOW_OBS_DIR }}'
     CCPA_OBS_DIR: '{{ verification.CCPA_OBS_DIR }}'
-    COLDSTART: '{{ workflow.COLDSTART }}'
     COMINgfs: '{{ platform.get("COMINgfs") }}'
     GLOBAL_VAR_DEFNS_FP: '{{ workflow.GLOBAL_VAR_DEFNS_FP }}'
     GOESAOD_OBS_DIR: '{{ verification.GOESAOD_OBS_DIR }}'
     HOMEdir: '{{ user.HOMEdir }}'
     JOBSdir: '{{ user.JOBSdir }}'
-    LOAD_MODULES_RUN_TASK: '{{ workflow.LOAD_MODULES_RUN_TASK_FP }} {{ user.MACHINE }}'
     LOGEXT: ".log"
+    MET_INSTALL_DIR: '{{ platform.MET_INSTALL_DIR }}'
+    METPLUS_ROOT: '{{ platform.METPLUS_ROOT }}'
     MRMS_OBS_DIR: '{{ verification.MRMS_OBS_DIR }}'
     NCORES_PER_NODE: '{{ platform.NCORES_PER_NODE }}'
     NDAS_OBS_DIR: '{{ verification.NDAS_OBS_DIR }}'
@@ -28,7 +28,6 @@ rocoto:
     SCRIPTSdir: '{{ user.SCRIPTSdir }}'
     SLASH_ENSMEM_SUBDIR: '{{ "/mem#mem#" if global.DO_ENSEMBLE else "/" }}'
     USHdir: '{{ user.USHdir }}'
-    WARMSTART_CYCLE_DIR: '{{ workflow.WARMSTART_CYCLE_DIR }}'
     WORKFLOW_ID: '{{ workflow.WORKFLOW_ID }}'
 
     COMIN_DIR: '{{ workflow.EXPTDIR + "/@Y@m@d@H" }}'
@@ -51,4 +50,4 @@ rocoto:
       spec: '{{ workflow.DATE_LAST_CYCL }}00 {{ workflow.DATE_LAST_CYCL }}00 {{ workflow.INCR_CYCL_FREQ }}:00:00'
   log:
     cyclestr:
-      value: '&LOGDIR;/FV3LAM_wflow.log'
+      value: '&LOGDIR;/vx_wflow.log'

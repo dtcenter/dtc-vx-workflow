@@ -1,38 +1,6 @@
 {
   "additionalProperties": true,
   "properties": {
-    "global": {
-      "additionalProperties": true,
-      "properties": {
-        "": {
-          "type": "boolean"
-        },
-        "DO_ENSEMBLE": {
-          "type": "boolean"
-        },
-        "DO_LSM_SPP": {
-          "type": "boolean"
-        },
-        "DO_SHUM": {
-          "type": "boolean"
-        },
-        "DO_SKEB": {
-          "type": "boolean"
-        },
-        "DO_SPP": {
-          "type": "boolean"
-        },
-        "DO_SPPT": {
-          "type": "boolean"
-        },
-        "USE_CRTM": {
-          "type": "boolean"
-        },
-        "USE_ZMTNBLCK": {
-          "type": "boolean"
-        }
-      }
-    },
     "platform": {
       "additionalProperties": true,
       "properties": {
@@ -215,35 +183,6 @@
         "FCST_MODEL": {
           "enum": [
             "ufs-weather-model"
-          ],
-          "type": "string"
-        },
-        "GRID_GEN_METHOD": {
-          "enum": [
-            "",
-            "ESGgrid"
-          ],
-          "type": "string"
-        },
-        "PREDEF_GRID_NAME": {
-          "enum": [
-            "",
-            "AQM_NA_13km",
-            "GSD_HRRR_25km",
-            "RRFS_AK_13km",
-            "RRFS_AK_3km",
-            "RRFS_CONUS_13km",
-            "RRFS_CONUS_25km",
-            "RRFS_CONUS_3km",
-            "RRFS_CONUScompact_13km",
-            "RRFS_CONUScompact_25km",
-            "RRFS_CONUScompact_3km",
-            "RRFS_NA_13km",
-            "RRFS_NA_3km",
-            "SUBCONUS_Ind_3km",
-            "WoFS_3km",
-            "SUBCONUS_CO_3km",
-            "SUBCONUS_CO_1km"
           ],
           "type": "string"
         },

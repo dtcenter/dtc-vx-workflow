@@ -44,10 +44,6 @@ user:
   # PARMdir: 
   # The path to the user's parm directory in their vx workflow clone.
   # 
-  # MODULESdir: 
-  # The path to the user's modulefiles directory in their vx workflow 
-  # clone.
-  # 
   # METPLUS_CONF: 
   # The path to the user's final METplus configuration file. By default, 
   # METplus configuration files reside in parm/metplus.
@@ -61,8 +57,6 @@ user:
   SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
   JOBSdir: '{{ user.HOMEdir }}/jobs'
   PARMdir: '{{ user.HOMEdir }}/parm'
-  MODULESdir: '{{ user.HOMEdir }}/modulefiles'
-  EXECdir: '{{ user.HOMEdir }}/{{ workflow.EXEC_SUBDIR }}'
   METPLUS_CONF: '{{ user.PARMdir }}/metplus'
 
 #----------------------------
@@ -91,14 +85,6 @@ platform:
   # CYCLETHROTTLE:
   # The number of active cycles to run simultaneously. For linux/mac setting this
   # to 1 makes sense
-  #
-  # BUILD_MOD_FN:
-  # Name of an alternative build modulefile to use if using an
-  # unsupported platform. Is set automatically for supported machines.
-  #
-  # WFLOW_MOD_FN:
-  # Name of alternative workflow modulefile to use if using an
-  # unsupported platform. Is set automatically for supported machines.
   #
   # BUILD_VER_FN:
   # File name containing the version of the modules used for building the App.
@@ -147,18 +133,6 @@ platform:
   # or is set to an empty string, it will be (re)set to a machine-dependent 
   # value.
   #
-  # PARTITION_FCST:
-  # If using the slurm job scheduler (i.e. if SCHED is set to "slurm"), 
-  # The task that runs forecasts is submitted to this partition.  If 
-  # this is not set or set to an empty string, it will be (re)set to a 
-  # machine-dependent value.  This is not used if SCHED is not set to 
-  # "slurm".
-  #
-  # QUEUE_FCST:
-  # The task that runs a forecast is submitted to this queue or QOS.  
-  # If this is not set or set to an empty string, it will be (re)set to a 
-  # machine-dependent value.
-  #
   # REMOVE_MEMORY:
   # Boolean flag determining whether to remove the memory flag for the
   # Rocoto XML. Some platforms are not configured to accept the memory
@@ -169,8 +143,6 @@ platform:
   NCORES_PER_NODE: ""
   TASKTHROTTLE: 1000
   CYCLETHROTTLE: 200
-  BUILD_MOD_FN: 'build_{{ user.MACHINE|lower() }}_{{ workflow.COMPILER }}'
-  WFLOW_MOD_FN: 'wflow_{{ user.MACHINE|lower() }}'
   BUILD_VER_FN: 'build.ver.{{ user.MACHINE|lower() }}'
   RUN_VER_FN: 'run.ver.{{ user.MACHINE|lower() }}'
   SCHED: ""
@@ -178,26 +150,12 @@ platform:
   QUEUE_DEFAULT: ""
   PARTITION_HPSS: ""
   QUEUE_HPSS: ""
-  PARTITION_FCST: ""
-  QUEUE_FCST: ""
   REMOVE_MEMORY: False
   #
   #-----------------------------------------------------------------------
   #
   # Set run commands for platforms without a workflow manager. These values
   # will be ignored unless WORKFLOW_MANAGER: "none".  Definitions:
-  #
-  # RUN_CMD_UTILS:
-  # The run command for MPI-enabled pre-processing utilities (shave, orog, sfc_climo_gen, 
-  # etc.) Can be left blank for smaller domains, in which case the executables 
-  # will run without MPI.
-  #
-  # RUN_CMD_FCST:
-  # The run command for the model forecast step. 
-  #
-  # RUN_CMD_POST:
-  # The run command for post-processing (UPP). Can be left blank for smaller 
-  # domains, in which case UPP will run without MPI.
   #
   # RUN_CMD_PRDGEN: 
   # The run command for the product generation job.
@@ -208,9 +166,6 @@ platform:
   #-----------------------------------------------------------------------
   #
   RUN_CMD_SERIAL: ""
-  RUN_CMD_UTILS: ""
-  RUN_CMD_FCST: ""
-  RUN_CMD_POST: ""
   RUN_CMD_PRDGEN: ""
   #
   #-----------------------------------------------------------------------
@@ -227,26 +182,10 @@ platform:
   PRE_TASK_CMDS: ""
   #
   #-----------------------------------------------------------------------
-  #
-  # DOMAIN_PREGEN_BASEDIR:
-  # The base directory containing pregenerated grid, orography, and surface 
-  # climatology files. This is an alternative for setting GRID_DIR,
-  # OROG_DIR, and SFC_CLIMO_DIR individually
-  # 
-  # For the pregenerated grid specified by PREDEF_GRID_NAME, 
-  # these "fixed" files are located in:
-  #
-  #   ${DOMAIN_PREGEN_BASEDIR}/${PREDEF_GRID_NAME}
-  #
-  # The workflow scripts will create a symlink in the experiment directory
-  # that will point to a subdirectory (having the name of the grid being
-  # used) under this directory.  This variable should be set to a null 
-  # string in this file, but it can be specified in the user-specified 
-  # workflow configuration file
-  #
+  # MET and METplus directories
   #-----------------------------------------------------------------------
-  #
-  DOMAIN_PREGEN_BASEDIR: ""
+  MET_INSTALL_DIR: ''
+  METPLUS_ROOT: ''
   #
   #-----------------------------------------------------------------------
   # Test directories used in run_WE2E script
@@ -255,12 +194,6 @@ platform:
   # This parameter allows testing of user-staged files in a known location 
   # on a given platform. This path contains a limited dataset and likely 
   # will not be useful for most user experiments. 
-  # 
-  # TEST_PREGEN_BASEDIR: 
-  # Similar to DOMAIN_PREGEN_BASEDIR, this variable sets the base 
-  # directory containing pregenerated grid, orography, and surface 
-  # climatology files for WE2E tests. This is an alternative for setting 
-  # GRID_DIR, OROG_DIR, and SFC_CLIMO_DIR individually. 
   # 
   # TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: 
   # This parameter is used to test the mechanism that allows users to 
@@ -287,7 +220,6 @@ platform:
   #-----------------------------------------------------------------------
   #
   TEST_EXTRN_MDL_SOURCE_BASEDIR: ""
-  TEST_PREGEN_BASEDIR: ""
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: ""
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: ""
   TEST_CCPA_OBS_DIR: ""
@@ -360,14 +292,11 @@ workflow:
   # CRONTAB_LINE: 
   # The launch command that will appear in the crontab
   #
-  # LOAD_MODULES_RUN_TASK_FP: 
-  # Path to load_modules_run_task.sh.
   #-----------------------------------------------------------------------
   #
   USE_CRON_TO_RELAUNCH: false
   CRON_RELAUNCH_INTVL_MNTS: 3
   CRONTAB_LINE: ""
-  LOAD_MODULES_RUN_TASK_FP: '{{ user.USHdir }}/load_modules_run_task.sh'
 
   #
   #-----------------------------------------------------------------------
@@ -384,10 +313,6 @@ workflow:
   # If EXPTDIR is not specified, this represents the experiment directory 
   # (not the full path)
   #
-  # EXEC_SUBDIR:
-  # The name of the subdirectory of ufs-srweather-app where executables are
-  # installed.
-  #
   # EXPTDIR:
   # The full path to the experiment directory. Can be user-specified, but by
   # default will point to:
@@ -401,22 +326,8 @@ workflow:
   #
   EXPT_BASEDIR: '' # This will be set in setup.py prior to extend_yaml() being called
   EXPT_SUBDIR: 'experiment'
-  EXEC_SUBDIR: 'exec'
   EXPTDIR: '{{ workflow.EXPT_BASEDIR }}/{{ workflow.EXPT_SUBDIR }}'
   WFLOW_FLAG_FILES_DIR: '{{ workflow.EXPTDIR }}/wflow_flag_files'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set the separator character(s) to use in the names of the grid, mosaic,
-  # and orography fixed files.
-  #
-  # Ideally, the same separator should be used in the names of these fixed
-  # files as in the surface climatology fixed files (which always use a "."
-  # as the separator), i.e. ideally, DOT_OR_USCORE should be set to "."
-  #
-  #-----------------------------------------------------------------------
-  #
-  DOT_OR_USCORE: "_"
   #
   #-----------------------------------------------------------------------
   #
@@ -426,31 +337,14 @@ workflow:
   # Name of the file containing definitions of various mathematical, physical, 
   # and SRW App constants.
   #
-  # RGNL_GRID_NML_FN:
-  # Name of file containing the namelist settings for the code that generates
-  # a "ESGgrid" type of regional grid.
-  #
-  # MODEL_CONFIG_FN:
-  # Name of a template file that contains settings and configurations for the 
-  # NUOPC/ESMF main component (ufs-weather-model: model_config). Its default 
-  # value is the name of the file that the ufs weather model expects to read in.
   #-----------------------------------------------------------------------
   #
   CONSTANTS_FN: "constants.yaml"
-
-  RGNL_GRID_NML_FN: "regional_grid.nml"
-
-  MODEL_CONFIG_FN: "model_configure"
-
-  MODEL_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.MODEL_CONFIG_FN }}'
 
   # 
   #-----------------------------------------------------------------------
   # These are staged in the exptdir at configuration time
   # 
-  # FCST_MODEL:
-  # Name of forecast model (default=ufs-weather-model)
-  #
   # WFLOW_XML_FN:
   # Name of the rocoto workflow XML file that the experiment generation
   # script creates and that defines the workflow for the experiment.
@@ -500,52 +394,16 @@ workflow:
   # 
   #-----------------------------------------------------------------------
   #
-  FCST_MODEL: "ufs-weather-model"
   WFLOW_XML_FN: "vx_wflow.xml"
   GLOBAL_VAR_DEFNS_FN: "var_defns.yaml"
   ROCOTO_YAML_FN: "rocoto_defns.yaml"
-  EXTRN_MDL_VAR_DEFNS_FN: "extrn_mdl_var_defns"
-  WFLOW_LAUNCH_SCRIPT_FN: "launch_FV3LAM_wflow.sh"
-  WFLOW_LAUNCH_LOG_FN: "log.launch_FV3LAM_wflow"
+  WFLOW_LAUNCH_SCRIPT_FN: "launch_vx_wflow.sh"
+  WFLOW_LAUNCH_LOG_FN: "log.launch_vx_wflow"
 
   GLOBAL_VAR_DEFNS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.GLOBAL_VAR_DEFNS_FN }}'
   ROCOTO_YAML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.ROCOTO_YAML_FN }}'
   WFLOW_LAUNCH_SCRIPT_FP: '{{ user.USHdir }}/{{ workflow.WFLOW_LAUNCH_SCRIPT_FN }}'
   WFLOW_LAUNCH_LOG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.WFLOW_LAUNCH_LOG_FN }}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set PREDEF_GRID_NAME. This parameter indicates which (if any) 
-  # predefined regional grid to use for the experiment. 
-  #
-  # Setting PREDEF_GRID_NAME provides a convenient method of specifying a
-  # commonly used set of grid-dependent parameters.  The predefined grid 
-  # parameters are specified in the script 
-  #
-  #   $HOMEdir/ush/set_predef_grid_params.py
-  #
-  # * If PREDEF_GRID_NAME is set to a valid predefined grid name, the grid 
-  #   generation method GRID_GEN_METHOD, the (native) grid parameters, and 
-  #   the write-component grid parameters are set to predefined values for 
-  #   the specified grid, overwriting any settings of these parameters in 
-  #   the user-specified experiment configuration file.  In addition, if 
-  #   the time step DT_ATMOS and the computational parameters LAYOUT_X, 
-  #   LAYOUT_Y, and BLOCKSIZE are not specified in that configuration file, 
-  #   they are also set to predefined values for the specified grid.
-  #
-  # * If PREDEF_GRID_NAME is set to an empty string, it implies the user
-  #   is providing the native grid parameters in the user-specified 
-  #   experiment configuration file.  In this case, the 
-  #   grid generation method GRID_GEN_METHOD, the native grid parameters, 
-  #   the write-component grid parameters, the forecast model's 
-  #   main time step DT_ATMOS, and the computational 
-  #   parameters (LAYOUT_X, LAYOUT_Y, and BLOCKSIZE) must be set in that 
-  #   configuration file; otherwise, the values of all of these parameters 
-  #   in this default experiment configuration file will be used.
-  #
-  #-----------------------------------------------------------------------
-  #
-  PREDEF_GRID_NAME: ""
   #
   #-----------------------------------------------------------------------
   #
@@ -649,404 +507,7 @@ workflow:
   #
   VERBOSE: true
   DEBUG: false
-  #
-  #-----------------------------------------------------------------------
-  #
-  # COMPILER:
-  # Type of compiler invoked during the build step. Currently, this must 
-  # be set manually; it is not inherited from the build system in the 
-  # ufs-srweather-app directory.
-  #
-  #------------------------------------------------------------------------
-  #
-  COMPILER: "intel"
-  #
-  #-----------------------------------------------------------------------
-  #
-  # DO_REAL_TIME:
-  # Switch for real-time run
-  #
-  #-----------------------------------------------------------------------
-  #
-  DO_REAL_TIME: false
-  #
-  #-----------------------------------------------------------------------
-  #
-  # COLDSTART:
-  # Flag turning on/off cold start for the first cycle
-  #
-  # WARMSTART_CYCLE_DIR:
-  # Path to the cycle directory where RESTART subdirectory is located for warm start
-  #
-  #-----------------------------------------------------------------------
-  #
-  COLDSTART: true
-  WARMSTART_CYCLE_DIR: "/path/to/warm/start/cycle/dir"
 
-#----------------------------
-# MAKE GRID config parameters
-#-----------------------------
-task_make_grid:
-  execution:
-    batchargs:
-      nodes: 1
-      tasks_per_node: 24
-      walltime: 00:20:00
-  envvars:
-    #
-    #-----------------------------------------------------------------------
-    #
-    # GRID_DIR:
-    # The directory containing pregenerated grid files when the
-    # make_grid task is not set to run.
-    #
-    #-----------------------------------------------------------------------
-    #
-    GRID_DIR: '{{ workflow.EXPTDIR + "/grid" if rocoto.tasks.get("task_make_grid")}}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set parameters specific to the "ESGgrid" method of generating a regional
-  # grid (i.e. for GRID_GEN_METHOD set to "ESGgrid"). Definitions:
-  #
-  # ESGgrid_LON_CTR:
-  # The longitude of the center of the grid (in degrees).
-  #
-  # ESGgrid_LAT_CTR:
-  # The latitude of the center of the grid (in degrees).
-  #
-  # ESGgrid_DELX:
-  # The cell size in the zonal direction of the regional grid (in meters).
-  #
-  # ESGgrid_DELY:
-  # The cell size in the meridional direction of the regional grid (in 
-  # meters).
-  #
-  # ESGgrid_NX:
-  # The number of cells in the zonal direction on the regional grid.
-  #
-  # ESGgrid_NY:
-  # The number of cells in the meridional direction on the regional grid.
-  #
-  # ESGgrid_WIDE_HALO_WIDTH:
-  # The width (in units of number of grid cells) of the halo to add around
-  # the regional grid before shaving the halo down to the width(s) expected
-  # by the forecast model.  
-  #
-  # The forecast model requires grid files containing 3-cell- and 
-  # 4-cell-wide halos and orography files with 0-cell- and 3-cell-wide halos.
-  # In order to generate grid and orography files with appropriately-sized halos, 
-  # the grid and orography tasks create preliminary files with halos around the regional domain
-  # of width ESGgrid_WIDE_HALO_WIDTH cells. 
-  # The files are then read in and "shaved" down to obtain grid
-  # files with 3-cell-wide and 4-cell-wide halos and orography files with
-  # 0-cell-wide (i.e. no halo) and 3-cell-wide halos.  The original halo that
-  #  gets shaved down is referred to as the "wide" halo because it is wider than the 0-cell-wide,  
-  # 3-cell-wide, and 4-cell-wide halos that users eventually end up with.
-  # Note that the grid and orography files with the wide halo are only needed as intermediates
-  # in generating the files with 0-cell-, 3-cell-, and 4-cell-wide halos;
-  # they are not needed by the forecast model.  
-  # NOTE: Probably don't need to make ESGgrid_WIDE_HALO_WIDTH a user-specified 
-  #       variable.  Just set it in the function set_gridparams_ESGgrid.py.
-  #
-  # ESGgrid_PAZI:
-  # The rotational parameter for the ESG grid (in degrees).
-  #
-  #-----------------------------------------------------------------------
-  #
-  ESGgrid_LON_CTR: ""
-  ESGgrid_LAT_CTR: ""
-  ESGgrid_DELX: ""
-  ESGgrid_DELY: ""
-  ESGgrid_NX: ""
-  ESGgrid_NY: ""
-  ESGgrid_WIDE_HALO_WIDTH: ""
-  ESGgrid_PAZI: ""
-
-#----------------------------
-# EXTRN ICS config parameters
-#-----------------------------
-#----------------------------
-# IO_LAYOUT_Y FORECAST config parameters
-#-----------------------------
-task_run_fcst:
-  fv3:
-    execution:
-      batchargs:
-        nodes: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.fv3.execution.batchargs.tasks_per_node - 1) // task_run_fcst.fv3.execution.batchargs.tasks_per_node }}'
-        tasks_per_node: !int '{{ platform.NCORES_PER_NODE // task_run_fcst.fv3.execution.threads }}'
-        walltime: 04:30:00
-      threads: !int '{{ task_run_fcst.envvars.OMP_NUM_THREADS_RUN_FCST }}'
-  #------------------------------------------------------------------------
-  #
-  # NNODES_RUN_FCST: 
-  # The number of nodes to request from the job scheduler 
-  # for the forecast task. 
-  # 
-  # PPN_RUN_FCST: 
-  # Processes per node for the forecast task. 
-  #
-  # IO_LAYOUT_Y: 
-  # Specifies how many MPI ranks to use in the Y direction for 
-  # input/output (I/O). (X direction is assumed to be 1.)
-  #
-  #------------------------------------------------------------------------
-  NNODES_RUN_FCST: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.PPN_RUN_FCST - 1) // task_run_fcst.PPN_RUN_FCST }}'
-  PPN_RUN_FCST: !int '{{ platform.NCORES_PER_NODE // task_run_fcst.envvars.OMP_NUM_THREADS_RUN_FCST }}'
-  IO_LAYOUT_Y: 1
-  #
-  #-----------------------------------------------------------------------
-  #
-  # KMP_AFFINITY_*:
-  # From Intel: "The Intel runtime library has the ability to bind OpenMP
-  # threads to physical processing units. The interface is controlled using
-  # the KMP_AFFINITY environment variable. Depending on the system (machine)
-  # topology, application, and operating system, thread affinity can have a
-  # dramatic effect on the application speed. 
-  #
-  # Thread affinity restricts execution of certain threads (virtual execution
-  # units) to a subset of the physical processing units in a multiprocessor 
-  # computer. Depending upon the topology of the machine, thread affinity can
-  # have a dramatic effect on the execution speed of a program."
-  #
-  # For more information, see the following link:
-  # https://software.intel.com/content/www/us/en/develop/documentation/cpp-
-  # compiler-developer-guide-and-reference/top/optimization-and-programming-
-  # guide/openmp-support/openmp-library-support/thread-affinity-interface-
-  # linux-and-windows.html
-  # 
-  # OMP_NUM_THREADS_RUN_FCST:
-  # The number of OpenMP threads to use for parallel regions.
-  # 
-  # OMP_STACKSIZE_RUN_FCST:
-  # Controls the size of the stack for threads created by the OpenMP 
-  # implementation.
-  #
-  # DT_ATMOS:
-  # The main forecast model integration time step.  As described in the 
-  # forecast model documentation, "It corresponds to the frequency with 
-  # which the top level routine in the dynamics is called as well as the 
-  # frequency with which the physics is called."
-  #
-  # FHROT:
-  # Forecast hour at restart
-  #
-  # RESTART_INTERVAL:
-  # frequency of the output restart files (unit:hour). 
-  # Default=0: restart files are produced at the end of a forecast run
-  # For example, i) RESTART_INTERVAL: 1 -1 => restart files are produced 
-  # every hour with the prefix "YYYYMMDD.HHmmSS." in the RESTART directory
-  # ii) RESTART_INTERVAL: 1 2 5 => restart files are produced only when 
-  # fh = 1, 2, and 5.
-  #
-  # WRITE_DOPOST:
-  # Flag that determines whether or not to use the inline post feature
-  # [i.e. calling the Unified Post Processor (UPP) from within the
-  # weather model].  If this is set to true, the the run_post task will
-  # be deactivated.
-  #
-  # ITASKS:
-  # Variable denoting the number of write tasks in the i direction in the
-  # current group.  Used for inline post 2D decomposition.  Setting this
-  # variable to a value greater than 1 will enable 2D decomposition.
-  # Default setting is 1.
-  # Note that 2D decomposition does not yet work with GNU compilers, so this value 
-  # will be reset to 1 automatically when using GNU compilers (i.e., when COMPILER: gnu).
-  #
-  # PRINT_ESMF:
-  # Flag that determines whether to output extra (debugging) information from
-  # ESMF routines. Must be true or false. Note that the write
-  # component uses ESMF library routines to interpolate from the native
-  # forecast model grid to the user-specified output grid (which is defined
-  # in the model configuration file "model_configure" in the forecast's
-  # run directory).
-  #
-  # DO_FCST_RESTART:
-  # Flag to turn on/off restart capability of forecast task
-  #-----------------------------------------------------------------------
-  #
-  envvars:
-    KMP_AFFINITY_RUN_FCST: "scatter"
-    OMP_NUM_THREADS_RUN_FCST: 2    # ATM_omp_num_threads in ufs.configure
-    OMP_STACKSIZE_RUN_FCST: "1024m"
-    DT_ATMOS: !int ""
-    FHROT: 0
-    RESTART_INTERVAL: 0
-    WRITE_DOPOST: false
-    PRINT_ESMF: false
-    DO_FCST_RESTART: false
-    IO_LAYOUT_Y: '{{ task_run_fcst.IO_LAYOUT_Y }}'
-    HISTORY_NATIVE_GRID: false
-
-  ITASKS: 1
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set computational parameters for the forecast.  Definitions:
-  #
-  # LAYOUT_X, LAYOUT_Y:
-  # The number of MPI tasks (processes) to use in the two horizontal 
-  # directions (x and y) of the regional grid when running the forecast model.
-  #
-  # BLOCKSIZE:
-  # The amount of data that is passed into the cache at a time.
-  #
-  # Here, we set these parameters to null strings.  This is so that, for 
-  # any one of these parameters:
-  #
-  # 1) If the experiment is using a predefined grid, then if the user 
-  #    sets the parameter in the user-specified experiment configuration 
-  #    file, that value will be used in the forecast(s).
-  #    Otherwise, the default value of the parameter for that predefined 
-  #    grid will be used.
-  #
-  # 2) If the experiment is not using a predefined grid (i.e. it is using
-  #    a custom grid whose parameters are specified in the experiment 
-  #    configuration file), then the user must specify a value for the 
-  #    parameter in that configuration file.  Otherwise, the parameter 
-  #    will remain set to a null string, and the experiment generation 
-  #    will fail because the generation scripts check to ensure that all 
-  #    the parameters defined in this section are set to non-empty strings
-  #    before creating the experiment directory.
-  #
-  #-----------------------------------------------------------------------
-  #
-  LAYOUT_X: !int '{{ task_run_fcst.LAYOUT_X }}'
-  LAYOUT_Y: !int '{{ task_run_fcst.LAYOUT_Y }}'
-  BLOCKSIZE: !int '{{ task_run_fcst.BLOCKSIZE }}'
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set write-component (quilting) parameters. 
-  # 
-  # NOTE: The UPP (called by the run_post task) cannot process output on the 
-  # native grid types ("ESGgrid"), so output fields are interpolated 
-  # to a write component grid before writing them to an output file. The output files 
-  # written by the UFS Weather Model use an Earth System Modeling Framework (ESMF) 
-  # component, referred to as the write component. This model component is 
-  # configured with settings in the model_configure file, as described in the UFS 
-  # Weather Model documentation. 
-  #
-  # Definitions:
-  #
-  # QUILTING:
-  # Flag that determines whether or not to use the write component for 
-  # writing output files to disk. The regional grid requires the use of 
-  # the write component, so users should not change the default value. 
-  # When set to true, the forecast model will output files named dynf$HHH.nc 
-  # and phyf$HHH.nc (where HHH is the 3-digit forecast hour) containing dynamics 
-  # and physics fields, respectively, on the write-component grid. 
-  #
-  # WRTCMP_write_groups:
-  # The number of write groups (i.e. groups of MPI tasks) to use in the
-  # write component.
-  #
-  # WRTCMP_write_tasks_per_group:
-  # The number of MPI tasks to allocate for each write group.
-  #
-  # WRTCMP_output_grid:
-  # Sets the type (coordinate system) of the write component grid. The 
-  # default empty string forces the user to set a valid value for 
-  # WRTCMP_output_grid in config.yaml if specifying a *custom* grid. When 
-  # creating an experiment with a user-defined grid, this parameter must 
-  # be specified or the experiment will fail. 
-  #
-  # WRTCMP_cen_lon:
-  # Longitude (in degrees) of the center of the write component grid. Can 
-  # usually be set to the corresponding value from the native grid.
-  #
-  # WRTCMP_cen_lat:
-  # Latitude (in degrees) of the center of the write component grid. Can 
-  # usually be set to the corresponding value from the native grid.
-  #
-  # WRTCMP_lon_lwr_left:
-  # Longitude (in degrees) of the center of the lower-left (southwest) 
-  # cell on the write component grid. If using the "rotated_latlon" 
-  # coordinate system, this is expressed in terms of the rotated longitude. 
-  # Must be set manually when running an experiment with a user-defined grid.
-  #
-  # WRTCMP_lat_lwr_left:
-  # Latitude (in degrees) of the center of the lower-left (southwest) cell 
-  # on the write component grid. If using the "rotated_latlon" coordinate 
-  # system, this is expressed in terms of the rotated latitude. Must be set 
-  # manually when running an experiment with a user-defined grid.
-  # 
-  # -----------------------------------------------------------------------
-  # Parameters to set when WRTCMP_output_grid is set to "rotated_latlon":
-  #
-  # WRTCMP_lon_upr_rght:
-  # Longitude (in degrees) of the center of the upper-right (northeast) cell 
-  # on the write component grid (expressed in terms of the rotated longitude).
-  #
-  # WRTCMP_lat_upr_rght:
-  # Latitude (in degrees) of the center of the upper-right (northeast) cell 
-  # on the write component grid (expressed in terms of the rotated latitude).
-  #
-  # WRTCMP_dlon:
-  # Size (in degrees) of a grid cell on the write component grid (expressed 
-  # in terms of the rotated longitude).
-  #
-  # WRTCMP_dlat:
-  # Size (in degrees) of a grid cell on the write component grid (expressed 
-  # in terms of the rotated latitude).
-  #
-  # -----------------------------------------------------------------------
-  # Parameters to set when WRTCMP_output_grid is set to "lambert_conformal"
-  # 
-  # WRTCMP_stdlat1:
-  # First standard latitude (in degrees) in definition of Lambert conformal 
-  # projection.
-  #
-  # WRTCMP_stdlat2:
-  # Second standard latitude (in degrees) in definition of Lambert conformal 
-  # projection.
-  #
-  # WRTCMP_nx:
-  # Number of grid points in the x-coordinate of the Lambert conformal 
-  # projection.
-  #
-  # WRTCMP_ny:
-  # Number of grid points in the y-coordinate of the Lambert conformal 
-  # projection.
-  #
-  # WRTCMP_dx:
-  # Grid cell size (in meters) along the x-axis of the Lambert conformal 
-  # projection.
-  #
-  # WRTCMP_dy:
-  # Grid cell size (in meters) along the y-axis of the Lambert conformal 
-  # projection.
-  #
-  #-----------------------------------------------------------------------
-  #
-  QUILTING: true
-
-  WRTCMP_write_groups: ""
-  WRTCMP_write_tasks_per_group: ""
-
-  WRTCMP_output_grid: ""
-  WRTCMP_cen_lon: ""
-  WRTCMP_cen_lat: ""
-  WRTCMP_lon_lwr_left: ""
-  WRTCMP_lat_lwr_left: ""
-  #
-  # The following are used only for the case of WRTCMP_output_grid set to
-  # "'rotated_latlon'".
-  #
-  WRTCMP_lon_upr_rght: ""
-  WRTCMP_lat_upr_rght: ""
-  WRTCMP_dlon: ""
-  WRTCMP_dlat: ""
-  #
-  # The following are used only for the case of WRTCMP_output_grid set to
-  # "'lambert_conformal'".
-  #
-  WRTCMP_stdlat1: ""
-  WRTCMP_stdlat2: ""
-  WRTCMP_nx: ""
-  WRTCMP_ny: ""
-  WRTCMP_dx: ""
-  WRTCMP_dy: ""
 
 #-----------------------------
 # Integration test resources
@@ -1064,28 +525,6 @@ task_integration_test:
 # global config parameters
 #-----------------------------
 global:
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set parameters associated with outputting satellite fields in the UPP
-  # grib2 files using the Community Radiative Transfer Model (CRTM).
-  #
-  # USE_CRTM:
-  # Flag that defines whether external CRTM coefficient files have been
-  # staged by the user in order to output synthetic satellite products
-  # available within the UPP. If this is set to true, then the workflow
-  # will check for these files in the directory CRTM_DIR. Otherwise, it is
-  # assumed that no satellite fields are being requested in the UPP
-  # configuration.
-  #
-  # CRTM_DIR:
-  # This is the path to the top CRTM fix file directory. This is only used
-  # if USE_CRTM is set to true.
-  #
-  #-----------------------------------------------------------------------
-  #
-  USE_CRTM: false
-  CRTM_DIR: ""
   #
   #-----------------------------------------------------------------------
   #

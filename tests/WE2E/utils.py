@@ -19,7 +19,6 @@ from uwtools.api.config import get_yaml_config
 
 sys.path.append("../../ush")
 
-from calculate_cost import calculate_cost
 from python_utils import (
     cfg_to_yaml_str,
     flatten_dict,
@@ -408,103 +407,6 @@ def update_expt_status_parallel(expts_dict: dict, procs: int, refresh: bool = Fa
         i += 1
 
     return expts_dict
-
-
-
-def print_test_info(txtfile: str = "WE2E_test_info.txt") -> None:
-    """Prints a pipe-delimited ( ``|`` ) text file containing summaries of each test with a configuration file in ``test_configs/*``
-
-    Args:
-        txtfile (str): File name for test details file (default: ``WE2E_test_info.txt``)
-    Returns:
-        None
-    """
-
-    testfiles = glob.glob('test_configs/**/config*.yaml', recursive=True)
-    testdict = dict()
-    links = dict()
-    for testfile in testfiles:
-        # Calculate relative cost of test based on config settings using legacy script
-        cost_array = calculate_cost(testfile)
-        cost = cost_array[1] / cost_array[3]
-        #Decompose full file path into relevant bits
-        pathname, filename = os.path.split(testfile)
-        testname = filename[7:-5]
-        dirname = os.path.basename(os.path.normpath(pathname))
-        if os.path.islink(testfile):
-            if dirname == "default_configs":
-                # Don't document default configs since they are not traditional tests
-                # (and so don't follow the standard format)
-                continue
-            targettestfile = os.readlink(testfile)
-            targetfilename = os.path.basename(targettestfile)
-            targettestname = targetfilename[7:-5]
-            links[testname] = (testname, dirname, targettestname)
-        else:
-            testdict[testname] = get_yaml_config(testfile)
-            testdict[testname]["directory"] = dirname
-            testdict[testname]["cost"] = cost
-            #Calculate number of forecasts for a cycling run
-            if testdict[testname]['workflow']["DATE_FIRST_CYCL"] != \
-                    testdict[testname]['workflow']["DATE_LAST_CYCL"]:
-                begin = datetime.strptime(testdict[testname]['workflow']["DATE_FIRST_CYCL"],
-                                          '%Y%m%d%H')
-                end = datetime.strptime(testdict[testname]['workflow']["DATE_LAST_CYCL"],
-                                        '%Y%m%d%H')
-                diff = end - begin
-                diffh = diff.total_seconds() // 3600
-                nf = diffh // testdict[testname]['workflow']["INCR_CYCL_FREQ"]
-                testdict[testname]["num_fcsts"] = nf
-            else:
-                testdict[testname]["num_fcsts"] = 1
-
-    # For each found link, add its info to the appropriate test dictionary entry
-    for key, link in links.items():
-        alt_testname, alt_dirname, link_name = link
-        testdict[link_name]["alternate_name"] = alt_testname
-        testdict[link_name]["alternate_directory_name"] = alt_dirname
-
-    # Print the file
-    with open(txtfile, 'w', encoding="utf-8") as f:
-        # Field delimiter character
-        d = "\" | \""
-        txt_output = ['"Test Name']
-        txt_output.append(f'(Subdirectory){d}Alternate Test Names')
-        txt_output.append(f'(Subdirectories){d}Test Purpose/Description{d}Relative Cost of Running Dynamics')
-        txt_output.append(f'(1 corresponds to running a 6-hour forecast on the RRFS_CONUS_25km predefined grid using the default time step){d}PREDEF_GRID_NAME{d}CCPP_PHYS_SUITE{d}EXTRN_MDL_NAME_ICS{d}EXTRN_MDL_NAME_LBCS{d}DATE_FIRST_CYCL{d}DATE_LAST_CYCL{d}INCR_CYCL_FREQ{d}FCST_LEN_HRS{d}DT_ATMOS{d}LBC_SPEC_INTVL_HRS{d}NUM_ENS_MEMBERS')
-
-        for line in txt_output:
-            f.write(f"{line}\n")
-        for expt in testdict:
-            f.write(f"\"{expt}\n(")
-            f.write(f"{testdict[expt]['directory']}){d}")
-            if "alternate_name" in testdict[expt]:
-                f.write(f"{testdict[expt]['alternate_name']}\n"\
-                        f"({testdict[expt]['alternate_directory_name']}){d}")
-            else:
-                f.write(f"{d}\n")
-            desc = testdict[expt]['metadata']['description'].splitlines()
-            for line in desc[:-1]:
-                f.write(f"    {line}\n")
-            f.write(f"    {desc[-1]}")
-            #Write test relative cost and number of test forecasts (for cycling runs)
-            f.write(f"{d}'{round(testdict[expt]['cost'],2)}{d}'{round(testdict[expt]['num_fcsts'])}")
-            # Bundle various variables with their corresponding sections for more compact coding
-            key_pairs = [ ('workflow', 'PREDEF_GRID_NAME'),
-                          ('workflow', 'CCPP_PHYS_SUITE'),
-                          ('task_get_extrn_ics', 'EXTRN_MDL_NAME_ICS'),
-                          ('task_get_extrn_lbcs', 'EXTRN_MDL_NAME_LBCS'),
-                          ('workflow', 'DATE_FIRST_CYCL'),
-                          ('workflow', 'DATE_LAST_CYCL'),
-                          ('workflow', 'INCR_CYCL_FREQ'),
-                          ('workflow', 'FCST_LEN_HRS'),
-                          ('task_run_fcst', 'DT_ATMOS'),
-                          ('task_get_extrn_lbcs', 'LBC_SPEC_INTVL_HRS'),
-                          ('global', 'NUM_ENS_MEMBERS') ]
-
-            for key1, key2 in key_pairs:
-                f.write(f"{d}{testdict[expt].get(key1, {}).get(key2, '')}")
-            f.write("\n")
 
 
 def compare_rocotostat(expt_dict,name):

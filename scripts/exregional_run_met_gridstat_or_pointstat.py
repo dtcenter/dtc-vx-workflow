@@ -370,7 +370,7 @@ def run_metplus(common_config,config_fn):
     If VX_TASKS > 1 and vx_leadhr_list > 1, calls in with starmap for the number of tasks specified."""
 
     # Run METplus
-    metplus_path = os.environ["METPLUS_PATH"]
+    metplus_path = os.environ["METPLUS_ROOT"]
     subprocess.run([
         f"{metplus_path}/ush/run_metplus.py",
         "-c", common_config,
