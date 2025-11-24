@@ -71,14 +71,6 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     machine = user_config["user"]["MACHINE"].upper()
     user_config["user"]["MACHINE"] = machine
 
-    # Check user config against experiment schema
-    schema = ushdir / "user.jsonschema"
-    valid = validate(schema_file=schema, config_data=user_config)
-
-    if not valid:
-        logging.error("User configuration is not valid against schema")
-        sys.exit(1)
-
     # Load the machine config file
 
     machine_file = ushdir / "machine" / f"{machine.lower()}.yaml"
@@ -145,14 +137,6 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
             **default_config,
             }
         )
-
-    # Validate experiment config against schema
-    schema = ushdir / "experiment.jsonschema"
-    valid = validate(schema_file=schema, config_data=default_config)
-
-    if not valid:
-        logging.error("Experiment configuration is not valid against schema")
-        sys.exit(1)
 
     return default_config
 
@@ -228,7 +212,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if debug:
         logger.info(
             """
-            Setting VERBOSE to \"TRUE\" because DEBUG has been set to \"TRUE\"..."""
+            Setting VERBOSE to \"True\" because DEBUG has been set to \"True\"..."""
         )
         workflow_config["VERBOSE"] = True
 
@@ -285,7 +269,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
     # Set cron table entry for relaunching the workflow if
-    # USE_CRON_TO_RELAUNCH is set to TRUE.
+    # USE_CRON_TO_RELAUNCH is set to True.
     #
     # -----------------------------------------------------------------------
     #
@@ -295,7 +279,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         launch_log_fn = workflow_config["WFLOW_LAUNCH_LOG_FN"]
         workflow_config["CRONTAB_LINE"] = (
             f"""*/{intvl_mnts} * * * * cd {exptdir} && """
-            f"""./{launch_script_fn} called_from_cron="TRUE" >> ./{launch_log_fn} 2>&1"""
+            f"""./{launch_script_fn} called_from_cron="True" >> ./{launch_log_fn} 2>&1"""
         )
     #
     # -----------------------------------------------------------------------
@@ -713,7 +697,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         f"""
         Generating the global experiment variable definitions file here:
           GLOBAL_VAR_DEFNS_FP = '{global_var_defns_fp}'
-        For more detailed information, set DEBUG to 'TRUE' in the experiment
+        For more detailed information, set DEBUG to 'True' in the experiment
         configuration file ('{user_config_fn}')."""
     )
 

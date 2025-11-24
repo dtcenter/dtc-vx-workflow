@@ -82,7 +82,7 @@ field (or group of fields).
 #-----------------------------------------------------------------------
 #
 DEBUG_FLAG=""
-if [ $(boolify "${VERBOSE}") = "TRUE" ]; then
+if [ "${VERBOSE}" = "True" ]; then
   DEBUG_FLAG=" --debug"
 fi
 python $SCRIPTSdir/exregional_run_met_gridstat_or_pointstat.py ${DEBUG_FLAG} || \

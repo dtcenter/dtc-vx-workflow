@@ -120,9 +120,6 @@ def generate_FV3LAM_wflow(
     template_variables = {
         **expt_config["user"],
         **expt_config["workflow"],
-        "valid_vals_BOOLEAN": list_to_str(
-            expt_config["constants"]["valid_vals_BOOLEAN"]
-        ),
     }
     launch_content = template.safe_substitute(template_variables)
 
@@ -135,7 +132,7 @@ def generate_FV3LAM_wflow(
     #
     # -----------------------------------------------------------------------
     #
-    # If USE_CRON_TO_RELAUNCH is set to TRUE, add a line to the user's
+    # If USE_CRON_TO_RELAUNCH is set to True, add a line to the user's
     # cron table to call the (re)launch script every
     # CRON_RELAUNCH_INTVL_MNTS minutes.
     #
@@ -206,7 +203,7 @@ def generate_FV3LAM_wflow(
             following line can be added to the user's crontab (use 'crontab -e' to
             edit the cron table):
 
-            */{cron_relaunch_intvl_mnts} * * * * cd {exptdir} && ./launch_FV3LAM_wflow.sh called_from_cron="TRUE"
+            */{cron_relaunch_intvl_mnts} * * * * cd {exptdir} && ./launch_FV3LAM_wflow.sh called_from_cron="True"
             """
         )
         # pylint: enable=line-too-long

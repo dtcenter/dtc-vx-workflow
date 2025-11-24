@@ -61,41 +61,6 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-#
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/set_bash_param.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that replaces variable values
-# (or value placeholders) in several types of files (e.g. Fortran name-
-# list files) with actual values.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/set_file_param.sh
-#
-#-----------------------------------------------------------------------
-#
-#
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/count_files.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that changes all boolean
-# options to TRUE or FALSE
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/boolify.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file containing the functions that will echo given strings
 # as uppercase or lowercase
 #
@@ -142,16 +107,6 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-# Source the file containing the function that interpolates (or extrapo-
-# lates) a grid cell size-dependent property to an arbitrary global 
-# cubed-sphere resolution.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/interpol_to_arbit_CRES.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file containing the function that checks the validity of a
 # variable's value (given a set of valid values).
 #
@@ -179,38 +134,12 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-# 
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/get_manage_externals_config_property.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that returns to stdout the 
-# contents of a character (i.e. string) variable in a netcdf file.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/get_charvar_from_netcdf.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file containing the function that creates a symlink to a
 # file (including performing checks).
 #
 #-----------------------------------------------------------------------
 #
   . ${bashutils_dir}/create_symlink_to_file.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that gets the stripped contents
-# of a bash script or function.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/get_bash_file_contents.sh
 #
 #-----------------------------------------------------------------------
 #

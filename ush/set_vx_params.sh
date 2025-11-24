@@ -69,7 +69,7 @@ function set_vx_params() {
 #
 # For debugging purposes, print out values of arguments passed to this
 # script.  Note that these will be printed out only if VERBOSE is set to
-# TRUE.
+# True.
 #
 #-----------------------------------------------------------------------
 #

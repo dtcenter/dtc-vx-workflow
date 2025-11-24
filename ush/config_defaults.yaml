@@ -500,8 +500,8 @@ workflow:
   #
   # DEBUG:
   # This is a flag that determines whether to print out very detailed debugging messages.
-  # Note that if DEBUG is set to TRUE, then
-  # VERBOSE will also be reset to TRUE if it isn't already.
+  # Note that if DEBUG is set to True, then
+  # VERBOSE will also be reset to True if it isn't already.
   #
   #-----------------------------------------------------------------------
   #

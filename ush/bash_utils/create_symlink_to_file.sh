@@ -28,10 +28,9 @@ fi
 
 target=$1
 symlink=$2
-relative=${3:-TRUE}
-relative=$(boolify $relative)
-if [ "$relative" != "TRUE" ] && [ "$relative" != "FALSE" ]; then
-  print_err_msg_exit "'relative' must be set to TRUE or FALSE"
+relative=${3:-True}
+if [ "$relative" != "True" ] && [ "$relative" != "False" ]; then
+  print_err_msg_exit "'relative' must be set to True or False"
 fi
 #
 #-----------------------------------------------------------------------

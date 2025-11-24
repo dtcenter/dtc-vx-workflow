@@ -98,7 +98,7 @@ def type_to_str(v):
         A string
     """
     if isinstance(v, bool):
-        return "TRUE" if v else "FALSE"
+        return "True" if v else "False"
     elif isinstance(v, (int, float)):
         pass
     elif isinstance(v, date):
