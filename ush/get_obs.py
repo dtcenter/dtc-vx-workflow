@@ -104,10 +104,9 @@ def get_obs_arcv_hr(obtype, arcv_intvl_hrs, hod):
 
 def get_obs(config, obtype, yyyymmdd_task):
     """
-    This script checks for the existence of obs files of the specified type
-    at the locations specified by variables in the SRW App's configuration
-    file.  If one or more of these files do not exist, it retrieves them from
-    a data store (using the ``retrieve_data.py`` script and as specified by the
+    This script checks for the existence of obs files of the specified type.
+    If one or more of these files do not exist, it retrieves them from a data
+    store (using the ``retrieve_data.py`` script and as specified by the
     configuration file ``parm/data_locations.yml`` for that script) and places
     them in the locations specified by the App's configuration variables,
     renaming them if necessary.
@@ -361,7 +360,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     #
     # Note:
     # Once the ex-scripts for the vx tasks are converted from bash to python,
-    # the lists in the SRW App's configuration file containing the METplus
+    # the lists in the configuration file containing the METplus
     # obs file name template(s) (from which the variable obs_fn_templates
     # was obtained above) can be converted to python dictionaries.  Then the
     # list-to-dictionary conversion step here will no longer be needed.

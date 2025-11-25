@@ -21,7 +21,7 @@ from uwtools.api.config import get_yaml_config
 
 sys.path.insert(1, Path(__file__).resolve().parent.parent / "ush")
 # pylint: disable=wrong-import-order, wrong-import-position
-from generate_FV3LAM_wflow import generate_FV3LAM_wflow
+from generate_wflow import generate_wflow
 from check_python_version import check_python_version
 
 
@@ -202,15 +202,6 @@ def run_we2e_tests(homedir, args) -> None:
             f"Overwriting WE2E-test-specific settings for test \n{test_name}\n"
         )
 
-        if "task_get_extrn_ics" in test_cfg:
-            test_cfg["task_get_extrn_ics"] = check_task_get_extrn_bcs(
-                test_cfg, machine_defaults, config_defaults, "ics"
-            )
-        if "task_get_extrn_lbcs" in test_cfg:
-            test_cfg["task_get_extrn_lbcs"] = check_task_get_extrn_bcs(
-                test_cfg, machine_defaults, config_defaults, "lbcs"
-            )
-
         if "verification" in test_cfg:
             # This section checks if we are doing verification on a machine with staged verification
             # obs. If so, and if the config file does not explicitly set the observation locations,
@@ -253,10 +244,10 @@ def run_we2e_tests(homedir, args) -> None:
         if args.quiet:
             console_handler = logging.getLogger().handlers[1]
             console_handler.setLevel(logging.WARNING)
-        expt_dir = generate_FV3LAM_wflow(
+        expt_dir = generate_wflow(
             ushdir=str(ushdir),
             config="config.yaml",
-            logfile=f"{str(ushdir)}/log.generate_FV3LAM_wflow",
+            logfile=f"{str(ushdir)}/log.generate_wflow",
             debug=args.debug,
         )
         if args.quiet:
@@ -409,118 +400,6 @@ def check_test(test: str) -> str:
     return config
 
 
-def check_task_get_extrn_bcs(
-    cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str = ""
-) -> dict:
-    """
-    Checks and updates various settings in the ``task_get_extrn_ics`` or
-    ``task_get_extrn_lbcs`` section of the test's configuration YAML file
-
-    Args:
-        cfg         (dict): Contents loaded from test configuration file
-        mach        (dict): Contents loaded from machine settings file
-        dflt        (dict): Contents loaded from default configuration file
-                            (``config_defaults.yaml``)
-        ics_or_lbcs (str): Perform checks for either the ICs task or the LBCs
-                           task. Valid values: ``"ics"`` | ``"lbcs"``
-
-    Returns:
-        cfg_bcs: Updated dictionary for ``task_get_extrn_[ics|lbcs]`` section of
-                 test configuration file
-    """
-
-    if ics_or_lbcs not in ["lbcs", "ics"]:
-        raise ValueError("ics_or_lbcs must be set to 'lbcs' or 'ics'")
-
-    # Make our lives easier by shortening some dictionary calls
-    cfg_bcs = cfg[f"task_get_extrn_{ics_or_lbcs}"]
-    if (cfg_bcs_vars := cfg_bcs.get("envvars")) is None:
-        raise KeyError(f"Required 'envvars' section not found in task_get_extrn_{ics_or_lbcs}")
-
-    # If the task is turned off explicitly, do nothing and return
-    # To turn off that task, taskgroups is included without the
-    # coldstart group, or task_get_extrn_{ics_or_lbcs} is included
-    # without a value
-    taskgroups = cfg.get("workflow", {}).get("taskgroups")
-    if taskgroups is not None and not any("coldstart.yaml" in g for g in taskgroups):
-        return cfg_bcs
-    rocoto_tasks = cfg.get("rocoto", {}).get("tasks", {})
-    if rocoto_tasks.get(f"task_get_extrn_{ics_or_lbcs}", "NA") is None:
-        return cfg_bcs
-
-    i_or_l = ics_or_lbcs.upper()
-
-    # If USE_USER_STAGED_EXTRN_FILES not specified or false, do nothing and return
-    if not cfg_bcs_vars.get("USE_USER_STAGED_EXTRN_FILES"):
-        logging.debug(
-            "USE_USER_STAGED_EXTRN_FILES not specified or False in "
-            f"task_get_extrn_{ics_or_lbcs} section of config"
-        )
-        return cfg_bcs
-
-    # If EXTRN_MDL_SYSBASEDIR_* is "set_to_non_default_location_in_testing_script", replace with
-    # test value from machine file
-    if (
-        cfg_bcs_vars.get(f"EXTRN_MDL_SYSBASEDIR_{i_or_l}")
-        == "set_to_non_default_location_in_testing_script"
-    ):
-        if f"TEST_ALT_EXTRN_MDL_SYSBASEDIR_{i_or_l}" in mach["platform"]:
-            basedir = mach["platform"][f"TEST_ALT_EXTRN_MDL_SYSBASEDIR_{i_or_l}"]
-            if Path(basedir).is_dir():
-                raise FileNotFoundError(
-                    "Non-default input file location "
-                    f"TEST_ALT_EXTRN_MDL_SYSBASEDIR_{i_or_l} from machine "
-                    "file does not exist or is not a directory"
-                )
-            cfg_bcs_vars[f"EXTRN_MDL_SYSBASEDIR_{i_or_l}"] = basedir
-        else:
-            raise KeyError(
-                "Non-default input file location "
-                f"TEST_ALT_EXTRN_MDL_SYSBASEDIR_{i_or_l} not set in machine file"
-            )
-        return cfg_bcs
-
-    # Because USE_USER_STAGED_EXTRN_FILES is true, only look on disk, and ensure the staged data
-    # directory exists
-    cfg["platform"]["EXTRN_MDL_DATA_STORES"] = "disk"
-    if "TEST_EXTRN_MDL_SOURCE_BASEDIR" not in mach["platform"]:
-        raise KeyError(
-            "TEST_EXTRN_MDL_SOURCE_BASEDIR, the directory for staged test data,"
-            "has not been specified in the machine file for this platform"
-        )
-    basedir = mach["platform"]["TEST_EXTRN_MDL_SOURCE_BASEDIR"]
-    if not Path(basedir).is_dir():
-        raise FileNotFoundError(
-            dedent(
-                f"""The directory for staged test data specified in this platform's machine file
-                TEST_EXTRN_MDL_SOURCE_BASEDIR = {basedir}
-                does not exist."""
-            )
-        )
-
-    # Different input data types have different directory structures; set data dir accordingly
-    model_name_key = f"EXTRN_MDL_NAME_{i_or_l}"
-    file_format_key = f"FV3GFS_FILE_FMT_{i_or_l}"
-    basedir_key = f"EXTRN_MDL_SOURCE_BASEDIR_{i_or_l}"
-    if cfg_bcs_vars[model_name_key] == "FV3GFS":
-        if file_format_key not in cfg_bcs_vars:
-            cfg_bcs_vars[file_format_key] = dflt[f"task_get_extrn_{ics_or_lbcs}"]["envvars"].get(
-                file_format_key
-            )
-        cfg_bcs_vars[basedir_key] = Path(
-            basedir,
-            f"{cfg_bcs_vars[model_name_key]}",
-            f"{cfg_bcs_vars[file_format_key]}",
-            "${yyyymmddhh}",
-        ).as_posix()
-    else:
-        cfg_bcs_vars[basedir_key] = Path(
-            basedir, f"{cfg_bcs_vars[model_name_key]}", "${yyyymmddhh}"
-        ).as_posix()
-
-    return cfg_bcs
-
-
 def setup_logging(logfile: str = "log.run_WE2E_tests", debug: bool = False) -> None:
     """
     Sets up logging, prints high-priority (INFO and higher) messages to screen, and prints all
@@ -557,7 +436,7 @@ if __name__ == "__main__":
     check_python_version()
 
     # Get the "Home" directory, two levels above this one
-    srw_dir = Path(__file__).absolute().parent.parent.parent
+    top_dir = Path(__file__).absolute().parent.parent.parent
     LOGFILE = "log.run_WE2E_tests"
 
     # Parse arguments
@@ -639,7 +518,7 @@ if __name__ == "__main__":
         choices=["python", "cron", "none"],
         help="Method for launching jobs. Valid values are:\n"
         " python: [default] Monitor and launch experiments using monitor_jobs.py\n"
-        " cron:   Launch expts using ush/launch_FV3LAM_wflow.sh from crontab\n"
+        " cron:   Launch expts using ush/launch_vx_wflow.sh from crontab\n"
         " none:   Do not launch experiments; only create experiment directories",
         default="python",
     )
@@ -702,7 +581,7 @@ if __name__ == "__main__":
     # Call main function
 
     try:
-        run_we2e_tests(srw_dir, user_args)
+        run_we2e_tests(top_dir, user_args)
     except: #pylint: disable=bare-except
         logging.exception(
             dedent(

@@ -14,7 +14,6 @@ sections=(
   workflow
   global
   verification
-  constants
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -134,7 +133,7 @@ if [ "${FCST_OR_OBS}" = "FCST" ]; then
   if [ "${DO_ENSEMBLE}" = "True" ]; then
     i=$( bc -l <<< "${ENSMEM_INDX}-1" )
   fi
-  time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*${SECS_PER_HOUR}" )
+  time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*3600" )
 fi
 #
 #-----------------------------------------------------------------------

@@ -111,13 +111,13 @@ def include(filepaths):
     Returns a dictionary that includes the contents of the referenced YAML file(s).
     """
 
-    srw_path = pathlib.Path(__file__).resolve().parents[0].parents[0]
+    top_path = pathlib.Path(__file__).resolve().parents[0].parents[0]
 
     cfg = {}
     for filepath in filepaths:
         abs_path = filepath
         if not os.path.isabs(filepath):
-            abs_path = os.path.join(os.path.dirname(srw_path), filepath)
+            abs_path = os.path.join(os.path.dirname(top_path), filepath)
         with open(abs_path, 'r') as fp:
             contents = yaml.load(fp, Loader=yaml.SafeLoader)
         for key, value in contents.items():

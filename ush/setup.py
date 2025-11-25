@@ -38,7 +38,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     Python dictionaries. Return the combined experiment dictionary.
 
     Args:
-      ushdir             (str): Path to the ``ush`` directory for the SRW App
+      ushdir             (str): Path to the ``ush`` directory for the VX workflow
       default_config     (str): Path to ``config_defaults.yaml``
       user_config        (str): Path to the user-provided config YAML (usually named
                                 ``config.yaml``)
@@ -53,6 +53,8 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
                    invalid sections/keys or (3) it does not contain mandatory information or (4)
                    an invalid datetime format is used.
     """
+    logger = logging.getLogger(__name__)
+
 
     ushdir = Path(ushdir)
 
@@ -88,23 +90,20 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     machine_config = get_yaml_config(machine_file)
 
 
-    # Load the constants file
-    constants = get_yaml_config(ushdir / "constants.yaml")
-
     # Load the rocoto workflow default file
     default_workflow = ushdir.parent / "parm" / "wflow" / "default_workflow.yaml"
     workflow_config = get_yaml_config(default_workflow)
 
     # Update default config with other loaded config file. Order matters.
     for cfg in (
-        constants,
         workflow_config,
         machine_config,
         user_config,
     ):
         default_config.update_from(cfg)
 
-    # Set the path to the top-level ufs-srweather-app directory
+
+    # Set the path to the top-level workflow directory
     homedir = Path(__file__).parent.parent.resolve()
     default_config["user"]["HOMEdir"] = str(homedir)
 
@@ -116,9 +115,11 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
         keep = {k: v for k, v in tasks.items() if not re.search(r"^default_*", k)}
         default_config["rocoto"]["tasks"].update(keep)
 
+
     # Update one more time in case there are user or machine settings to override the tasks
     for cfg in (machine_config, user_config):
         default_config.update_from(cfg)
+
 
     # Special logic if EXPT_BASEDIR is a relative path; see config_defaults.yaml for explanation
     expt_basedir = default_config["workflow"]["EXPT_BASEDIR"]
@@ -128,23 +129,13 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
         expt_basedir = homedir.parent / "expt_dirs" / expt_basedir
     default_config["workflow"]["EXPT_BASEDIR"] = str(Path(expt_basedir).resolve())
 
-
-    # Dereference all Jinja expressions
-    default_config.dereference(
-        context={
-            "today": datetime.date.today(),
-            "timedelta": datetime.timedelta,
-            **default_config,
-            }
-        )
-
     return default_config
 
 
 def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # pylint: disable=too-many-statements
     """Validates user-provided configuration settings and derives
-    a secondary set of parameters needed to configure a Rocoto-based SRW App
+    a secondary set of parameters needed to configure a Rocoto-based verification
     workflow. The secondary parameters are derived from a set of required
     parameters defined in ``config_defaults.yaml``, a user-provided
     configuration file (e.g., ``config.yaml``), or a YAML machine file.
@@ -191,7 +182,13 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Update ush path
     expt_config["user"].update({"USHdir": ushdir,})
-    expt_config.dereference()
+    expt_config.dereference(
+        context={
+            "today": datetime.date.today(),
+            "timedelta": datetime.timedelta,
+            **expt_config,
+            }
+        )
 
     #
     # -----------------------------------------------------------------------
@@ -559,8 +556,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                 are identical:
                 {obs_locations}
 
-                Modify these in the SRW App's user configuration file to make them distinct
-                and rerun.
+                Modify these in the configuration file to make them distinct and rerun.
                 """
             )
             logging.error(msg)
@@ -599,7 +595,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
 
-    expt_config.dereference()
     workflow_config = expt_config["workflow"]
 
     # set varying forecast lengths only when fcst_len_hrs=-1
@@ -649,6 +644,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                 {"attrs": {"group": "long_forecast"}, "spec": spec}
             )
 
+
     # Check to make sure that mandatory forecast variables are set.
     global_sect = expt_config["global"]
 
@@ -688,7 +684,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
 
-    expt_config.dereference()
     logger.debug(str(expt_config))
 
     global_var_defns_fp = workflow_config["GLOBAL_VAR_DEFNS_FP"]
@@ -746,11 +741,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         """
         raise ValueError(msg)
 
-    # Generate a flag file for cold start
-    if expt_config["workflow"].get("COLDSTART"):
-        coldstart_date = var_defns_cfg["workflow"]["DATE_FIRST_CYCL"]
-        fn_pass=f"task_skip_coldstart_{coldstart_date}.txt"
-        Path(exptdir,fn_pass).touch()
 
     #
     # -----------------------------------------------------------------------
@@ -766,6 +756,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if not valid:
         logging.error("Experiment configuration is not valid against schema")
         sys.exit(1)
+
 
     return expt_config
 

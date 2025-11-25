@@ -1,2 +1,0 @@
-load(pathJoin("nco", os.getenv("nco_ver") or "5.2.4"))
-load("python_srw_aqm")

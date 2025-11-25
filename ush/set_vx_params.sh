@@ -8,9 +8,9 @@
 # snowfall), the accumulation interval (both of which are inputs to this
 # function).
 #
-# As of 20220928, the verification tasks in the SRW App workflow use the
-# MET/METplus software (MET = Model Evaluation Tools) developed at the
-# DTC (Developmental Testbed Center).
+# The verification workflow is designed for the MET/METplus software
+# (MET = Model Evaluation Tools) developed at the DTC (Developmental
+# Testbed Center).
 #
 #-----------------------------------------------------------------------
 #

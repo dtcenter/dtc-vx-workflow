@@ -30,10 +30,10 @@ from uwtools.api import rocoto as uwrocoto
 
 
 # pylint: disable=too-many-locals,too-many-branches, too-many-statements
-def generate_FV3LAM_wflow(
+def generate_wflow(
     ushdir: str,
     config: str = "config.yaml",
-    logfile: str = "log.generate_FV3LAM_wflow",
+    logfile: str = "log.generate_wflow",
     debug: bool = False,
 ) -> str:
     """
@@ -203,7 +203,7 @@ def generate_FV3LAM_wflow(
             following line can be added to the user's crontab (use 'crontab -e' to
             edit the cron table):
 
-            */{cron_relaunch_intvl_mnts} * * * * cd {exptdir} && ./launch_FV3LAM_wflow.sh called_from_cron="True"
+            */{cron_relaunch_intvl_mnts} * * * * cd {exptdir} && ./launch_vx_wflow.sh called_from_cron="True"
             """
         )
         # pylint: enable=line-too-long
@@ -216,7 +216,7 @@ def generate_FV3LAM_wflow(
 
 
 def setup_logging(
-    logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False
+    logfile: str = "log.generate_wflow", debug: bool = False
 ) -> None:
     """
     Sets up logging, printing high-priority (INFO and higher) messages to screen and printing all
@@ -241,7 +241,7 @@ def setup_logging(
     logging.debug(f"Finished setting up debug file logging in {logfile}")
 
     # If there are already multiple handlers, that means
-    # generate_FV3LAM_workflow was called from another function.
+    # generate_wflow was called from another function.
     # In that case, do not change the console (print-to-screen) logging.
     if len(logging.getLogger().handlers) > 1:
         return
@@ -278,12 +278,12 @@ if __name__ == "__main__":
     pargs = parser.parse_args()
 
     USHdir = os.path.dirname(os.path.abspath(__file__))
-    wflow_logfile = f"{USHdir}/log.generate_FV3LAM_wflow"
+    wflow_logfile = f"{USHdir}/log.generate_wflow"
 
-    # Call the generate_FV3LAM_wflow function defined above to generate the
+    # Call the generate_wflow function defined above to generate the
     # experiment/workflow.
     try:
-        expt_dir = generate_FV3LAM_wflow(
+        expt_dir = generate_wflow(
             USHdir, pargs.config, wflow_logfile, pargs.debug
         )
     except:  # pylint: disable=bare-except

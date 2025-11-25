@@ -21,7 +21,7 @@ def check_darwin(cmd):
         print_err_msg_exit(
             f"""
             For Darwin-based operating systems (MacOS), the '{cmd}' utility is required 
-            to run the UFS SRW Application. Reference the User's Guide for more information
+            to run the verification workflow. Reference the User's Guide for more information
             about platform requirements.
 
               Aborting."""

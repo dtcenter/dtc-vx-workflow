@@ -1,10 +1,10 @@
 # This file tracks known data store locations for data used as input to
-# the SRW App configuations.
+# the verification workflow
 #
 # The contents should be organized as follows:
 #
 # Top level: A key corresponding to an external model file or
-# observation dataset accepted by the SRW App.
+# observation dataset accepted by the workflow.
 #
 # 2nd level: A key corresponding to a named datastore for a given data
 # set. This could be nomads, aws, hpss, etc.
@@ -24,8 +24,8 @@
 #   for that type of file. Both are required for external models ICS and
 #   LBCS. Each file name may (and likely should) include templates.
 #
-#   If the SRW App accepts different file formats, as it does for
-#   FV3GFS, an intermediary level indicating the value associate with a
+#   If different file formats are available, for example with FV3GFS files,
+#   an intermediary level indicating the value associated with a
 #   FV3GFS_FILE_FMT_* variable.
 #
 # 3rd level optional:

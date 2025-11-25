@@ -14,7 +14,6 @@ sections=(
   workflow
   global
   verification
-  constants
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -178,7 +177,7 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
 
     cdate_ensmem_subdir_or_null="${CDATE}/${ensmem_name}"
 
-  time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*${SECS_PER_HOUR}" )
+  time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*3600" )
 
   if [ "${FIELD_GROUP}" = "APCP" ] || [ "${FIELD_GROUP}" = "ASNOW" ]; then
     template="${cdate_ensmem_subdir_or_null:+${cdate_ensmem_subdir_or_null}/}metprd/PcpCombine_fcst/${FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"

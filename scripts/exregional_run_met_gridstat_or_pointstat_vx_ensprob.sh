@@ -14,7 +14,6 @@ sections=(
   workflow
   global
   verification
-  constants
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

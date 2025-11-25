@@ -9,16 +9,6 @@ Python Script Documentation Block
 
  Author:  Eddie Snyder 	Org: NOAA EPIC		Date: 2024-02-05
 
- Notes/future work:    - Currently SRW App only accepts netcdf as the UFS WM
-                         output file format. If that changes, then additional
-                         logic is needed to address the other file formats.
-                       - SRW App doesn't have a variable that updates the
-                         forecast increment. The UFS WM does with the
-                         output_fh variable, which can be found in the
-                         model_configure file. If it becomes available with
-                         the SRW App, then logic is needed to account for the
-                         forecast increment variable.
-
 """
 
 import abc

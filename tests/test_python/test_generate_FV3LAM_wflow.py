@@ -1,4 +1,4 @@
-""" Defines an integration test for generate_FV3LAM_wflow script in the
+""" Defines an integration test for generate_wflow script in the
 ush directory """
 
 #pylint: disable=invalid-name
@@ -17,18 +17,18 @@ from python_utils import (
     get_env_var,
 )
 
-from generate_FV3LAM_wflow import generate_FV3LAM_wflow
+from generate_wflow import generate_wflow
 
 class Testing(unittest.TestCase):
     """ Class to run the tests. """
-    def test_generate_FV3LAM_wflow_community(self) -> None:
+    def test_generate_wflow_community(self) -> None:
 
         """ Test that a sample config can successfully
         lead to the creation of an experiment directory. No jobs are
         submitted. """
 
         src_config_yaml_filename = "config.community.yaml"
-        self._run_generate_FV3LAM_wflow_test_(src_config_yaml_filename)
+        self._run_generate_wflow_test_(src_config_yaml_filename)
 
     def setUp(self) -> None:
         define_macos_utilities()
@@ -36,10 +36,10 @@ class Testing(unittest.TestCase):
         set_env_var("VERBOSE", False)
 
     @staticmethod
-    def _run_generate_FV3LAM_wflow_test_(src_config_yaml_filename: Union[str, Path]) -> None:
+    def _run_generate_wflow_test_(src_config_yaml_filename: Union[str, Path]) -> None:
         # run workflows in separate process to avoid conflict between community and nco settings
         def run_workflow(USHdir, logfile):
-            p = Process(target=generate_FV3LAM_wflow, args=(USHdir, "config.yaml", logfile))
+            p = Process(target=generate_wflow, args=(USHdir, "config.yaml", logfile))
             p.start()
             p.join()
             exit_code = p.exitcode
@@ -48,7 +48,7 @@ class Testing(unittest.TestCase):
                     print(fin.read())
                 sys.exit(exit_code)
 
-        logfile = "log.generate_FV3LAM_wflow"
+        logfile = "log.generate_wflow"
         sed = get_env_var("SED")
         # create a build settings file if needed
         test_dir = os.path.dirname(os.path.abspath(__file__))

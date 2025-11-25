@@ -10,8 +10,8 @@ try:
     from python_utils import load_config_file
 except ModuleNotFoundError:
     print("\n\nERROR: Could not load python utilities.")
-    print('Note that this script can only be run in the SRW App from the directory:')
-    print("ufs-srweather-app/tests/WE2E\n\n")
+    print('Note that this script can only be run in the workflow from the directory:')
+    print("tests/WE2E\n\n")
     raise
 
 from check_python_version import check_python_version
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                           'for an example file, see WE2E_tests.yaml')
     req.add_argument('-e', '--expt_dir', type=str,
                      help='The full path of an experiment directory, containing one or more '\
-                          'subdirectories with UFS SRW App experiments in them')
+                          'subdirectories with verification experiments in them')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='Script will be run in debug mode with more verbose output')
 

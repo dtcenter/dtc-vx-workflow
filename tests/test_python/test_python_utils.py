@@ -119,12 +119,12 @@ class Testing(unittest.TestCase):
 
         util.set_env_var("MACOS_TEST_VAR", "MYVAL")
         py_val = os.getenv("MACOS_TEST_VAR")
-        srw_val = util.get_env_var("MACOS_TEST_VAR")
+        workflow_val = util.get_env_var("MACOS_TEST_VAR")
 
-        # Validate the real env was set, and that the srw_supported
+        # Validate the real env was set, and that the
         # function retrieves the same value.
         self.assertEqual(py_val, "MYVAL")
-        self.assertEqual(srw_val, "MYVAL")
+        self.assertEqual(workflow_val, "MYVAL")
 
         self.assertEqual(os.getenv("SED"), "gsed" if os.uname() == "Darwin" else "sed")
 

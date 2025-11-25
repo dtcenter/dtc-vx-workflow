@@ -481,8 +481,8 @@ def set_rocoto_cycledefs_for_obs_days(obs_days_all_cycles):
     """
     Given a list of days on which observations are needed (because there is
     forecast output on those days), this function generates a list of ROCOTO-
-    style cycledef strings that together span the days (over all cycles of an
-    SRW App experiment) on which obs are needed.  The input list of days must
+    style cycledef strings that together span the days (over all cycles of a
+    verification experiment) on which obs are needed.  The input list of days must
     be increasing in time, but the days do not have to be consecutive, i.e.
     there may be gaps between days that are greater than one day.
 
@@ -624,7 +624,7 @@ def get_obs_retrieve_times_by_day(
     vx_field_groups = vx_config['VX_FIELD_GROUPS']
 
     # Define a list of dictionaries containing information about all the obs
-    # types that can possibly be used for verification in the SRW App.  Each
+    # types that can possibly be used for verification in the workflow.  Each
     # dictionary in the list contains the name of the obs type, the temporal
     # nature of that obs type (i.e. whether the obs type contains cumulative
     # or instantaneous fields), and a list of the field groups that the obs

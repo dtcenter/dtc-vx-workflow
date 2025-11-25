@@ -3,7 +3,7 @@
 """
 This script helps users pull data from known data streams, including URLs and HPSS (only on supported NOAA platforms), or from user-supplied data locations on disk.
 
-Several supported data streams are included in ``parm/data_locations.yml``, which provides locations and naming conventions for files commonly used with the SRW App. Provide the file to this tool via the ``--config`` flag. Users are welcome to provide their own file with alternative locations and naming conventions.
+Several supported data streams are included in ``parm/data_locations.yml``, which provides locations and naming conventions for commonly used files. Provide the file to this tool via the ``--config`` flag. Users are welcome to provide their own file with alternative locations and naming conventions.
 
 When using this script to pull from disk, the user is required to provide the path to the data location, which can include Python templates. The file names follow those included in the ``--config`` file by default or can be user-supplied via the ``--file_name`` flag. That flag
 takes a YAML-formatted string that follows the same conventions outlined in the ``parm/data_locations.yml`` file for naming files.

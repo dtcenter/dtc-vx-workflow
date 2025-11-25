@@ -22,3 +22,7 @@ platform:
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_VX_FCST_INPUT_BASEDIR: '{{ "/glade/work/epicufsrt/contrib/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{{ "/{{workflow.PREDEF_GRID_NAME}}" }}{% raw %}{% endraw %}'
   EXTRN_MDL_DATA_STORES: aws
+  MET_BASE: /glade/work/epicufsrt/contrib/spack-stack/derecho/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/oneapi/2024.2.1/
+  MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-5iaknzd'
+  METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-n77beh6'
+
