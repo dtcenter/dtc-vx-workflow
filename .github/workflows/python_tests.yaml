@@ -35,8 +35,9 @@ jobs:
           micromamba activate vx_workflow
           export PYTHONPATH=$(pwd)/ush
           pylint --ignore-imports=yes tests/test_python/
-          pylint ush/generate_FV3LAM_wflow.py
+          pylint ush/generate_wflow.py
           pylint ush/setup.py
+          pylint scripts/exregional_run_met_gridstat_or_pointstat.py
 
       - name: Run python unittests
         run: |

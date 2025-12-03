@@ -81,11 +81,11 @@ field (or group of fields).
 #
 #-----------------------------------------------------------------------
 #
-DEBUG_FLAG=""
+VERBOSE_FLAG=""
 if [ "${VERBOSE}" = "True" ]; then
-  DEBUG_FLAG=" --debug"
+  VERBOSE_FLAG=" --verbose"
 fi
-python $SCRIPTSdir/exregional_run_met_gridstat_or_pointstat.py ${DEBUG_FLAG} || \
+python $SCRIPTSdir/exregional_run_met_gridstat_or_pointstat.py ${VERBOSE_FLAG} || \
 print_err_msg_exit "\
 Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
 #

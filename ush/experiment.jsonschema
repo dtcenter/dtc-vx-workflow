@@ -162,13 +162,6 @@
         "COLDSTART": {
           "type": "boolean"
         },
-        "COMPILER": {
-          "enum": [
-            "intel",
-            "gnu"
-          ],
-          "type": "string"
-        },
         "DATE_FIRST_CYCL": {
           "format": "date-time",
           "type": "string"

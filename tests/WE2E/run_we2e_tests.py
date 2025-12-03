@@ -83,7 +83,7 @@ def run_we2e_tests(homedir, args) -> None:
                     else:
                         logging.debug(f"Skipping non-test file {filename}")
                 logging.debug(f"Will check all tests:\n{tests_to_check}")
-            elif user_spec_tests[0] in ["fundamental", "comprehensive", "coverage"]:
+            elif user_spec_tests[0] in ["fundamental", "comprehensive"]:
                 prefix = f"machine_suites/{user_spec_tests[0]}"
                 testfilenames = [
                     f"{prefix}.{machine}.{args.compiler}.nco",
@@ -178,11 +178,7 @@ def run_we2e_tests(homedir, args) -> None:
                 "MACHINE": machine.upper(),
                 "ACCOUNT": args.account,
             },
-            "platform": {
-                "BUILD_MOD_FN": args.modulefile,
-            },
             "workflow": {
-                "COMPILER": args.compiler,
                 "EXPT_SUBDIR": test_name,
                 "USE_CRON_TO_RELAUNCH": args.launch == "cron",
                 },
@@ -202,36 +198,22 @@ def run_we2e_tests(homedir, args) -> None:
             f"Overwriting WE2E-test-specific settings for test \n{test_name}\n"
         )
 
-        if "verification" in test_cfg:
-            # This section checks if we are doing verification on a machine with staged verification
-            # obs. If so, and if the config file does not explicitly set the observation locations,
-            # fill these in with defaults from the machine files
-            obs_vars = [
-                "CCPA_OBS_DIR",
-                "MRMS_OBS_DIR",
-                "NDAS_OBS_DIR",
-                "NOHRSC_OBS_DIR",
-                'AERONET_OBS_DIR',
-                'AIRNOW_OBS_DIR',
-            ]
-            for obvar in obs_vars:
-                mach_path = machine_defaults["platform"].get("TEST_" + obvar)
-                if not test_cfg["verification"].get(obvar) and mach_path:
-                    logging.debug(f"Setting {obvar} = {mach_path} from machine file")
-                    test_cfg["verification"][obvar] = mach_path
-
-        if args.compiler == "gnu":
-            # 2D decomposition doesn't work with GNU compilers.  Deactivate 2D decomposition for GNU
-            if "task_run_post" in test_cfg:
-                test_cfg["task_run_post"]["envvars"]["NUMX"] = 1
-                logging.info(
-                    "NUMX has been reset to 1 due to issues encountered with GNU compilers"
-                )
-            if "task_run_fcst" in test_cfg:
-                test_cfg["task_run_fcst"]["ITASKS"] = 1
-                logging.info(
-                    "ITASKS has been reset to 1 due to issues encountered with GNU compilers"
-                )
+        # This section checks if we are doing verification on a machine with staged verification
+        # obs. If so, and if the config file does not explicitly set the observation locations,
+        # fill these in with defaults from the machine files
+        obs_vars = [
+            "CCPA_OBS_DIR",
+            "MRMS_OBS_DIR",
+            "NDAS_OBS_DIR",
+            "NOHRSC_OBS_DIR",
+            'AERONET_OBS_DIR',
+            'AIRNOW_OBS_DIR',
+        ]
+        for obvar in obs_vars:
+            mach_path = machine_defaults["platform"].get("TEST_" + obvar)
+            if not test_cfg["verification"].get(obvar) and mach_path:
+                logging.debug(f"Setting {obvar} = {mach_path} from machine file")
+                test_cfg["verification"][obvar] = mach_path
 
         logging.debug(
             f"Writing updated config.yaml for test {test_name}\n"
@@ -470,7 +452,7 @@ if __name__ == "__main__":
         nargs="*",
         help="""Can be one of three options (in order of priority):
     1. A test name or list of test names.
-    2. A test suite name ("fundamental", "comprehensive", "coverage", or "all")
+    2. A test suite name ("fundamental", "comprehensive", or "all")
     3. The name of a file (full or relative path) containing a list of test names.
     """,
         required=True,
@@ -482,13 +464,6 @@ if __name__ == "__main__":
         action="help",
         help="Show help and exit",
         )
-    optional.add_argument(
-        "-c",
-        "--compiler",
-        type=str,
-        help="Compiler used for building the app",
-        default="intel",
-    )
     optional.add_argument(
         "-d",
         "--debug",
@@ -523,9 +498,6 @@ if __name__ == "__main__":
         default="python",
     )
 
-    optional.add_argument(
-        "--modulefile", type=str, help="Modulefile used for building the app"
-    )
     optional.add_argument(
         "--expt_basedir",
         type=str,
@@ -567,9 +539,6 @@ if __name__ == "__main__":
             "--launch=cron\nPlease update your workflow accordingly"
         )
 
-    # Set defaults that need other argument values
-    if user_args.modulefile is None:
-        user_args.modulefile = f"build_{user_args.machine.lower()}_{user_args.compiler}"
     if user_args.procs < 1:
         raise argparse.ArgumentTypeError(
             "You can not have less than one parallel process; select a valid value "
