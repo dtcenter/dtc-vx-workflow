@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 from .check_var_valid_value import check_var_valid_value
-from .print_msg import log_info
 
 
 def check_for_preexist_dir_file(path, method):
@@ -44,7 +43,7 @@ def check_for_preexist_dir_file(path, method):
             now = datetime.now()
             suffix = now.strftime("_old_%Y%m%d_%H%M%S")
             new_path = path.parent / (path.name + suffix)
-            log_info(
+            print(
                 f"""
                 Specified directory or file already exists:
                     {path}

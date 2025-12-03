@@ -16,7 +16,7 @@ from .environment import (
     export_vars,
 )
 from .print_input_args import print_input_args
-from .print_msg import print_info_msg, print_err_msg_exit, log_info
+from .print_msg import print_err_msg_exit
 from .run_command import run_command
 from .config_parser import (
     load_json_config,

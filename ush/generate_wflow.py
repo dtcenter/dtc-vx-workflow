@@ -17,11 +17,6 @@ from stat import S_IXUSR
 from string import Template
 from textwrap import dedent
 
-from python_utils import (
-    list_to_str,
-    log_info,
-)
-
 from setup import setup
 from get_crontab_contents import add_crontab_line
 from check_python_version import check_python_version
@@ -50,12 +45,13 @@ def generate_wflow(
 
     # Set up logging to write to screen and logfile
     setup_logging(logfile, debug)
+    logger = logging.getLogger(__name__)
 
     # Check python version and presence of some non-standard packages
     check_python_version()
 
     # Note start of workflow generation
-    log_info(
+    logger.info(
         """
         ========================================================================
         Starting experiment generation...
@@ -81,7 +77,7 @@ def generate_wflow(
 
     if (wflow_manager := expt_config["platform"]["WORKFLOW_MANAGER"]) == "rocoto":
 
-        log_info(
+        logger.info(
             f"""
             Creating rocoto workflow XML file (WFLOW_XML_FP):
               WFLOW_XML_FP = '{wflow_xml_fp}'"""
@@ -101,13 +97,12 @@ def generate_wflow(
     #
     wflow_launch_script_fp = expt_config["workflow"]["WFLOW_LAUNCH_SCRIPT_FP"]
     wflow_launch_script_fn = expt_config["workflow"]["WFLOW_LAUNCH_SCRIPT_FN"]
-    log_info(
+    logger.debug(
         f"""
         Creating symlink in the experiment directory (EXPTDIR) that points to the
         workflow launch script (WFLOW_LAUNCH_SCRIPT_FP):
           EXPTDIR = '{exptdir}'
           WFLOW_LAUNCH_SCRIPT_FP = '{wflow_launch_script_fp}'""",
-        verbose=debug,
     )
 
     with open(wflow_launch_script_fp, "r", encoding="utf-8") as launch_script_file:
@@ -176,7 +171,7 @@ def generate_wflow(
 
         cron_relaunch_intvl_mnts = workflow_config["CRON_RELAUNCH_INTVL_MNTS"]
         # pylint: disable=line-too-long
-        log_info(
+        logger.info(
             f"""
             To launch the workflow, change location to the experiment directory
             (EXPTDIR) and issue the rocotrun command, as follows:
@@ -302,7 +297,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Note workflow generation completion
-    log_info(
+    logging.info(
         f"""
         ========================================================================
 

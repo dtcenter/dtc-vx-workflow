@@ -194,10 +194,6 @@ class Testing(unittest.TestCase):
             "regional_workflow", util.get_ini_value(cfg, "regional_workflow", "repo_url")
         )
 
-    def test_print_msg(self):
-        """ Test that a bool is returned from print_info_msg"""
-        self.assertEqual(util.print_info_msg("Hello World!", verbose=False), False)
-
     def setUp(self):
         """setUp is where we do preparation for running the unittests.
         If you need to download files for running test cases, prepare common stuff

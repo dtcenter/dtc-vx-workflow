@@ -3,11 +3,10 @@
 import os
 import sys
 import argparse
+import logging
 from datetime import datetime
 from python_utils import (
-    log_info,
     run_command,
-    print_info_msg,
 )
 
 
@@ -27,15 +26,16 @@ def get_crontab_contents(called_from_cron, machine, debug):
         crontab_contents  (str) : String containing the contents of the user's cron table.
     """
 
+    logger = logging.getLogger(__name__)
+
     crontab_cmd = "crontab"
 
-    print_info_msg(
+    logger.debug(
         f"""
         Getting crontab content with command:
         =========================================================
           {crontab_cmd} -l
-        =========================================================""",
-        verbose=debug,
+        ========================================================="""
     )
 
     (_, crontab_contents, _) = run_command(f"{crontab_cmd} -l")
@@ -43,13 +43,12 @@ def get_crontab_contents(called_from_cron, machine, debug):
     if crontab_contents.startswith('no crontab for'):
         crontab_contents=''
 
-    print_info_msg(
+    logger.debug(
         f"""
         Crontab contents:
         =========================================================
           {crontab_contents}
-        =========================================================""",
-        verbose=debug,
+        ========================================================="""
     )
 
     # replace single quotes (hopefully in comments) with double quotes
@@ -70,12 +69,13 @@ def add_crontab_line(called_from_cron, machine, crontab_line, exptdir, debug) ->
         debug             (bool): ``True`` will give more verbose output
     """
 
+    logger = logging.getLogger(__name__)
     #
     # Make a backup copy of the user's crontab file and save it in a file.
     #
     time_stamp = datetime.now().strftime("%F_%T")
     crontab_backup_fp = os.path.join(exptdir, f"crontab.bak.{time_stamp}")
-    log_info(
+    logger.info(
         f"""
         Copying contents of user cron table to backup file:
           crontab_backup_fp = '{crontab_backup_fp}'""",
@@ -107,14 +107,14 @@ def add_crontab_line(called_from_cron, machine, crontab_line, exptdir, debug) ->
     # Re-join all the separate lines into a multiline string again
     crontab_no_comments = """{}""".format("\n".join(cronlines))
     if crontab_line in crontab_no_comments:
-        log_info(
+        logger.info(
             f"""
             The following line already exists in the cron table and thus will not be
             added:
               crontab_line = '{crontab_line}'"""
         )
     else:
-        log_info(
+        logger.info(
             f"""
             Adding the following line to the user's cron table in order to automatically
             resubmit workflow:
@@ -154,13 +154,12 @@ def delete_crontab_line(called_from_cron, machine, crontab_line, debug) -> None:
     # current forecast experiment (if that line is part of the contents).
     # Then record the results back into the user's cron table.
     #
-    print_info_msg(
+    logger.debug(
         f"""
         Crontab contents before delete:
         =========================================================
           {crontab_contents}
-        =========================================================""",
-        verbose=debug,
+        ========================================================="""
     )
 
     if crontab_line in crontab_contents:
@@ -172,13 +171,12 @@ def delete_crontab_line(called_from_cron, machine, crontab_line, debug) -> None:
 
     run_command(f"""echo '{crontab_contents}' | {crontab_cmd}""")
 
-    print_info_msg(
+    logger.debug(
         f"""
         Crontab contents after delete:
         =========================================================
           {crontab_contents}
-        =========================================================""",
-        verbose=debug,
+        ========================================================="""
     )
 
 
@@ -239,4 +237,4 @@ if __name__ == "__main__":
         delete_crontab_line(args.called_from_cron,args.machine,args.line,args.debug)
     else:
         _,out = get_crontab_contents(args.called_from_cron,args.machine,args.debug)
-        print_info_msg(out)
+        print(out)
