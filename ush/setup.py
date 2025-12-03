@@ -59,16 +59,16 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     ushdir = Path(ushdir)
 
     # Load the default and user configs.
-    logging.debug(f"Loading config defaults file {default_config_path}")
+    logger.debug(f"Loading config defaults file {default_config_path}")
     default_config = get_yaml_config(default_config_path)
-    logging.debug("Read in the following values from config defaults file:\n")
-    logging.debug(default_config)
+    logger.debug("Read in the following values from config defaults file:\n")
+    logger.debug(default_config)
 
     user_config = get_yaml_config(user_config_path)
-    logging.debug(
+    logger.debug(
         f"Read in the following values from YAML config file {user_config}:\n"
     )
-    logging.debug(user_config)
+    logger.debug(user_config)
 
     machine = user_config["user"]["MACHINE"].upper()
     user_config["user"]["MACHINE"] = machine
@@ -86,7 +86,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
             ({machine}) in your config file {user_config}"""
             )
         )
-    logging.debug(f"Loading machine defaults file {machine_file}")
+    logger.debug(f"Loading machine defaults file {machine_file}")
     machine_config = get_yaml_config(machine_file)
 
 

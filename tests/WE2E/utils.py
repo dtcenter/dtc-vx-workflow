@@ -105,7 +105,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
         for line in expt_details:
             f.write(f"{line}\n")
 
-def create_expts_dict(expt_dir: str, delay: int):
+def create_expts_dict(expt_dir: str, delay: int = 5):
     """
     Takes in a directory, searches that directory for subdirectories containing
     experiments, and creates a skeleton dictionary that can be filled out by ``update_expt_status()``
