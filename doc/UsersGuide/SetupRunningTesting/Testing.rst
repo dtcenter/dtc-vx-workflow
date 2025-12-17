@@ -1,4 +1,4 @@
-.. _WE2E_tests:
+.. _Testing:
 
 =======================
 Testing the SRW App

@@ -1,4 +1,4 @@
-.. _NCQuickstart:
+.. _Quickstart:
 
 ====================
 Quick Start Guide

@@ -6,6 +6,6 @@ User's Guide
    :maxdepth: 3
    
    BackgroundInfo/index
-   BuildingRunningTesting/index
+   SetupRunningTesting/index
    CustomizingTheWorkflow/index
    Reference/index

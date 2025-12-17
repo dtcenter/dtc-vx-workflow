@@ -5,12 +5,8 @@ Building, Running, and Testing the SRW App
    :maxdepth: 3
 
    Quickstart
-   ContainerQuickstart
-   BuildSRW
-   RunSRW
-   WE2Etests
+   Setup
+   RunVX
+   Testing
    Tutorial
    VXCases
-   AQM
-   SRW-SD
-   FIRE

@@ -4,7 +4,7 @@
 .. role:: raw-html(raw)
     :format: html
 
-.. _RunSRW:
+.. _RunVX:
 
 ===========================
 Running the SRW App

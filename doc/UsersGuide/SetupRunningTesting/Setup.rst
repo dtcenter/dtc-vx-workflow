@@ -1,4 +1,4 @@
-.. _BuildSRW:
+.. _Setup:
 
 ==========================
 Building the SRW App
@@ -9,9 +9,6 @@ The Unified Forecast System (:term:`UFS`) Short-Range Weather (SRW) Application 
 .. attention::
 
    The SRW Application has :srw-wiki:`four levels of support <Supported-Platforms-and-Compilers>`. The steps described in this chapter will work most smoothly on preconfigured (Level 1) systems.
-
-.. note::
-   The :ref:`container approach <QuickstartC>` is recommended for a smoother first-time build and run experience. Building without a container may allow for more customization. However, the non-container approach requires more in-depth system-based knowledge, especially on Level 3 and 4 systems, so it is less appropriate for beginners. 
 
 To build the SRW App, users will complete the following steps:
 
@@ -192,7 +189,7 @@ The last few lines of the console output should include ``[100%] Built target uf
 
 After running ``devbuild.sh``, the executables listed in :numref:`Table %s <ExecDescription>` should appear in the ``ufs-srweather-app/exec`` directory. If the application built properly, users may configure and run an experiment. Users have a few options: 
 
-#. Proceed to :numref:`Section %s: Quick Start Guide <NCQuickstart>` for a quick overview of the workflow steps. 
+#. Proceed to :numref:`Section %s: Quick Start Guide <Quickstart>` for a quick overview of the workflow steps. 
 #. Try the :ref:`SRW App Tutorials <Tutorial>` (good for new users!). 
 #. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunSRW>`.
 
@@ -377,6 +374,6 @@ Run an Experiment
 
 To configure and run an experiment, users have a few options: 
 
-#. Proceed to :numref:`Section %s: Quick Start Guide <NCQuickstart>` for a quick overview of the workflow steps. 
+#. Proceed to :numref:`Section %s: Quick Start Guide <Quickstart>` for a quick overview of the workflow steps. 
 #. Try the :ref:`SRW App Tutorials <Tutorial>` (good for new users!). 
 #. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunSRW>`.
