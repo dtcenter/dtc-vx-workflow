@@ -6,21 +6,17 @@ default_task_verify_det: &default_task_verify_det
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
-    PDY:
+    YYMMDD:
       cyclestr:
         value: '@Y@m@d'
-    cyc:
+    HH:
       cyclestr:
         value: '@H'
-    subcyc:
-      cyclestr:
-        value: '@M'
     LOGDIR:
       cyclestr:
         value: '&LOGDIR;'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
-    SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
     nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
   join:
     cyclestr:
@@ -51,7 +47,6 @@ metatask_GridStat_APCP_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'CCPA'
         ENSMEM_INDX: "#mem#"
-        OBS_AVAIL_INTVL_HRS: '{{ verification.CCPA_OBS_AVAIL_INTVL_HRS }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
       memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
@@ -86,7 +81,6 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'NOHRSC'
         ENSMEM_INDX: "#mem#"
-        OBS_AVAIL_INTVL_HRS: '{{ verification.NOHRSC_OBS_AVAIL_INTVL_HRS }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
       memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
@@ -117,7 +111,6 @@ metatask_GridStat_REFC_RETOP_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'MRMS'
         ENSMEM_INDX: "#mem#"
-        OBS_AVAIL_INTVL_HRS: '{{ verification.MRMS_OBS_AVAIL_INTVL_HRS }}'
         FCST_LEVEL: 'L0'
         FCST_THRESH: 'all'
       memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
@@ -160,7 +153,6 @@ metatask_PointStat:
         METPLUSTOOLNAME: 'POINTSTAT'
         OBTYPE: '#METAOBTYPE#'
         ENSMEM_INDX: "#mem#"
-        OBS_AVAIL_INTVL_HRS: '#METAOB_AVAIL_HRS#'
         FCST_LEVEL: 'all'
         FCST_THRESH: 'all'
       memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'

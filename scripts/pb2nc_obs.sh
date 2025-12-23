@@ -75,7 +75,7 @@ to convert NDAS prep buffer observation files to NetCDF format.
 #
 #-----------------------------------------------------------------------
 #
-yyyymmdd_task=${PDY}
+yyyymmdd_task=${YYMMDD}
 
 # Seconds since some reference time that the DATE_UTIL utility uses of
 # the day of the current task.  This will be used below to find hours
@@ -98,7 +98,7 @@ eval obs_retrieve_times_crnt_day=\( \${${array_name}[@]} \)
 #
 #-----------------------------------------------------------------------
 #
-CDATE="${PDY}${cyc}"
+CDATE="${YYMMDD}${HH}"
 #
 #-----------------------------------------------------------------------
 #
@@ -368,7 +368,7 @@ METplus configuration file used is:
 #-----------------------------------------------------------------------
 #
 mkdir -p ${WFLOW_FLAG_FILES_DIR}
-touch "${WFLOW_FLAG_FILES_DIR}/${OBTYPE}_nc_obs_${PDY}_ready.txt"
+touch "${WFLOW_FLAG_FILES_DIR}/${OBTYPE}_nc_obs_${YYMMDD}_ready.txt"
 #
 #-----------------------------------------------------------------------
 #

@@ -12,8 +12,8 @@
 #    GLOBAL_VAR_DEFNS_FP
 #    OBS_DIR
 #    OBTYPE
-#    PDY
 #    VAR
+#    YYMMDD
 #
 # Experiment variables
 #
@@ -59,7 +59,7 @@ python3 -u ${USHdir}/get_obs.py \
 --var_defns_path "${GLOBAL_VAR_DEFNS_FP}" \
 --obtype ${OBTYPE} \
 --log_level ${LOGLEVEL} \
---obs_day ${PDY}"
+--obs_day ${YYMMDD}"
 print_info_msg "
 CALLING: ${cmd}"
 ${cmd} || print_err_msg_exit "Error calling get_obs.py"
@@ -73,5 +73,5 @@ ${cmd} || print_err_msg_exit "Error calling get_obs.py"
 #
 mkdir -p ${WFLOW_FLAG_FILES_DIR}
 file_bn="get_obs_$(echo_lowercase ${OBTYPE})"
-touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${PDY}_complete.txt"
+touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${YYMMDD}_complete.txt"
 

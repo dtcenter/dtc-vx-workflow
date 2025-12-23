@@ -8,11 +8,11 @@ set -x
 # Run-time environment variables:
 #
 #    ACCUM_HH
-#    cyc
 #    ENSMEM_INDX
+#    HH
 #    GLOBAL_VAR_DEFNS_FP
 #    METPLUS_ROOT (used by ush/set_leadhrs.py)
-#    PDY
+#    YYMMDD
 #
 # Experiment variables
 #
@@ -107,7 +107,7 @@ ensmem_name="mem${ensmem_indx}"
 FCST_INPUT_FN_TEMPLATE=$( eval echo ${FCST_SUBDIR_TEMPLATE:+${FCST_SUBDIR_TEMPLATE}/}${FCST_FN_TEMPLATE} )
 
 FHR_LIST=$( python3 $USHdir/set_leadhrs.py \
-  --date_init="${PDY}${cyc}" \
+  --date_init="${YYMMDD}${HH}" \
   --lhr_min="0" \
   --lhr_max="${FCST_LEN_HRS}" \
   --lhr_intvl="${VX_FCST_OUTPUT_INTVL_HRS}" \

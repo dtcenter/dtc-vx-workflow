@@ -347,13 +347,29 @@ if __name__ == "__main__":
                      description="exscript for running METplus GridStat or PointStat tasks"\
                      "for deterministic verification\n")
 
-#    parser.add_argument('-c', '--config', default='config.yaml',
-#                        help='Name of experiment config file in YAML format')
+    parser.add_argument('--accum_hh', default=1,type=int,
+                        help='Accumulation hours for this observation type')
+    parser.add_argument('--config', default='config.yaml',type=str,
+                        help='Name of experiment config file in YAML format')
+    parser.add_argument('--cycle_date', required=True, type=str,
+                        help='Eight-digit cycle date (YYMMDDHH)')
+    parser.add_argument('--ensmem_index', required=True, type=str,
+                        help='The subdirectory for this ensemble member (e.g. "mem000" for deterministic, "mem###" for ensemble number ###')
+    parser.add_argument('--field_group', required=True, type=str,
+                        help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
+    parser.add_argument('--fcst_level', required=True, type=str,
+                        help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
+    parser.add_argument('--fcst_thresh', required=True, type=str,
+                        help='The set of forecast thresholds to verify against. Valid options are "all" and "none".')
+    parser.add_argument('--obtype', required=True, type=str,
+                        help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
+    parser.add_argument('--obs_dir', required=True, type=str,
+                        help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Script will be run in verbose mode')
-    pargs = parser.parse_args()
+    args = parser.parse_args()
 
-    setup_logging(debug=pargs.verbose)
+    setup_logging(debug=args.verbose)
 
     logging.info(dedent(f"""
         ========================================================================
@@ -364,20 +380,7 @@ if __name__ == "__main__":
         (FIELD_GROUP) for a single forecast.
         ========================================================================"""))
 
-    # Retrieve needed args from environment; should pass these explicitly in the future
-    config = os.environ['GLOBAL_VAR_DEFNS_FP']
-    cycle_date = os.environ['PDY'] + os.environ['cyc']
-    field_group = os.environ['FIELD_GROUP']
-    obtype = os.environ['OBTYPE']
-    obs_dir = os.environ['OBS_DIR']
-    if os.environ.get('ACCUM_HH'):
-        accum_hh = int(os.environ['ACCUM_HH'])
-    else:
-        accum_hh = 1
-    ensmem_index = int(os.environ['ENSMEM_INDX'])
-    fcst_level = os.environ['FCST_LEVEL']
-    fcst_thresh = os.environ['FCST_THRESH']
-
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(config,cycle_date,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst_level,fcst_thresh)
+    main(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,args.accum_hh,
+         args.ensmem_index,args.fcst_level,args.fcst_thresh)

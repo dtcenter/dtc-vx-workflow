@@ -58,9 +58,20 @@ In directory:     \"${scrfunc_dir}\"
 #
 VERBOSE_FLAG=""
 if [ "${VERBOSE}" = "True" ]; then
-  VERBOSE_FLAG=" --verbose"
+  VERBOSE_FLAG="--verbose"
 fi
-python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} || \
+if [ ! -z "${ACCUM_HH}" ]; then
+  ACCUM_ARG="--accum_hh=${ACCUM_HH}"
+fi
+python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} ${ACCUM_ARG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --ensmem_index="${ENSMEM_INDX}" \
+  --field_group="${FIELD_GROUP}" \
+  --fcst_level="${FCST_LEVEL}" \
+  --fcst_thresh="${FCST_THRESH}" \
+  --obtype="${OBTYPE}" \
+  --obs_dir="${OBS_DIR}" || \
 print_err_msg_exit "\
 Call to \"gridstat_or_pointstat.py\" from \"${scrfunc_fn}\" failed."
 

@@ -7,10 +7,10 @@ set -x
 #
 # Run-time environment variables:
 #
-#    cyc
+#    HH
 #    ENSMEM_INDX
 #    GLOBAL_VAR_DEFNS_FP
-#    PDY
+#    YYMMDD
 #
 # Experiment variables
 #
@@ -74,6 +74,6 @@ Call to script \"check_post_output.sh\" from \"${scrfunc_fn}\" failed."
 #-----------------------------------------------------------------------
 #
 ensmem_name="mem${ENSMEM_INDX}"
-cycle_dir="$EXPTDIR/${PDY}${cyc}"
+cycle_dir="$EXPTDIR/${YYMMDD}${HH}"
 mkdir -p "${cycle_dir}"
 touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"

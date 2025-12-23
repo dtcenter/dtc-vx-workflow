@@ -63,7 +63,7 @@ This is the ex-script for the task that runs the METplus tool ${MetplusToolName}
 to convert ASCII format observation files to NetCDF format.
 ========================================================================"
 
-yyyymmdd_task=${PDY}
+yyyymmdd_task=${YYMMDD}
 
 # Seconds since some reference time that the DATE_UTIL utility uses of
 # the day of the current task.  This will be used below to find hours
@@ -80,7 +80,7 @@ sec_since_ref_task=$(${DATE_UTIL} --date "${yyyymmdd_task} 0 hours" +%s)
 array_name="OBS_RETRIEVE_TIMES_${OBTYPE}_${yyyymmdd_task}"
 eval obs_retrieve_times_crnt_day=\( \${${array_name}[@]} \)
 #
-CDATE="${PDY}${cyc}"
+CDATE="${YYMMDD}${HH}"
 #
 #-----------------------------------------------------------------------
 #
@@ -333,7 +333,7 @@ METplus configuration file used is:
 #-----------------------------------------------------------------------
 #
 mkdir -p ${WFLOW_FLAG_FILES_DIR}
-touch "${WFLOW_FLAG_FILES_DIR}/${OBTYPE}_nc_obs_${PDY}_ready.txt"
+touch "${WFLOW_FLAG_FILES_DIR}/${OBTYPE}_nc_obs_${YYMMDD}_ready.txt"
 #
 #-----------------------------------------------------------------------
 #

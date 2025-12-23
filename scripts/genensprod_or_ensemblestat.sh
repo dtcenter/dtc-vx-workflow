@@ -86,7 +86,7 @@ tool either to generate ensemble products without performing verification
 #
 #-----------------------------------------------------------------------
 #
-CDATE="${PDY}${cyc}"
+CDATE="${YYMMDD}${HH}"
 #
 #-----------------------------------------------------------------------
 #
