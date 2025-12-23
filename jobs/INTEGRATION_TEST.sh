@@ -9,7 +9,6 @@
 # Run-time environment variables:
 #
 #    GLOBAL_VAR_DEFNS_FP
-#    CDATE
 #    FCST_DIR
 #    SLASH_ENSMEM_SUBDIR
 #
@@ -43,7 +42,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 
 #
 #-----------------------------------------------------------------------
@@ -71,11 +69,3 @@ $SCRIPTSdir/integration_test.py \
            --fcst_len=${FCST_LEN_HRS} || \
 print_err_msg_exit "\
 Call to script \"integration_test.py\" from \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble

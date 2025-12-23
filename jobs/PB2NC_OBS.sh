@@ -36,7 +36,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -61,12 +60,4 @@ In directory:     \"${scrfunc_dir}\"
 $SCRIPTSdir/pb2nc_obs.sh || \
 print_err_msg_exit "\
 Call to \"pb2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble
 

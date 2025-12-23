@@ -8,10 +8,11 @@ set -x
 # Run-time environment variables:
 #
 #    ACCUM_HH
-#    CDATE
+#    cyc
 #    ENSMEM_INDX
 #    GLOBAL_VAR_DEFNS_FP
 #    METPLUS_ROOT (used by ush/set_leadhrs.py)
+#    PDY
 #
 # Experiment variables
 #
@@ -97,8 +98,7 @@ time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*3600" )
 #
 # Check to ensure that all the expected post-processed forecast output
 # files are present on disk.  This is done by the set_leadhrs function
-# below.  Note that CDATE (in YYYYMMDDHH format) is already available via
-# the call to the job_preamble.sh script in the j-job of this ex-script.
+# below.
 #
 #-----------------------------------------------------------------------
 #
@@ -107,7 +107,7 @@ ensmem_name="mem${ensmem_indx}"
 FCST_INPUT_FN_TEMPLATE=$( eval echo ${FCST_SUBDIR_TEMPLATE:+${FCST_SUBDIR_TEMPLATE}/}${FCST_FN_TEMPLATE} )
 
 FHR_LIST=$( python3 $USHdir/set_leadhrs.py \
-  --date_init="${CDATE}" \
+  --date_init="${PDY}${cyc}" \
   --lhr_min="0" \
   --lhr_max="${FCST_LEN_HRS}" \
   --lhr_intvl="${VX_FCST_OUTPUT_INTVL_HRS}" \

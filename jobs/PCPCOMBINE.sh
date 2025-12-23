@@ -37,7 +37,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -62,12 +61,4 @@ In directory:     \"${scrfunc_dir}\"
 $SCRIPTSdir/pcpcombine.sh || \
 print_err_msg_exit "\
 Call to \"pcpcombine.sh\" from \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble
 

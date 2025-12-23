@@ -8,7 +8,6 @@
 #
 # Run-time environment variables:
 #
-#    CDATE
 #    GLOBAL_VAR_DEFNS_FP
 #
 # Experiment variables
@@ -36,7 +35,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -63,12 +61,4 @@ module load hpss
 $SCRIPTSdir/get_verif_obs.sh || \
 print_err_msg_exit "\
 Call to script \"get_verif_obs.sh\" from \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble
 

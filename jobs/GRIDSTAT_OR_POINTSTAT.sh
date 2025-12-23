@@ -35,7 +35,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -64,12 +63,4 @@ fi
 python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} || \
 print_err_msg_exit "\
 Call to \"gridstat_or_pointstat.py\" from \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble
 

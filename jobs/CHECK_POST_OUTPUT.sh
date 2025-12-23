@@ -7,9 +7,10 @@ set -x
 #
 # Run-time environment variables:
 #
-#    CDATE
+#    cyc
 #    ENSMEM_INDX
 #    GLOBAL_VAR_DEFNS_FP
+#    PDY
 #
 # Experiment variables
 #
@@ -39,7 +40,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-. $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -74,14 +74,6 @@ Call to script \"check_post_output.sh\" from \"${scrfunc_fn}\" failed."
 #-----------------------------------------------------------------------
 #
 ensmem_name="mem${ENSMEM_INDX}"
-cycle_dir="$EXPTDIR/$CDATE"
+cycle_dir="$EXPTDIR/${PDY}${cyc}"
 mkdir -p "${cycle_dir}"
 touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"
-#
-#-----------------------------------------------------------------------
-#
-# Run job postamble.
-#
-#-----------------------------------------------------------------------
-#
-job_postamble
