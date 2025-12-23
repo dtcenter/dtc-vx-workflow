@@ -31,7 +31,6 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
-  workflow
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -58,32 +57,19 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the task that runs METplus for pb2nc on
-NDAS observations.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles. 
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_run_met_pb2nc_obs.sh || \
+$SCRIPTSdir/ascii2nc_obs.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to \"ascii2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #

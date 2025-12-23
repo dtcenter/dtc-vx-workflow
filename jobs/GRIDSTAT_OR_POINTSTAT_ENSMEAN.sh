@@ -3,12 +3,12 @@
 #
 #-----------------------------------------------------------------------
 #
-# The J-Job script that checks, pulls, and stages observation data for
-# model verification.
+# The J-Job that runs MET/METplus's GridStat or PointStat tool to
+# perform verification on the ensemble mean of a specified field (or
+# group of fields).
 #
 # Run-time environment variables:
 #
-#    CDATE
 #    GLOBAL_VAR_DEFNS_FP
 #
 # Experiment variables
@@ -58,35 +58,19 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the task that checks, pulls, and stages
-observation data for verification purposes.
 ========================================================================"
-
+echo "shell_opts_array=${shell_opts_array}"
 #
+# Call the run script
 #
-#-----------------------------------------------------------------------
-#
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles. 
-#
-#-----------------------------------------------------------------------
-#
-module load hpss
-$SCRIPTSdir/exregional_get_verif_obs.sh || \
+$SCRIPTSdir/gridstat_or_pointstat_ensmean.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to \"gridstat_or_pointstat_ensmean.sh\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #

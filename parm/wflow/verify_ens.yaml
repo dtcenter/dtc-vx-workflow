@@ -35,7 +35,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h: &task_GenEnsProd_CCPA
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_GENENSPROD_OR_ENSEMBLESTAT"
+    command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_CCPA
       <<: *default_vars
       ACCUM_HH: '#ACCUM_HH#'
@@ -72,7 +72,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h: &task_GenEnsProd_NOHRSC
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_GENENSPROD_OR_ENSEMBLESTAT"
+    command: "&JOBSdir;/MET_GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NOHRSC
       <<: *default_vars
       ACCUM_HH: '#ACCUM_HH#'
@@ -110,7 +110,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_MRMS
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_GENENSPROD_OR_ENSEMBLESTAT"
+    command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_MRMS
       <<: *default_vars
       ACCUM_HH: '01'
@@ -153,7 +153,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_NDAS
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_GENENSPROD_OR_ENSEMBLESTAT"
+    command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NDAS
       <<: *default_vars
       OBS_DIR: '&NDAS_OBS_DIR;'
@@ -198,7 +198,7 @@ metatask_GridStat_APCP_all_accums_ensmeanprob:
       ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
     task_run_MET_GridStat_vx_APCP#ACCUM_HH#h_ens#statlc#:
       <<: *default_task_verify_ens
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_GRIDSTAT_OR_POINTSTAT_VX_ENS#stat#"
+      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
       envars:
         <<: *default_vars
         OBS_DIR: '&CCPA_OBS_DIR;'
@@ -227,7 +227,7 @@ metatask_GridStat_ASNOW_all_accums_ensmeanprob:
       ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
     task_run_MET_GridStat_vx_ASNOW#ACCUM_HH#h_ens#statlc#:
       <<: *default_task_verify_ens
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_GRIDSTAT_OR_POINTSTAT_VX_ENS#stat#"
+      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
       envars:
         <<: *default_vars
         OBS_DIR: '&NOHRSC_OBS_DIR;'
@@ -252,7 +252,7 @@ metatask_GridStat_REFC_RETOP_ensprob:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GridStat_vx_#FIELD_GROUP#_ensprob:
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_GRIDSTAT_OR_POINTSTAT_VX_ENSPROB"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
       ACCUM_HH: '01'
@@ -281,7 +281,7 @@ metatask_PointStat_SFC_UPA_ensmeanprob:
       FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
     task_run_MET_PointStat_vx_#FIELD_GROUP#_ens#statlc#:
       <<: *default_task_verify_ens
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_GRIDSTAT_OR_POINTSTAT_VX_ENS#stat#"
+      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
       envars:
         <<: *default_vars
         OBS_DIR: '&NDAS_OBS_DIR;'

@@ -79,6 +79,7 @@ files containing multi-hour accumulated precipitation (e.g. 3-hour, 6-
 hour, 24-hour).  The input files can come from either observations or
 a forecast.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #

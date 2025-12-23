@@ -1,27 +1,21 @@
 #!/usr/bin/env bash
 
-
 #
 #-----------------------------------------------------------------------
 #
-# This J-Job script runs a set of tests at the end of WE2E tests.
+#
+# The J-Job that runs METplus for point-stat by initialization time for
+# all forecast hours.
 #
 # Run-time environment variables:
 #
 #    GLOBAL_VAR_DEFNS_FP
-#    CDATE
-#    FCST_DIR
-#    SLASH_ENSMEM_SUBDIR
 #
 # Experiment variables
 #
 #  user:
-#    RUN_ENV
 #    SCRIPTSdir
 #    USHdir
-#
-#  workflow:
-#    FCST_LEN_HRS
 #
 #-----------------------------------------------------------------------
 #
@@ -38,13 +32,11 @@
 sections=(
   user
   workflow
-  task_integration_test.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
 . $USHdir/job_preamble.sh
-
 #
 #-----------------------------------------------------------------------
 #
@@ -66,40 +58,19 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the regional integration test task
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Set grid name and COMOUT locations.
-#
-#-----------------------------------------------------------------------
-#
-export fcst_dir="${FCST_DIR}"
-#
-#-----------------------------------------------------------------------
-#
-# Call the ex-script for this J-job and pass to it the necessary variables.
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_integration_test.py \
-           --fcst_dir=$fcst_dir \
-           --fcst_len=${FCST_LEN_HRS} || \
+$SCRIPTSdir/pb2nc_obs.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to \"pb2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #
@@ -111,7 +82,8 @@ job_postamble
 #
 #-----------------------------------------------------------------------
 #
-# Restore the shell options saved at the beginning of this script/function.
+# Restore the shell options saved at the beginning of this script/func-
+# tion.
 #
 #-----------------------------------------------------------------------
 #

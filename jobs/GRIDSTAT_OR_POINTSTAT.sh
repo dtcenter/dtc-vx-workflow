@@ -3,9 +3,8 @@
 #
 #-----------------------------------------------------------------------
 #
-#
-# The J-Job that runs METplus for point-stat by initialization time for
-# all forecast hours.
+# This script runs the METplus GridStat or PointStat tool for
+# deterministic verification.
 #
 # Run-time environment variables:
 #
@@ -31,6 +30,7 @@
 . $USHdir/source_util_funcs.sh
 sections=(
   user
+  workflow
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -57,32 +57,23 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the task that runs METplus for point-stat
-by initialization time for all forecast hours.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles. 
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_run_met_ascii2nc_obs.sh || \
+VERBOSE_FLAG=""
+if [ "${VERBOSE}" = "True" ]; then
+  VERBOSE_FLAG=" --verbose"
+fi
+python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to \"gridstat_or_pointstat.py\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #

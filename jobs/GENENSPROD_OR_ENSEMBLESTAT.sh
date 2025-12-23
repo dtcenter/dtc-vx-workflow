@@ -3,10 +3,8 @@
 #
 #-----------------------------------------------------------------------
 #
-# The J-job that runs the MET/METplus PcpCombine tool on hourly
-# accumulated precipitation (APCP) data to obtain APCP for multi-hour
-# accumulation periods.  The data can be from CCPA observations or a
-# focrecast.
+# The J-Job that runs that runs either METplus's gen_ens_prod tool or its
+# ensemble_stat tool for ensemble verification.
 #
 # Run-time environment variables:
 #
@@ -59,34 +57,19 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the task that runs the MET/METplus PcpCombine
-tool on hourly accumulated precipitation (APCP) data to obtain APCP for
-multi-hour accumulation periods.  The data can be from CCPA observations
-or a focrecast.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles. 
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_run_met_pcpcombine.sh || \
+$SCRIPTSdir/genensprod_or_ensemblestat.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to \"genensprod_or_ensemblestat.sh\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #

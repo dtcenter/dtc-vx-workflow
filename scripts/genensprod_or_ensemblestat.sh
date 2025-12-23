@@ -64,6 +64,16 @@ get_metplus_tool_name \
 #
 #-----------------------------------------------------------------------
 #
+# For debugging purposes, print out values of arguments passed to this
+# script.  Note that these will be printed out only if VERBOSE is set to
+# True.
+#
+#-----------------------------------------------------------------------
+#
+print_input_args "valid_args"
+#
+#-----------------------------------------------------------------------
+#
 # Print message indicating entry into script.
 #
 #-----------------------------------------------------------------------
@@ -74,9 +84,11 @@ Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 
 This is the ex-script for the task that runs the METplus ${MetplusToolName}
-tool to perform verification of the specified field group (FIELD_GROUP)
-on the ensemble mean.
+tool either to generate ensemble products without performing verification
+(if running the GenEnsProd tool) or to perform ensemble-based verification
+(if running the EnsembleStat tool).
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #
@@ -116,6 +128,7 @@ set_vx_params \
 #
 #-----------------------------------------------------------------------
 #
+vx_fcst_input_basedir=$( eval echo "${VX_FCST_INPUT_BASEDIR}" )
 vx_output_basedir=$( eval echo "${VX_OUTPUT_BASEDIR}" )
 
 if [ "${grid_or_point}" = "grid" ]; then
@@ -124,42 +137,82 @@ if [ "${grid_or_point}" = "grid" ]; then
     "APCP"*)
       OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
+      FCST_INPUT_DIR="${vx_output_basedir}"
       ;;
     "ASNOW"*)
       OBS_INPUT_DIR="${vx_output_basedir}/${CDATE}/obs/metprd/PcpCombine_obs"
       OBS_INPUT_FN_TEMPLATE="${OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
+      FCST_INPUT_DIR="${vx_output_basedir}"
       ;;
     "REFC")
       OBS_INPUT_DIR="${OBS_DIR}"
       OBS_INPUT_FN_TEMPLATE="${OBS_MRMS_FN_TEMPLATES[1]}"
+      FCST_INPUT_DIR="${vx_fcst_input_basedir}"
       ;;
     "RETOP")
       OBS_INPUT_DIR="${OBS_DIR}"
       OBS_INPUT_FN_TEMPLATE="${OBS_MRMS_FN_TEMPLATES[3]}"
+      FCST_INPUT_DIR="${vx_fcst_input_basedir}"
       ;;
   esac
-  FCST_INPUT_DIR="${vx_output_basedir}/${CDATE}/metprd/GenEnsProd"
 
 elif [ "${grid_or_point}" = "point" ]; then
 
   OBS_INPUT_DIR="${vx_output_basedir}/metprd/Pb2nc_obs"
   OBS_INPUT_FN_TEMPLATE="${OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT}"
-  FCST_INPUT_DIR="${vx_output_basedir}/${CDATE}/metprd/GenEnsProd"
+  FCST_INPUT_DIR="${vx_fcst_input_basedir}"
 
 fi
 OBS_INPUT_FN_TEMPLATE=$( eval echo ${OBS_INPUT_FN_TEMPLATE} )
-FCST_INPUT_FN_TEMPLATE=$( eval echo 'gen_ens_prod_${VX_FCST_MODEL_NAME}_${FIELDNAME_IN_MET_FILEDIR_NAMES}_${OBTYPE}_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc' )
+#
+# Construct variable that contains a METplus template of the paths to
+# the files that the PcpCombine tool has generated (in previous workflow
+# tasks).  This will be exported to the environment and read by the
+# METplus configuration files.
+#
+FCST_INPUT_FN_TEMPLATE=""
+for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
+
+  ensmem_indx=$(printf "%0${VX_NDIGITS_ENSMEM_NAMES}d" "$((i+1))")
+  ensmem_name="mem${ensmem_indx}"
+
+    cdate_ensmem_subdir_or_null="${CDATE}/${ensmem_name}"
+
+  time_lag=$( bc -l <<< "${ENS_TIME_LAG_HRS[$i]}*3600" )
+
+  if [ "${FIELD_GROUP}" = "APCP" ] || [ "${FIELD_GROUP}" = "ASNOW" ]; then
+    template="${cdate_ensmem_subdir_or_null:+${cdate_ensmem_subdir_or_null}/}metprd/PcpCombine_fcst/${FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
+  else
+    template="${FCST_SUBDIR_TEMPLATE}/${FCST_FN_TEMPLATE}"
+  fi
+
+  if [ -z "${FCST_INPUT_FN_TEMPLATE}" ]; then
+    FCST_INPUT_FN_TEMPLATE="$(eval echo ${template})"
+  else
+    FCST_INPUT_FN_TEMPLATE="${FCST_INPUT_FN_TEMPLATE}, $(eval echo ${template})"
+  fi
+
+done
 
 OUTPUT_BASE="${vx_output_basedir}/${CDATE}"
-OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}_ensmean"
-STAGING_DIR="${OUTPUT_BASE}/stage/${FIELDNAME_IN_MET_FILEDIR_NAMES}_ensmean"
+OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}"
+STAGING_DIR="${OUTPUT_BASE}/stage/${FIELDNAME_IN_MET_FILEDIR_NAMES}"
 #
 #-----------------------------------------------------------------------
 #
-# Set the lead hours for which to run the MET/METplus tool.  This is done
-# by starting with the full list of lead hours for which we expect to
-# find forecast output and then removing from that list any hours for
-# which there is no corresponding observation data.
+# Generate the list of forecast hours for which to run the specified
+# METplus tool.
+#
+# If running the GenEnsProd tool, we set this to the list of forecast 
+# output times without filtering for the existence of observation files
+# corresponding to those times.  This is because GenEnsProd operates
+# only on forecasts; it does not need observations.
+#
+# On the other hand, if running the EnsembleStat tool, we set the list of
+# forecast hours to a set of times that takes into consideration whether
+# or not observations exist.  We do this by starting with the full list
+# of forecast times for which there is forecast output and then removing
+# from that list any times for which there is no corresponding observations.
 #
 #-----------------------------------------------------------------------
 #
@@ -175,16 +228,26 @@ case "$OBTYPE" in
 esac
 vx_hr_end="${FCST_LEN_HRS}"
 
-VX_LEADHR_LIST=$( python3 $USHdir/set_leadhrs.py \
-  --date_init="${CDATE}" \
-  --lhr_min="${vx_hr_start}" \
-  --lhr_max="${vx_hr_end}" \
-  --lhr_intvl="${vx_intvl}" \
-  --base_dir="${OBS_INPUT_DIR}" \
-  --fn_template="${OBS_INPUT_FN_TEMPLATE}" \
-  --num_missing_files_max="${NUM_MISSING_OBS_FILES_MAX}" ) || \
+if [ "${MetplusToolName}" = "GenEnsProd" ]; then
+  VX_LEADHR_LIST=$( python3 $USHdir/set_leadhrs.py \
+    --lhr_min="${vx_hr_start}" \
+    --lhr_max="${vx_hr_end}" \
+    --lhr_intvl="${vx_intvl}" \
+    --skip_check_files ) || \
   print_err_msg_exit "Call to set_leadhrs.py failed with return code: $?"
 
+elif [ "${MetplusToolName}" = "EnsembleStat" ]; then
+  VX_LEADHR_LIST=$( python3 $USHdir/set_leadhrs.py \
+    --date_init="${CDATE}" \
+    --lhr_min="${vx_hr_start}" \
+    --lhr_max="${vx_hr_end}" \
+    --lhr_intvl="${vx_intvl}" \
+    --base_dir="${OBS_INPUT_DIR}" \
+    --fn_template="${OBS_INPUT_FN_TEMPLATE}" \
+    --num_missing_files_max="${NUM_MISSING_OBS_FILES_MAX}" \
+    --time_lag="${time_lag%.*}" ) || \
+  print_err_msg_exit "Call to set_leadhrs.py failed with return code: $?"
+fi
 #
 #-----------------------------------------------------------------------
 #
@@ -205,15 +268,6 @@ if [ ! -d "${OBS_DIR}" ]; then
 OBS_DIR does not exist or is not a directory:
   OBS_DIR = \"${OBS_DIR}\""
 fi
-#
-#-----------------------------------------------------------------------
-#
-# Set variable containing accumulation period without leading zero
-# padding.  This may be needed in the METplus configuration files.
-#
-#-----------------------------------------------------------------------
-#
-ACCUM_NO_PAD=$( printf "%0d" "${ACCUM_HH}" )
 #
 #-----------------------------------------------------------------------
 #
@@ -266,8 +320,8 @@ fi
 #
 # First, set the base file names.
 #
-metplus_config_tmpl_bn="${MetplusToolName}_ensmean"
-metplus_config_bn="${MetplusToolName}_${FIELDNAME_IN_MET_FILEDIR_NAMES}_${CDATE}_ensmean"
+metplus_config_tmpl_bn="${MetplusToolName}"
+metplus_config_bn="${MetplusToolName}_${FIELDNAME_IN_MET_FILEDIR_NAMES}_${CDATE}"
 metplus_log_bn="${metplus_config_bn}"
 #
 # Add prefixes and suffixes (extensions) to the base file names.
@@ -278,7 +332,7 @@ metplus_log_fn="metplus.log.${metplus_log_bn}"
 #
 #-----------------------------------------------------------------------
 #
-# Load the yaml-like file containing the configuration for ensemble 
+# Load the yaml-like file containing the configuration for ensemble
 # verification.
 #
 #-----------------------------------------------------------------------
@@ -355,9 +409,10 @@ settings="\
 #
 'vx_mask': '${VX_MASK_FILE_LIST:-}'
 #
+#
 # Verification configuration dictionary.
 #
-'vx_config_dict': 
+'vx_config_dict':
 ${vx_config_dict:-}
 "
 
@@ -369,7 +424,7 @@ uw template render \
   -o ${metplus_config_fp} \
   --verbose \
   --values-file "${tmpfile}" \
-  --search-path "/" 
+  --search-path "/"
 
 err=$?
 rm $tmpfile

@@ -3,12 +3,13 @@
 #
 #-----------------------------------------------------------------------
 #
-# The J-Job script for checking the post output.
+# The J-job that runs the MET/METplus PcpCombine tool on hourly
+# accumulated precipitation (APCP) data to obtain APCP for multi-hour
+# accumulation periods.  The data can be from CCPA observations or a
+# focrecast.
 #
 # Run-time environment variables:
 #
-#    CDATE
-#    ENSMEM_INDX
 #    GLOBAL_VAR_DEFNS_FP
 #
 # Experiment variables
@@ -16,9 +17,6 @@
 #  user:
 #    SCRIPTSdir
 #    USHdir
-#
-#  workflow:
-#    EXPTDIR
 #
 #-----------------------------------------------------------------------
 #
@@ -61,46 +59,19 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job for the task that checks that no more than 
-NUM_MISSING_FCST_FILES_MAX of each forecast's (ensemble member's) post-
-processed output files are missing.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles. 
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_check_post_output.sh || \
+$SCRIPTSdir/pcpcombine.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
-#
-#-----------------------------------------------------------------------
-#
-# Create a flag file to make rocoto aware that the check_post_output task
-# has successfully completed (so that other tasks that depend on it can
-# be launched).  
-#
-#-----------------------------------------------------------------------
-#
-ensmem_name="mem${ENSMEM_INDX}"
-cycle_dir="$EXPTDIR/$CDATE"
-mkdir -p "${cycle_dir}"
-touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"
+Call to \"pcpcombine.sh\" from \"${scrfunc_fn}\" failed."
 #
 #-----------------------------------------------------------------------
 #
@@ -118,3 +89,4 @@ job_postamble
 #-----------------------------------------------------------------------
 #
 { restore_shell_opts; } > /dev/null 2>&1
+

@@ -56,6 +56,7 @@ done
 #
 #-----------------------------------------------------------------------
 #
+echo "shell_opts_array=${shell_opts_array}"
 LOGLEVEL="INFO"
 echo "DEBUG=$DEBUG"
 if [ "${DEBUG}" = "True" ]; then

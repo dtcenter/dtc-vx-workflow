@@ -3,7 +3,7 @@
 """
 Python Script Documentation Block
 
- Script name:       	exregional_integration_test.py
+ Script name:       	integration_test.py
  Script description:  	Ensures the correct number of netcdf files are generated
  			for each experiment
 

@@ -3,11 +3,12 @@
 #
 #-----------------------------------------------------------------------
 #
-# The J-Job that runs that runs either METplus's gen_ens_prod tool or its
-# ensemble_stat tool for ensemble verification.
+# The J-Job script for checking the post output.
 #
 # Run-time environment variables:
 #
+#    CDATE
+#    ENSMEM_INDX
 #    GLOBAL_VAR_DEFNS_FP
 #
 # Experiment variables
@@ -15,6 +16,9 @@
 #  user:
 #    SCRIPTSdir
 #    USHdir
+#
+#  workflow:
+#    EXPTDIR
 #
 #-----------------------------------------------------------------------
 #
@@ -57,32 +61,32 @@ done
 scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
-#
-#-----------------------------------------------------------------------
-#
-# Print message indicating entry into script.
-#
-#-----------------------------------------------------------------------
-#
+
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
-
-This is the J-job script for the task that runs either METplus's 
-gen_ens_prod tool or its ensemble_stat tool for ensemble verification.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
-#-----------------------------------------------------------------------
+# Call the run script
 #
-# Call the ex-script for this J-job and pass to it the necessary varia-
-# bles.
-#
-#-----------------------------------------------------------------------
-#
-$SCRIPTSdir/exregional_run_met_genensprod_or_ensemblestat.sh || \
+$SCRIPTSdir/check_post_output.sh || \
 print_err_msg_exit "\
-Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+Call to script \"check_post_output.sh\" from \"${scrfunc_fn}\" failed."
+#
+#-----------------------------------------------------------------------
+#
+# Create a flag file to make rocoto aware that the check_post_output task
+# has successfully completed (so that other tasks that depend on it can
+# be launched).  
+#
+#-----------------------------------------------------------------------
+#
+ensmem_name="mem${ENSMEM_INDX}"
+cycle_dir="$EXPTDIR/$CDATE"
+mkdir -p "${cycle_dir}"
+touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"
 #
 #-----------------------------------------------------------------------
 #
@@ -100,4 +104,3 @@ job_postamble
 #-----------------------------------------------------------------------
 #
 { restore_shell_opts; } > /dev/null 2>&1
-

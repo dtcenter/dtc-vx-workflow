@@ -78,6 +78,7 @@ tool to perform verification of the specified field group (FIELD_GROUP)
 on the ensemble
 frequencies/probabilities.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #

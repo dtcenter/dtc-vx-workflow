@@ -72,6 +72,7 @@ This is the ex-script for the task that runs the METplus tool ${MetplusToolName}
 to convert ASCII format observation files to NetCDF format.
 ========================================================================"
 
+echo "shell_opts_array=${shell_opts_array}"
 yyyymmdd_task=${PDY}
 
 # Seconds since some reference time that the DATE_UTIL utility uses of

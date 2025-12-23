@@ -76,6 +76,7 @@ In directory:     \"${scrfunc_dir}\"
 This is the ex-script for the task that runs the METplus tool ${MetplusToolName}
 to convert NDAS prep buffer observation files to NetCDF format.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #

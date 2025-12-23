@@ -89,6 +89,7 @@ This is the ex-script for the task that checks that no more than
 NUM_MISSING_FCST_FILES_MAX of each forecast's (ensemble member's) post-
 processed output files are missing.
 ========================================================================"
+echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #
