@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 #
 #-----------------------------------------------------------------------
 #
@@ -43,15 +43,6 @@ done
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-{ save_shell_opts; . $USHdir/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located 
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -67,7 +58,6 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 ========================================================================"
-echo "shell_opts_array=${shell_opts_array}"
 #
 # Call the run script
 #
@@ -95,12 +85,3 @@ touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"
 #-----------------------------------------------------------------------
 #
 job_postamble
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-{ restore_shell_opts; } > /dev/null 2>&1

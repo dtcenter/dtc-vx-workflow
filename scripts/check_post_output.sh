@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 #
 #-----------------------------------------------------------------------
 #
@@ -55,15 +55,6 @@ done
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-{ save_shell_opts; . $USHdir/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -89,7 +80,6 @@ This is the ex-script for the task that checks that no more than
 NUM_MISSING_FCST_FILES_MAX of each forecast's (ensemble member's) post-
 processed output files are missing.
 ========================================================================"
-echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #
@@ -140,12 +130,3 @@ Done checking for existence of post-processed files for ensemble member ${ENSMEM
 Exiting script:  \"${scrfunc_fn}\"
 In directory:    \"${scrfunc_dir}\"
 ========================================================================"
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-{ restore_shell_opts; } > /dev/null 2>&1

@@ -30,15 +30,6 @@ done
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-{ save_shell_opts; . $USHdir/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -79,7 +70,6 @@ files containing multi-hour accumulated precipitation (e.g. 3-hour, 6-
 hour, 24-hour).  The input files can come from either observations or
 a forecast.
 ========================================================================"
-echo "shell_opts_array=${shell_opts_array}"
 #
 #-----------------------------------------------------------------------
 #
@@ -475,12 +465,3 @@ METplus ${MetplusToolName} tool completed successfully.
 Exiting script:  \"${scrfunc_fn}\"
 In directory:    \"${scrfunc_dir}\"
 ========================================================================"
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-{ restore_shell_opts; } > /dev/null 2>&1

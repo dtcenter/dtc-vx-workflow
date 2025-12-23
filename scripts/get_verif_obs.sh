@@ -42,21 +42,11 @@ done
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-{ save_shell_opts; . $USHdir/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Make sure the obs type is valid.  Then call a python script to check
 # for the presence of obs files on disk and get them if needed.
 #
 #-----------------------------------------------------------------------
 #
-echo "shell_opts_array=${shell_opts_array}"
 LOGLEVEL="INFO"
 echo "DEBUG=$DEBUG"
 if [ "${DEBUG}" = "True" ]; then
@@ -84,13 +74,4 @@ ${cmd} || print_err_msg_exit "Error calling get_obs.py"
 mkdir -p ${WFLOW_FLAG_FILES_DIR}
 file_bn="get_obs_$(echo_lowercase ${OBTYPE})"
 touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${PDY}_complete.txt"
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-{ restore_shell_opts; } > /dev/null 2>&1
 
