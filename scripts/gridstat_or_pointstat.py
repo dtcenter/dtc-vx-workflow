@@ -353,8 +353,8 @@ if __name__ == "__main__":
                         help='Name of experiment config file in YAML format')
     parser.add_argument('--cycle_date', required=True, type=str,
                         help='Eight-digit cycle date (YYMMDDHH)')
-    parser.add_argument('--ensmem_index', required=True, type=str,
-                        help='The subdirectory for this ensemble member (e.g. "mem000" for deterministic, "mem###" for ensemble number ###')
+    parser.add_argument('--ensmem_index', required=True, type=int,
+                        help='The ensemble member index (e.g. 0 for deterministic, 1,2,3 etc. for ensemble member number 1,2,3 etc.')
     parser.add_argument('--field_group', required=True, type=str,
                         help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--fcst_level', required=True, type=str,
