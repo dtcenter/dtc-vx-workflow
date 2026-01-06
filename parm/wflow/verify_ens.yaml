@@ -69,7 +69,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h: &task_GenEnsProd_NOHRSC
     <<: *default_task_verify_ens
-    command: "&JOBSdir;/MET_GENENSPROD_OR_ENSEMBLESTAT.sh"
+    command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NOHRSC
       <<: *default_vars
       ACCUM_HH: '#ACCUM_HH#'
