@@ -1,10 +1,9 @@
 metadata:
   description: |-
-    SRW App configuration file to test deterministic verification of the
+    This is a test for deterministic verification of the
     GraphCast (gc) global AI model.  Note that this test uses a custom 
-    verification configuration file (as opposed to the default one in the
-    SRW) because the AI model output often does not include many of the
-    fields that exist in physics-based models.
+    verification configuration file because the AI model output does not
+    include many of the fields that exist in physics-based models.
 
 user:
   RUN_ENVIR: community

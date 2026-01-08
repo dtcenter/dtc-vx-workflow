@@ -1,15 +1,7 @@
 metadata:
   description: |-
-    This test is to ensure that the workflow running in community mode
-    can successfully run the MET deterministic verification tasks but
-    using staged observation and forecast files (i.e. with other tasks
-    such as pre-processing, forecast, and post-processing deactivated).
-
-user:
-  RUN_ENVIR: community
-
-nco:
-  NET_default: rrfs
+    This is a basic test for deterministic verification with staged observations and
+    specified verification masks.
 
 workflow:
   PREDEF_GRID_NAME: RRFS_CONUS_25km

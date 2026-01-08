@@ -6,14 +6,8 @@ metadata:
     Weather (pw)].  The idea is for this test to serve as a baseline to
     which the AI vx can be compared.  Thus, this test uses a custom vx
     verification configuration file (as opposed to the default one in the
-    SRW) because the AI model output often does not include many of the
+    SRW) because the AI model output does not include many of the
     fields that exist in physics-based models.
-
-user:
-  RUN_ENVIR: community
-
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
 
 workflow:
   PREEXISTING_DIR_METHOD: rename
@@ -24,14 +18,6 @@ workflow:
   taskgroups:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'global'
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5

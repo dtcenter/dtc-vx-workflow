@@ -1,16 +1,11 @@
 metadata:
   description: |-
-    SRW App configuration file to test deterministic verification of the
+    This is a test for deterministic verification of the
     FourCastNet (fcnv2) global AI model.  Note that this test uses a custom 
     verification configuration file (as opposed to the default one in the
     SRW) because the AI model output often does not include many of the
     fields that exist in physics-based models.
 
-user:
-  RUN_ENVIR: community
-
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
 
 workflow:
   PREEXISTING_DIR_METHOD: rename
@@ -21,14 +16,6 @@ workflow:
   taskgroups:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'global'
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5
@@ -44,9 +31,6 @@ verification:
   NOHRSC_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/nohrsc"
   MRMS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/mrms"
   NDAS_OBS_DIR: "{{ platform.TEST_GDAS_OBS_DIR }}"
-  # Do not remove raw obs files to be able to verify that only the necessary
-  # raw files are fetched from HPSS (if it's necessary to fetch obs files).
-  REMOVE_RAW_OBS_DIRS: false
   #
   OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', '{valid?fmt=%Y%m%d}/gdas.t{valid?fmt=%H}z.prepbufr.nr' ]
   #

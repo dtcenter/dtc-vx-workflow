@@ -1,13 +1,6 @@
 metadata:
   description: |-
-    This test is to ensure that the workflow running in community mode
-    completes successfully on the RRFS_CONUS_25km grid using the HRRR
-    physics suite with ICs derived from the FV3GFS and LBCs derived from
-    the RAP.
-    This test also ensures that MET deterministic verification runs
-    successfully.
-user:
-  RUN_ENVIR: community
+    This is a simple test for MET deterministic verification
 workflow:
   PREDEF_GRID_NAME: RRFS_CONUS_25km
   DATE_FIRST_CYCL: '2019061518'

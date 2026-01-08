@@ -2,15 +2,8 @@ metadata:
   description: |-
     SRW App configuration file to test deterministic verification of the
     Pangu-Weather (pw) global AI model.  Note that this test uses a custom 
-    verification configuration file (as opposed to the default one in the
-    SRW) because the AI model output often does not include many of the
-    fields that exist in physics-based models.
-
-user:
-  RUN_ENVIR: community
-
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
+    verification configuration file because the AI model output does not
+    include many of the fields that exist in physics-based models.
 
 workflow:
   PREEXISTING_DIR_METHOD: rename
@@ -21,14 +14,6 @@ workflow:
   taskgroups:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'global'
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5

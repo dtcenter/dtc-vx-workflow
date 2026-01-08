@@ -1,9 +1,8 @@
 metadata:
   description: |-
-    SRW App configuration file to first pull CCPA, MRMS, and NDAS observations
-    from HPSS for multiple cycles and then perform deterministic verification
-    for all cycles, including first performing vx preprocessing with METplus
-    tools such as PcpCombine and Pb2Nc.
+    This test retrieves CCPA, MRMS, and NDAS observations from HPSS for multiple
+    cycles, then performs deterministic verification, including vx preprocessing
+    with METplus tools such as PcpCombine and Pb2Nc.
 
     The staged forecast data are from NCEP's operational version of the HRRR.
 
@@ -11,12 +10,6 @@ metadata:
     shorter than 24hr), NON-overlapping forecasts in a day with multi-hour
     (but < 24hr) gaps between the end of one forecast and the start of the
     next.
-
-user:
-  RUN_ENVIR: community
-
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
 
 workflow:
   PREEXISTING_DIR_METHOD: rename
@@ -28,14 +21,6 @@ workflow:
   taskgroups:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'hrrr_ncep'
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5
@@ -57,5 +42,5 @@ verification:
   #
   VX_FCST_MODEL_NAME: 'hrrr_ncep'
   VX_FCST_INPUT_BASEDIR: '{{"%s/%s" % (platform.TEST_EXTRN_MDL_SOURCE_BASEDIR, verification.VX_FCST_MODEL_NAME) }}'
-  FCST_FN_TEMPLATE: '{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
-  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'
+  FCST_FN_TEMPLATE: 'hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'

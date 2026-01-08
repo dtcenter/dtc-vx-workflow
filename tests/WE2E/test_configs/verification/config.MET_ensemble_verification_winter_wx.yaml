@@ -3,8 +3,6 @@ metadata:
     This test checks the capability of the workflow to run ensemble verification
     tasks with 10 members. This also serves as a winter snowstorm case for
     checking ensemble snowfall verification statistics.
-user:
-  RUN_ENVIR: community
 workflow:
   PREDEF_GRID_NAME: RRFS_CONUScompact_25km
   DATE_FIRST_CYCL: '2022020300'
