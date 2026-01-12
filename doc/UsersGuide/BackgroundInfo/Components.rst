@@ -113,7 +113,7 @@ The SRW Application has been tested on a variety of platforms widely used by res
 
 Preconfigured (Level 1) systems already have the required external libraries available in a central location (via :term:`spack-stack`). The SRW Application is expected to build and run out-of-the-box on these systems, and users can :ref:`download the SRW App code <DownloadSRWApp>` without first installing prerequisites.
 
-Configurable platforms (Level 2) are platforms where all of the required libraries for building the SRW Application are expected to install successfully but are not available in a central location. Users will need to install the required libraries as part of the :ref:`SRW Application build <BuildSRW>` process. Applications and models are expected to build and run once the required libraries are built. Release testing is conducted on these systems to ensure that the SRW App runs smoothly there. 
+Configurable platforms (Level 2) are platforms where all of the required libraries for building the SRW Application are expected to install successfully but are not available in a central location. Users will need to install the required libraries as part of the :ref:`SRW Application build <Setup>` process. Applications and models are expected to build and run once the required libraries are built. Release testing is conducted on these systems to ensure that the SRW App runs smoothly there. 
 
 Limited-Test (Level 3) and Build-Only (Level 4) computational platforms are those in which the developers have built the code but little or no pre-release testing has been conducted, respectively. Users may need to perform additional troubleshooting on Level 3 or 4 systems since little or no pre-release testing has been conducted on these systems. 
 

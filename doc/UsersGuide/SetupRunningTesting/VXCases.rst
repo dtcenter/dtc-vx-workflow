@@ -14,7 +14,7 @@ Each sample case contains model output from a control run; this output includes 
 Prerequisites
 ================
 
-This chapter assumes that users have already (1) built the SRW App |latestr| release successfully and (2) installed MET and METplus on their system (e.g., as part of :term:`spack-stack` installation). For instructions on how to build the |latestr| release, see :numref:`Section %s <BuildSRW>`. Users will have an easier time if they run through the out-of-the-box case described in :numref:`Section %s <RunSRW>` before attempting to run any verification sample cases, but doing so is optional.
+This chapter assumes that users have already (1) built the SRW App |latestr| release successfully and (2) installed MET and METplus on their system (e.g., as part of :term:`spack-stack` installation). For instructions on how to build the |latestr| release, see :numref:`Section %s <Setup>`. Users will have an easier time if they run through the out-of-the-box case described in :numref:`Section %s <RunVX>` before attempting to run any verification sample cases, but doing so is optional.
 
 For information on MET and METplus, see :numref:`Section %s <MetplusComponent>`, which contains information on METplus, links to a list of existing MET/METplus builds on :srw-wiki:`Level 1 & 2 <Supported-Platforms-and-Compilers>` systems, and links to installation instructions and documentation for users on other systems. 
 

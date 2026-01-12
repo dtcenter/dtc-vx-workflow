@@ -191,7 +191,7 @@ After running ``devbuild.sh``, the executables listed in :numref:`Table %s <Exec
 
 #. Proceed to :numref:`Section %s: Quick Start Guide <Quickstart>` for a quick overview of the workflow steps. 
 #. Try the :ref:`SRW App Tutorials <Tutorial>` (good for new users!). 
-#. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunSRW>`.
+#. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunVX>`.
 
 If the ``devbuild.sh`` build method did *not* work, or if users are not on a supported machine, they will have to manually set up the environment and build the SRW App binaries with CMake as described in :numref:`Section %s <CMakeApproach>`.
 
@@ -267,7 +267,7 @@ Set Up the Build Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. attention::
-   * If users successfully built the executables listed in :numref:`Table %s <ExecDescription>`, they can skip to step :numref:`Section %s: Running the SRW App <RunSRW>`.
+   * If users successfully built the executables listed in :numref:`Table %s <ExecDescription>`, they can skip to step :numref:`Section %s: Running the SRW App <RunVX>`.
 
 If the ``devbuild.sh`` approach failed, users need to set up their environment to run a workflow on their specific platform. First, users should make sure ``Lmod`` is the app used for loading modulefiles. This is the case on most Level 1 systems; however, on systems such as Gaea, the default modulefile loader is from Cray and must be switched to Lmod. For example, on Gaea, users with a bash shell environment can run:
 
@@ -376,4 +376,4 @@ To configure and run an experiment, users have a few options:
 
 #. Proceed to :numref:`Section %s: Quick Start Guide <Quickstart>` for a quick overview of the workflow steps. 
 #. Try the :ref:`SRW App Tutorials <Tutorial>` (good for new users!). 
-#. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunSRW>`.
+#. For detailed information on running the SRW App, including optional tasks like plotting and verification, users can refer to :numref:`Section %s: Running the SRW App <RunVX>`.

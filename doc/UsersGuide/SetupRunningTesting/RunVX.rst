@@ -10,7 +10,7 @@
 Running the SRW App
 =========================== 
 
-This section explains how to set up and run the basic "out-of-the-box" case for the SRW Application. However, the steps are relevant to any SRW App experiment and can be modified to suit user goals. This chapter assumes that users have already built the SRW App by following the steps in :numref:`Section %s <BuildSRW>` (or :numref:`Section %s <DownloadCodeC>` if running the containerized version of the SRW App).
+This section explains how to set up and run the basic "out-of-the-box" case for the SRW Application. However, the steps are relevant to any SRW App experiment and can be modified to suit user goals. This chapter assumes that users have already built the SRW App by following the steps in :numref:`Section %s <Setup>` (or :numref:`Section %s <DownloadCodeC>` if running the containerized version of the SRW App).
 
 The out-of-the-box SRW App case builds a weather forecast for June 15-16, 2019. Multiple convective weather events during these two days produced over 200 filtered storm reports. Severe weather was clustered in two areas: the Upper Midwest through the Ohio Valley and the Southern Great Plains. This forecast uses a predefined 25-km Continental United States (:term:`CONUS`) domain (RRFS_CONUS_25km), the Global Forecast System (:term:`GFS`) version 16 physics suite (FV3_GFS_v16 :term:`CCPP`), and :term:`FV3`-based GFS raw external model data for initialization.
 
@@ -19,7 +19,7 @@ The out-of-the-box SRW App case builds a weather forecast for June 15-16, 2019. 
    The SRW Application has :srw-wiki:`four levels of support <Supported-Platforms-and-Compilers>`. The steps described in this section will work most smoothly on preconfigured (Level 1) systems. They should also work on other systems (including generic Linux/Mac systems), but the user may need to perform additional troubleshooting. 
 
 
-The overall procedure for generating an experiment is shown in :numref:`Figure %s <AppOverallProc>`, with the scripts to generate and run the workflow shown in red. Once the SRW App has been built, as described in :numref:`Chapter %s <BuildSRW>`, the steps to run a forecast are as follows:
+The overall procedure for generating an experiment is shown in :numref:`Figure %s <OverallProc>`, with the scripts to generate and run the workflow shown in red. Once the SRW App has been built, as described in :numref:`Chapter %s <Setup>`, the steps to run a forecast are as follows:
 
    #. :ref:`Download and stage data <Data>`
    #. :ref:`Optional: Configure a new grid <GridSpecificConfig>`
@@ -32,7 +32,7 @@ The overall procedure for generating an experiment is shown in :numref:`Figure %
 
    #. :ref:`Run the SRW App workflow <Run>`
 
-.. _AppOverallProc:
+.. _OverallProc:
 
 .. figure:: https://github.com/ufs-community/ufs-srweather-app/wiki/WorkflowImages/SRW_run_process.png
    :alt: Flowchart describing the SRW App workflow steps. 

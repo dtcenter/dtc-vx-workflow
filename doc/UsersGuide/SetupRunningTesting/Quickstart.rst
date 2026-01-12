@@ -4,54 +4,41 @@
 Quick Start Guide
 ====================
 
-This chapter provides a brief summary of how to build and run the SRW Application. The steps will run most smoothly on :srw-wiki:`Level 1 <Supported-Platforms-and-Compilers>` systems. Users should expect to reference other chapters of this User's Guide, particularly :numref:`Section %s: Building the SRW App <BuildSRW>` and :numref:`Section %s: Running the SRW App <RunSRW>`, for additional explanations regarding each step.
+This chapter provides a brief summary of how to build and run the verification workflow. The steps will run most smoothly on :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>` systems. Users should expect to reference other chapters of this User's Guide, particularly :numref:`Section %s: Setting up the workflow <Setup>` and :numref:`Section %s: Running the workflow <RunVX>`, for additional explanations regarding each step.
 
 
 Install the Prerequisite Software Stack
 =========================================
-SRW App users who are **not** working on a :srw-wiki:`Level 1 <Supported-Platforms-and-Compilers>` platform will need to install the prerequisite software stack via :term:`spack-stack` prior to building the SRW App on a new machine. Users can find installation instructions in the :doc:`spack-stack documentation <spack-stack:index>`. The steps will vary slightly depending on the user's platform, but detailed instructions for a variety of platforms are available in the documentation. Users may also post questions in the `ufs-community Discussions tab <https://github.com/orgs/ufs-community/discussions/categories/q-a>`__.
+The main prerequisites that are needed for running the workflow are MET and METplus. Users who are **not** working on an :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>` platform will need to install the prerequisite software stack on their own; this can be done via :term:`spack-stack` or by installing MET and METplus according to their respective installation guides. Users wishing to use spack-stack can find installation instructions in the :doc:`spack-stack documentation <spack-stack:index>`. The steps will vary slightly depending on the user's platform, but detailed instructions for a variety of platforms are available in the documentation. Users may also post questions in the `workflow repository Discussions tab <https://github.com/dtcenter/dtc-vx-workflow/discussions/>`__.
 
-Once spack-stack been successfully installed, users can move on to building the SRW Application.
+Once prerequisites have been successfully installed, users can move on to setting up the workflow.
 
-.. _QuickBuildRun:
 
-Building and Running the UFS SRW Application 
+Download data for tutorial case
+===============================
+
+If you are on an :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>`, you can skip this section as the tutorial data should already be available on disk.
+
+
+
+.. _QuickSetup:
+
+Setting up the verification workflow
 ===============================================
 
-For a detailed explanation of how to build and run the SRW App on any supported system, see :numref:`Section %s: Building the SRW App <BuildSRW>` and :numref:`Section %s: Running the SRW App <RunSRW>`. :numref:`Figure %s <AppBuildProc>` outlines the steps of the build process. The overall procedure for generating an experiment is shown in :numref:`Figure %s <AppOverallProc>`, with the scripts to generate and run the workflow shown in red. An overview of the required steps appears below. However, users can expect to access other referenced sections of this User's Guide for more detail.
+For a detailed explanation of how to set up the workflow on any supported system, see :numref:`Section %s: Setting up the workflow <Setup>` and :numref:`Section %s: Running the workflow <RunVX>`. The overall procedure for generating an experiment is shown in :numref:`Figure %s <OverallProc>`, with the scripts to generate and run the workflow shown in red. An overview of the required steps appears below. However, users can expect to access other referenced sections of this User's Guide for more detail.
 
-   #. Clone the SRW App from GitHub:
+   #. Clone the workflow from GitHub:
 
       .. include:: ../../doc-snippets/clone.rst
 
-   #. Check out the external repositories:
+   #. Users on a :srw-wiki:`SRW Level 2-4 <Supported-Platforms-and-Compilers>` system must download and stage data (both the fix files and the :term:`IC/LBC <ICs/LBCs>` files) according to the instructions in :numref:`Section %s <DownloadingStagingInput>`. Standard data locations for SRW Level 1 systems appear in :numref:`Table %s <DataLocations>`.
 
-      .. include:: ../../doc-snippets/externals.rst
-
-   #. Set up the build environment and build the executables:
-
-      .. code-block:: console
-            
-         ./devbuild.sh --platform=<machine_name>
-
-      where ``<machine_name>`` is replaced with the name of the user's platform/system. Valid values include: ``derecho`` | ``gaeac6`` | ``hera`` | ``hercules`` | ``noaacloud`` | ``orion`` |
-
-      For additional details, see :numref:`Section %s <DevBuild>`, or view :numref:`Section %s <CMakeApproach>` to try the CMake build approach instead. 
-
-   #. Users on a :srw-wiki:`Level 2-4 <Supported-Platforms-and-Compilers>` system must download and stage data (both the fix files and the :term:`IC/LBC <ICs/LBCs>` files) according to the instructions in :numref:`Section %s <DownloadingStagingInput>`. Standard data locations for Level 1 systems appear in :numref:`Table %s <DataLocations>`.
-
-   #. Load the python environment for the workflow. Users on Level 2-4 systems will need to use one of the existing ``wflow_<platform>`` modulefiles (e.g., ``wflow_macos``) and adapt it to their system. Then, run:
+   #. Load the python environment for the workflow. Sourcing this script will attempt to download and install a new ``conda`` installation in a subdirectory; users who wish to use an existing conda installation should build the environment found in ``environment.yml``
 
       .. include:: ../../doc-snippets/load-env.rst
       
-      After loading the workflow, users should follow the instructions printed to the console. For example, if the output says: 
-
-      .. code-block:: console
-
-         Please do the following to activate conda:
-            > conda activate srw_app
-      
-      then the user should run |activate| to activate the workflow environment. 
+      After sourcing this bash script, the appropriate environment should be loaded, and the user should see ``(vx_workflow)`` on their terminal prompt.
 
    #. Configure the experiment: 
 
