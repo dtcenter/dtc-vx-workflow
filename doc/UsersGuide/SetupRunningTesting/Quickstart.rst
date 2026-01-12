@@ -4,20 +4,44 @@
 Quick Start Guide
 ====================
 
-This chapter provides a brief summary of how to build and run the verification workflow. The steps will run most smoothly on :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>` systems. Users should expect to reference other chapters of this User's Guide, particularly :numref:`Section %s: Setting up the workflow <Setup>` and :numref:`Section %s: Running the workflow <RunVX>`, for additional explanations regarding each step.
+This chapter provides a brief summary of how to build and run the verification workflow.
+
+**NOTE: The steps should run smoothly on** :srw-wiki:`Tier-1 <Supported-Platforms-and-Compilers>` **supported systems. Instructions for other platforms will be coming in the future.**
 
 
 Install the Prerequisite Software Stack
 =========================================
-The main prerequisites that are needed for running the workflow are MET and METplus. Users who are **not** working on an :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>` platform will need to install the prerequisite software stack on their own; this can be done via :term:`spack-stack` or by installing MET and METplus according to their respective installation guides. Users wishing to use spack-stack can find installation instructions in the :doc:`spack-stack documentation <spack-stack:index>`. The steps will vary slightly depending on the user's platform, but detailed instructions for a variety of platforms are available in the documentation. Users may also post questions in the `workflow repository Discussions tab <https://github.com/dtcenter/dtc-vx-workflow/discussions/>`__.
-
-Once prerequisites have been successfully installed, users can move on to setting up the workflow.
+On Tier-1 supported systems such as Derecho and Hera, all prerequisites have already been installed.
 
 
 Download data for tutorial case
 ===============================
 
-If you are on an :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>`, you can skip this section as the tutorial data should already be available on disk.
+For this tutorial case, we will download some RRFS prototype output to run verification tasks with. This tutorial will run on forecast hours 0 through 6:
+
+  .. code-block:: console
+
+     mkdir path/to/forecast/datadir
+     cd path/to/datadir
+     for i in $(seq 1 6); do
+     wget https://noaa-ufs-srw-pds.s3.amazonaws.com/develop-20250321/output_data/fcst_det/RRFS_CONUS_25km/2019061500/postprd/rrfs.t00z.prslev.f00${i}.rrfs_conus_25km.grib2
+     done
+
+When finished, you should see seven grib files in your data directory:
+
+  .. code-block:: console
+
+     $ ls -al
+     total 273064
+     drwxr-sr-x 2 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 21:03 .
+     drwxr-sr-x 5 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 20:59 ..
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20553322 Mar 22  2025 rrfs.t00z.prslev.f000.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20199677 Mar 22  2025 rrfs.t00z.prslev.f001.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20049464 Mar 22  2025 rrfs.t00z.prslev.f002.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20009343 Mar 22  2025 rrfs.t00z.prslev.f003.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19813959 Mar 22  2025 rrfs.t00z.prslev.f004.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19643685 Mar 22  2025 rrfs.t00z.prslev.f005.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19521654 Mar 22  2025 rrfs.t00z.prslev.f006.rrfs_conus_25km.grib2
 
 
 
@@ -26,13 +50,22 @@ If you are on an :srw-wiki:`SRW Level 1 <Supported-Platforms-and-Compilers>`, yo
 Setting up the verification workflow
 ===============================================
 
-For a detailed explanation of how to set up the workflow on any supported system, see :numref:`Section %s: Setting up the workflow <Setup>` and :numref:`Section %s: Running the workflow <RunVX>`. The overall procedure for generating an experiment is shown in :numref:`Figure %s <OverallProc>`, with the scripts to generate and run the workflow shown in red. An overview of the required steps appears below. However, users can expect to access other referenced sections of this User's Guide for more detail.
-
    #. Clone the workflow from GitHub:
 
       .. include:: ../../doc-snippets/clone.rst
 
-   #. Users on a :srw-wiki:`SRW Level 2-4 <Supported-Platforms-and-Compilers>` system must download and stage data (both the fix files and the :term:`IC/LBC <ICs/LBCs>` files) according to the instructions in :numref:`Section %s <DownloadingStagingInput>`. Standard data locations for SRW Level 1 systems appear in :numref:`Table %s <DataLocations>`.
+   #. Load the Rocoto module. Rocoto is the workflow manager used to run verification experiments, and on most machines should be available by default:
+
+      .. code-block:: console
+
+         module load rocoto
+
+      On Derecho, users will need to specify the location of the Rocoto modulefile:
+
+      .. code-block:: console
+
+         module use /glade/work/epicufsrt/contrib/derecho/modulefiles
+         module load rocoto
 
    #. Load the python environment for the workflow. Sourcing this script will attempt to download and install a new ``conda`` installation in a subdirectory; users who wish to use an existing conda installation should build the environment found in ``environment.yml``
 
@@ -47,29 +80,50 @@ For a detailed explanation of how to set up the workflow on any supported system
       .. code-block:: console
 
          cd ush
-         cp config.community.yaml config.yaml
+         cp config_tutorial.yaml config.yaml
       
-      Users will need to open the ``config.yaml`` file and adjust the experiment parameters in it to suit the needs of their experiment (e.g., date, grid, physics suite). At a minimum, users need to modify the ``MACHINE`` parameter. In most cases, users will need to specify the ``ACCOUNT`` parameter and the location of the experiment data (see :numref:`Section %s <Data>` for Level 1 system default locations). 
+      Users will need to open the ``config.yaml`` file and adjust the experiment parameters in it to suit the needs of their experiment (e.g., date, grid, physics suite). At a minimum, users need to modify the ``MACHINE`` parameter. In most cases, users will need to specify the ``ACCOUNT`` parameter and the location of the experiment data ``VX_FCST_INPUT_BASEDIR``.
 
       For example, a user on Hercules (login node 1) might adjust or add the following fields to run the 12-hr "out-of-the-box" case on Hercules using prestaged system data and :term:`cron` to automate the workflow: 
 
       .. code-block:: console
          
          user:
-           MACHINE: hercules
+           MACHINE: hera
            ACCOUNT: epic
          workflow:
-           EXPT_SUBDIR: run_basic_srw
-           USE_CRON_TO_RELAUNCH: true
-           CRON_RELAUNCH_INTVL_MNTS: 3
-         task_get_extrn_ics:
-           USE_USER_STAGED_EXTRN_FILES: true
-           EXTRN_MDL_SOURCE_BASEDIR_ICS: /work/noaa/epic/role-epic/contrib/UFS_SRW_data/develop/input_model_data/FV3GFS/grib2/${yyyymmddhh}
-         task_get_extrn_lbcs:
-           USE_USER_STAGED_EXTRN_FILES: true
-           EXTRN_MDL_SOURCE_BASEDIR_LBCS: /work/noaa/epic/role-epic/contrib/UFS_SRW_data/develop/input_model_data/FV3GFS/grib2/${yyyymmddhh}
+           DATE_FIRST_CYCL: '2019061500'
+           DATE_LAST_CYCL: '2019061500'
+           FCST_LEN_HRS: 6
+           PREEXISTING_DIR_METHOD: rename
+           taskgroups:
+           - parm/wflow/verify_pre.yaml
+           - parm/wflow/verify_det.yaml
+           EXPT_SUBDIR: tutorial_case
+         verification:
+           VX_MASK:
+           - CONUS
+           - EAST
+           - EAST_OF_ROCKIES
+           VX_FCST_MODEL_NAME: 'rrfs'
+           VX_FCST_INPUT_BASEDIR: /scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/VX_workflow/quickstart_test/data
+           FCST_FN_TEMPLATE: rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2
+           FCST_SUBDIR_TEMPLATE: ''
+           CCPA_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ccpa/proc'
+           MRMS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/mrms/proc'
+           NDAS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ndas/proc'
+           NOHRSC_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/nohrsc/proc'
       
-      Users on a different system would update the machine, account, and data paths accordingly. Additional changes may be required based on the system and experiment. More detailed guidance is available in :numref:`Section %s <UserSpecificConfig>`. Parameters and valid values are listed in :numref:`Section %s <ConfigWorkflow>`. 
+      Users on a different system would update the machine, account, and data paths accordingly.
+
+Description of basic options
+----------------------------
+
+The verification workflow is highly configurable with a number of different options and tasks. This basic quick-start guide covers a simple deterministic verification using conventional observations. Additional examples can be found in :numref:`Section %s <Testing>` 
+
+      **To be added: detailed descriptions of variables set in config_tutorial.yaml**
+
+      All valid options can be found in the file ``ush/config_defaults.yaml``. More detailed guidance is available in :numref:`Section %s <UserSpecificConfig>` and :numref:`Section %s <ConfigWorkflow>`; particularly the variables in the ``verification:`` section described in :numref:`Section %s <VXParams>`.
 
    #. Generate the experiment workflow. 
 
@@ -77,28 +131,34 @@ For a detailed explanation of how to set up the workflow on any supported system
 
          ./generate_FV3LAM_wflow.py
 
-   #. Run the workflow from the experiment directory (``$EXPTDIR``). By default, the path to this directory is ``${EXPT_BASEDIR}/${EXPT_SUBDIR}`` (see :numref:`Section %s <DirParams>` for more detail). There are several methods for running the workflow, which are discussed in :numref:`Section %s <Run>`. Most require the :ref:`Rocoto Workflow Manager <RocotoInfo>`. For example, if the user automated the workflow using cron, run: 
+         ========================================================================
+         Starting experiment generation...
+         ========================================================================
+
+         ========================================================================
+         Starting function setup() in "setup.py"...
+         ========================================================================
+
+         ...
+         ...
+         ...
+
+         ========================================================================
+
+         Experiment generation completed.  The experiment directory is:
+
+         EXPTDIR='/scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/VX_workflow/quickstart_test/expt_dirs/tutorial_case'
+
+         ========================================================================
+
+
+   #. The workflow generation script helpfully provides instructions on how to run the workflow using Rocoto, including instructions on how to automate from a crontab.
 
       .. code-block:: console
          
          cd $EXPTDIR
+         rocotorun -w vx_wflow.xml -d vx_wflow.db -v 10
          rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10
-   
-      The user can resubmit the ``rocotostat`` command as needed to check the workflow progress.
 
-      If the user has Rocoto but did *not* automate the workflow using :term:`cron`, run: 
+   **Instructions on automatic submission and monitoring of jobs will be coming**   
 
-      .. code-block:: console
-
-         cd $EXPTDIR
-         ./launch_FV3LAM_wflow.sh
-
-      To (re)launch the workflow and check the experiment's progress, run:
-
-      .. code-block:: console
-
-         ./launch_FV3LAM_wflow.sh; tail -n 40 log.launch_FV3LAM_wflow
-
-      The workflow must be relaunched regularly and repeatedly until the log output includes a ``Workflow status: SUCCESS`` message indicating that the experiment has finished.
-
-Optionally, users may :ref:`configure their own grid <UserDefinedGrid>` or :ref:`vertical levels <VerticalLevels>` instead of using a predefined grid and default set of vertical levels. Users can also :ref:`plot the output <PlotOutput>` of their experiment(s) or :ref:`run verification tasks using METplus <vxconfig>`.
