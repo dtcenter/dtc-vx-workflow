@@ -20,5 +20,5 @@ platform:
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /contrib/EPIC/UFS_SRW_data/develop/input_model_data
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /contrib/EPIC/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /contrib/EPIC/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
-  TEST_VX_FCST_INPUT_BASEDIR: '{{ "/contrib/EPIC/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{{ "/{{workflow.PREDEF_GRID_NAME}}" }}{% raw %}{% endraw %}'
+  TEST_VX_FCST_INPUT_BASEDIR: '{{ "/contrib/EPIC/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{% raw %}{% endraw %}'
   EXTRN_MDL_DATA_STORES: aws nomads

@@ -3,7 +3,6 @@ metadata:
     This test ensures the MET ensemble-specific tasks run successfully with
     two members and one of the built-in custom verification masks.
 workflow:
-  PREDEF_GRID_NAME: RRFS_CONUS_25km
   DATE_FIRST_CYCL: '2021051212'
   DATE_LAST_CYCL: '2021051212'
   FCST_LEN_HRS: 6
@@ -17,6 +16,6 @@ global:
   NUM_ENS_MEMBERS: 2
 verification:
   VX_MASK: ["AZCA"]
-  VX_FCST_MODEL_NAME: FV3_GFS_v15p2_CONUS_25km
+  VX_FCST_MODEL_NAME: srw.RRFS_CONUS_25km
   VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/UFS/workdir/test_develop/2025-11-18/intel/expt_dirs/MET_ensemble_verification'
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'

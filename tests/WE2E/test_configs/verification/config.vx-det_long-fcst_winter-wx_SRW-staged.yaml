@@ -11,7 +11,6 @@ workflow:
   PREEXISTING_DIR_METHOD: rename
   # This is required in the experiment generation step, although it shouldn't
   # since a forecast is not being run.
-  PREDEF_GRID_NAME: RRFS_CONUS_25km
   INCR_CYCL_FREQ: 24
   DATE_FIRST_CYCL: '2023021700'
   DATE_LAST_CYCL: '2023021700'
