@@ -332,14 +332,21 @@ def setup_logging(debug=False):
     """Calls initialization functions for logging package, and sets the
     user-defined level for logging in the script."""
 
-    logging.basicConfig()
     logger = logging.getLogger(__name__)
     if debug:
         print("Setting logging to DEBUG")
-        logger.setLevel(logging.DEBUG)
+        level=logging.DEBUG
     else:
         print("Setting logging to INFO")
-        logger.setLevel(logging.INFO)
+        level=logging.INFO
+
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
 
 if __name__ == "__main__":
     #Parse arguments
@@ -354,7 +361,7 @@ if __name__ == "__main__":
     parser.add_argument('--cycle_date', required=True, type=str,
                         help='Eight-digit cycle date (YYMMDDHH)')
     parser.add_argument('--ensmem_index', required=True, type=int,
-                        help='The ensemble member index (e.g. 0 for deterministic, 1,2,3 etc. for ensemble member number 1,2,3 etc.')
+                        help='The index for this ensemble member (0 for deterministic)')
     parser.add_argument('--field_group', required=True, type=str,
                         help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--fcst_level', required=True, type=str,
