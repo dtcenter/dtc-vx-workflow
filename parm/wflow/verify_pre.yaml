@@ -184,6 +184,40 @@ metatask_ASCII2nc_obs:
             attrs:
               task: '#TASKDEP#'
 
+task_run_MET_Point2Grid_GOES:
+  <<: *default_task_verify_pre
+  attrs:
+    cycledefs: cycledefs_obs_days_inst
+    maxtries: '2'
+  command: "&JOBSdir;/POINT2GRID.sh"
+  walltime: "{{ verification_resources.execution.point2grid.walltime }}"
+  envars:
+    <<: *default_vars
+    OBTYPE: GOES
+    FIELD_GROUP: 'GOES_AOD'
+  dependency:
+    and:
+      datadep_aod:
+        value: '&GOESAOD_OBS_DIR;'
+      datadep_adp:
+        value: '&GOESADP_OBS_DIR;'
+      or:
+        not:
+          taskvalid:
+            attrs:
+              task: 'get_obs_goes_aod'
+        taskdep:
+          attrs:
+            task: 'get_obs_goes_aod'
+      or:
+        not:
+          taskvalid:
+            attrs:
+              task: 'get_obs_goes_adp'
+        taskdep:
+          attrs:
+            task: 'get_obs_goes_adp'
+
 metatask_PcpCombine_APCP_all_accums_obs_CCPA:
   var:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
