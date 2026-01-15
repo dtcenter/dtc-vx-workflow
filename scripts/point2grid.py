@@ -18,6 +18,7 @@ import uwtools.api.config as uwconfig
 sys.path.insert(1, os.environ['USHdir'])
 
 from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
+from render_metplus_confs import render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -47,7 +48,6 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
         adp_input_fn_template = Path(vxcfg["GOESADP_OBS_DIR"],vxcfg["OBS_GOESADP_FN_TEMPLATES"][1])
         output_fn_template = vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]
         # Get the list of all the times in the current day at which to retrieve obs.
-        obs_retrieve_times_crnt_day=vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}AOD_{cdate[0:8]}"]
     else:
         raise ValueError(f"Invalid OBTYPE for {MetplusToolName}: {obtype}")
 
@@ -60,28 +60,36 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
-    leadhr_list=[]
-    num_missing_files=0
-    for yyyymmddhh in obs_retrieve_times_crnt_day:
-        lgr.info(f'eval_metplus_timestr_tmpl({cdate},{yyyymmddhh[8:]},0,f"{obs_dir}/{obs_in_fn_template}",{verbose})')
-        fp=eval_metplus_timestr_tmpl(cdate,int(yyyymmddhh[8:]),0,f"{obs_dir}/{obs_in_fn_template}",verbose)
+    # Set the lead hours for which to run the MET/METplus tool.  This is done by starting with the
+    # the full list of lead hours for which we expect to find forecast output, then removing any
+    # hours for which there is no corresponding observation data.
 
-        if os.path.isfile(fp):
-            leadhr_list.append(yyyymmddhh[8:])
-        else:
-            num_missing_files+=1
-            lgr.info(f"{obtype} obs file {fp}\ncorresponding to observation retrieval time {yyyymmddhh}"\
-                     f"does not exist on disk; removing from list of times to be processed")
-            lgr.debug(f"{num_missing_files=}")
+    vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
+    vx_hr_start = 0
 
-    if num_missing_files > vxcfg["NUM_MISSING_OBS_FILES_MAX"]:
-        raise FileNotFoundError(f"Number of missing files {num_missing_files} > {vxcfg['NUM_MISSING_OBS_FILES_MAX']=}")
+    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
+                 f"{obs_in_dir},0,{obs_in_fn_template},{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
+    vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
+                                 obs_in_dir,0,str(obs_in_fn_template),
+                                 vxcfg['NUM_MISSING_OBS_FILES_MAX'])
+
+    if not vx_leadhr_list:
+        raise RuntimeError(f"Call to {slh_string}\nreturned an empty list.")
+
+    vx_mask_files=[]
+    if vxcfg["VX_MASK"]:
+        for mask in vxcfg["VX_MASK"]:
+            if os.path.isfile(maskfile:=f"{cfg['user']['METPLUS_CONF']}/{mask}.poly"):
+                vx_mask_files.append(maskfile)
+            else:
+                vx_mask_files.append(f"{os.environ['MET_INSTALL_DIR']}/share/met/poly/{mask}.poly")
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
     metplus_config_tmpl_fn="Point2Grid.conf"
+    metplus_config_fn=f"{MetplusToolName}_{field_group}.conf.0"
+    metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
     metplus_config_fn=f"{MetplusToolName}_{field_group}.conf"
-    metplus_log_fn=f"metplus.log.{metplus_config_fn}_{cdate}"
 
     # Load YAML file containing configuration for deterministic verification
     vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
@@ -92,7 +100,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
                # Date and forecast hour information.
                'cdate': cdate,
-               'vx_leadhr_list': ', '.join(map(str,leadhr_list)),
+               'vx_leadhr_list': ', '.join(map(str,vx_leadhr_list)),
                # Interpolation information
                'regrid_method': cfg['point2grid']['regrid_method'],
                # Input and output directory/file information.
@@ -114,38 +122,21 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
                'vx_config_dict': vx_config_dict
                }
 
-    conf_file = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn)
-    lgr.debug(f"{conf_file=}")
+    numprocs=vxcfg['VX_TASKS']
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
+    lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {MetplusToolName} with METplus")
-
-    run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),conf_file)
+    lgr.info(f"Running {MetplusToolName} with METplus with {numprocs} tasks")
+    args = []
+    for config_fn in conf_files:
+        args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    # Call run_metplus function for as many processors as specified
+        lgr.debug(f"{args=}")
+    with Pool(processes=numprocs) as pool:
+        pool.starmap(run_metplus,args)
 
     lgr.info(f"{MetplusToolName} completed successfully.")
 
-
-def render_metplus_confs(cfg,settings,template_fn):
-    """Renders metplus conf files from the appropriate template and user settings."""
-
-    logger = logging.getLogger(__name__)
-
-    logger.debug(f"Loading METplus conf template file: {template_fn}")
-    logger.debug(f"from directory {cfg['user']['METPLUS_CONF']}")
-    env = Environment(loader=FileSystemLoader(cfg['user']['METPLUS_CONF']))
-    template = env.get_template(template_fn)
-
-    #Remove task-specific suffixes if we're only using one task
-    settings['metplus_log_fn'] = settings['metplus_log_fn']
-    settings['metplus_config_fn'] = settings['metplus_config_fn']
-    outconf = f"{settings['output_dir']}/{settings['metplus_config_fn']}"
-    logger.debug("Rendering conf file")
-    logger.debug(f"metplus log file: {settings['metplus_log_fn']}")
-    logger.debug(f"metplus final rendered conf: {settings['metplus_config_fn']}")
-    rendered = template.render(settings)
-    with open(outconf,'w', encoding="utf-8") as f:
-        f.write(rendered)
-
-    return outconf
 
 def run_metplus(common_config,config_fn):
     """Calls the run_metplus script as a subprocess."""
