@@ -17,10 +17,11 @@ import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ['USHdir'])
 
+from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
+def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,verbose):
     """Main program for setting up Point2Grid task and calling METplus wrapper"""
     lgr = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
     vxcfg = cfg["verification"]
 
     # Check that basic input directories exist:
+    lgr.info(f"{obs_dir=}")
     if not Path(obs_dir).is_dir():
         raise FileNotFoundError(f"OBS_DIR does not exist or is not a directory:\n{obs_dir=}")
 
@@ -44,6 +46,8 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
         obs_in_fn_template = vxcfg["OBS_GOESAOD_FN_TEMPLATES"][1]
         adp_input_fn_template = Path(vxcfg["GOESADP_OBS_DIR"],vxcfg["OBS_GOESADP_FN_TEMPLATES"][1])
         output_fn_template = vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]
+        # Get the list of all the times in the current day at which to retrieve obs.
+        obs_retrieve_times_crnt_day=vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}AOD_{cdate[0:8]}"]
     else:
         raise ValueError(f"Invalid OBTYPE for {MetplusToolName}: {obtype}")
 
@@ -56,13 +60,25 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
-    # Set the lead hours for which to run the MET/METplus tool.  This is done by starting with the
-    # the full list of lead hours for which we expect to find forecast output, then removing any
-    # hours for which there is no corresponding observation data.
+    leadhr_list=[]
+    num_missing_files=0
+    for yyyymmddhh in obs_retrieve_times_crnt_day:
+        lgr.info(f'eval_metplus_timestr_tmpl({cdate},{yyyymmddhh[8:]},0,f"{obs_dir}/{obs_in_fn_template}",{verbose})')
+        fp=eval_metplus_timestr_tmpl(cdate,int(yyyymmddhh[8:]),0,f"{obs_dir}/{obs_in_fn_template}",verbose)
+
+        if os.path.isfile(fp):
+            leadhr_list.append(yyyymmddhh[8:])
+        else:
+            num_missing_files+=1
+            lgr.info(f"{obtype} obs file {fp}\ncorresponding to observation retrieval time {yyyymmddhh}"\
+                     f"does not exist on disk; removing from list of times to be processed")
+            lgr.debug(f"{num_missing_files=}")
+
+    if num_missing_files > vxcfg["NUM_MISSING_OBS_FILES_MAX"]:
+        raise FileNotFoundError(f"Number of missing files {num_missing_files} > {vxcfg['NUM_MISSING_OBS_FILES_MAX']=}")
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
-
     metplus_config_tmpl_fn="Point2Grid.conf"
     metplus_config_fn=f"{MetplusToolName}_{field_group}.conf"
     metplus_log_fn=f"metplus.log.{metplus_config_fn}_{cdate}"
@@ -76,6 +92,9 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
                # Date and forecast hour information.
                'cdate': cdate,
+               'vx_leadhr_list': ', '.join(map(str,leadhr_list)),
+               # Interpolation information
+               'regrid_method': cfg['point2grid']['regrid_method'],
                # Input and output directory/file information.
                'metplus_config_fn': metplus_config_fn,
                'metplus_log_fn': metplus_log_fn,
@@ -206,4 +225,4 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,pargs.fcst_level,pargs.fcst_thresh)
+    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,pargs.fcst_level,pargs.fcst_thresh,pargs.verbose)
