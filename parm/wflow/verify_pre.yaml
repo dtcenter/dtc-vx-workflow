@@ -190,9 +190,11 @@ task_run_MET_Point2Grid_GOES:
     cycledefs: cycledefs_obs_days_inst
     maxtries: '2'
   command: "&JOBSdir;/POINT2GRID.sh"
+  memory: '{{  verification_resources.execution.point2grid.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   walltime: "{{ verification_resources.execution.point2grid.walltime }}"
   envars:
     <<: *default_vars
+    OBS_DIR: '&GOESAOD_OBS_DIR;'
     OBTYPE: GOES
     FIELD_GROUP: 'GOES_AOD'
   dependency:
