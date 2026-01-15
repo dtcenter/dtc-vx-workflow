@@ -598,8 +598,9 @@ verification_resources:
     pb2nc:
       walltime: 00:30:00
     point2grid:
+      tasks_per_node: '{{ verification.VX_TASKS }}'
       walltime: 01:00:00
-      memory: '2G'
+      memory: '{{ 2 * verification.VX_TASKS }}G'
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
