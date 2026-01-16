@@ -194,6 +194,11 @@ def generate_wflow(
                the rocotorun command must be issued immediately before issuing the
                rocotostat command.
 
+            For automatic resubmission of the workflow (say every {cron_relaunch_intvl_mnts} minutes), the
+            following line can be added to the user's crontab (use 'crontab -e' to
+            edit the cron table):
+
+            */{cron_relaunch_intvl_mnts} * * * * cd {exptdir} && ./launch_vx_wflow.sh called_from_cron="True"
             """
         )
         # pylint: enable=line-too-long
