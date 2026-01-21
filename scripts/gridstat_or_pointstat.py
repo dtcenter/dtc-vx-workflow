@@ -17,7 +17,7 @@ import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ['USHdir'])
 
-from render_metplus_confs import render_metplus_confs
+from python_utils.metplus_conf_utils import render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 

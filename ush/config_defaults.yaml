@@ -610,6 +610,10 @@ verification_resources:
         walltime: 00:10:00
     check_post_output:
       walltime: 00:30:00
+    mode:
+      tasks_per_node: '{{ mode.TASKS }}'
+      walltime: 01:00:00
+      memory: '{{ 10 * mode.TASKS }}G'
 
 #----------------------------
 # Verification (VX) parameters
@@ -1002,3 +1006,43 @@ verification:
 point2grid:
   regrid_method: BILIN
 
+mode:
+  # Number of MODE instances to run in parallel
+  TASKS: 1
+
+  # For more information on MODE variables see the MODE documentation:
+  # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html
+  #
+  # CONV_RADIUS:
+  # The radius of a circular convolution applied to the raw fields for defining MODE objects
+  #
+  # CONV_THRESH:
+  # The value threshold defining what consitutes an object. Multiple values may be specified for
+  # multiple output convolutions. The threshold used should depend on the observation type; for
+  # example, 20, 30, or 40 are typically used for radar reflectivity.
+  #
+  # MERGE_THRESH:
+  # The threshold value(s) to be applied to the convolved field to define objects. Larger values
+  # will result in larger/more-merged objects. Should be the same length as CONV_THRESH. No effect
+  # unless MERGE_FLAG=THRESH or BOTH
+  #
+  # MERGE_FLAG:
+  # The merging techinque to use for MODE objects. Valid values are NONE, THRESH, ENGINE, or BOTH
+
+  CONV_RADIUS: [5]
+  CONV_THRESH: ['>=0']
+  MERGE_THRESH: ['>=5']
+  MERGE_FLAG: NONE
+
+  # GRID_RES:
+  # Nominal grid resolution in kilometers
+  GRID_RES: 0
+
+  # TOTAL_INTEREST_THRESH:
+  # A value between 0 and 1 that controls how MODE objects are matched. Higher values will increase
+  # the strictness of the comparison (decreasing the number of matches), and vice versa
+  TOTAL_INTEREST_THRESH: 0.7
+
+  # OUTPUT_TEMPLATE:
+  # Template for MODE output filenames
+  OUTPUT_TEMPLATE: 'MODE_GOESAOD_{init?fmt=%Y%m%d%H}'
