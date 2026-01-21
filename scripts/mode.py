@@ -1,7 +1,5 @@
 import argparse
-import ast
 import logging
-import math
 import os
 import subprocess
 import sys
@@ -18,12 +16,12 @@ import uwtools.api.config as uwconfig
 sys.path.insert(1, os.environ['USHdir'])
 
 from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
-from python_utils.metplus_conf_utils import render_metplus_confs
+from python_utils.metplus_conf_utils import render_metplus_confs, make_var_lists
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,verbose):
-    """Main program for setting up Point2Grid task and calling METplus wrapper"""
+def main(config_file,cdate,field_group,obtype,verbose):
+    """Main program for setting up MODE task and calling METplus wrapper"""
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -31,16 +29,12 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
 
     # Set some aliases
     vxcfg = cfg["verification"]
-
-    # Check that basic input directories exist:
-    lgr.info(f"{obs_dir=}")
-    if not Path(obs_dir).is_dir():
-        raise FileNotFoundError(f"OBS_DIR does not exist or is not a directory:\n{obs_dir=}")
+    modecfg = cfg["mode"]
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
-    subvars = {   
+    subvars = {
             "time_lag": 0,
               }
 
@@ -48,22 +42,17 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     # METplus tool to be run as well as other file/directory parameters.
 
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
-    MetplusToolName = "Point2Grid"
+    MetplusToolName = "MODE"
     if obtype == "GOESAOD":
-        obs_in_dir = vxcfg["GOESAOD_OBS_DIR"]
-        obs_in_fn_template = vxcfg["OBS_GOESAOD_FN_TEMPLATES"][1]
-        adp_input_fn_template = Path(vxcfg["GOESADP_OBS_DIR"],vxcfg["OBS_GOESADP_FN_TEMPLATES"][1])
-        output_fn_template = vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]
+        obs_in_dir = Path(exptdir, cdate, "metprd", "Point2Grid")
+        obs_in_fn_template = vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]
+        fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
+        fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
+                                   Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
         # Get the list of all the times in the current day at which to retrieve obs.
     else:
         raise ValueError(f"Invalid OBTYPE for {MetplusToolName}: {obtype}")
 
-    #Point2Grid does not honor "time lag" shifts, so remove from template
-    fcst_fn_template=Path(
-                     vxcfg["VX_FCST_INPUT_BASEDIR"],
-                     Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                     Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars)
-                     )
     output_dir=Path(exptdir, cdate, "metprd", MetplusToolName)
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
@@ -94,7 +83,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
-    metplus_config_tmpl_fn="Point2Grid.conf"
+    metplus_config_tmpl_fn="MODE.conf"
     metplus_config_fn=f"{MetplusToolName}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
@@ -102,34 +91,46 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
                                                      f"{vxcfg['VX_CONFIG_DET_FN']}")
 
+    # Create the entries for forecast and variable names to pass to METplus conf file. This logic
+    # is overkill for now but serves as a template for how this could be done in gridstat_or_pointstat.py
+    
+    fcst_var_list,obs_var_list=make_var_lists(vx_config_dict,field_group)
+
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
                # Date and forecast hour information.
                'cdate': cdate,
                'vx_leadhr_list': ', '.join(map(str,vx_leadhr_list)),
-               # Interpolation information
-               'regrid_method': cfg['point2grid']['regrid_method'],
+               # Timing window information
+               'obs_window_begin': 0,
+               'obs_window_end': 0,
+               # Interpolation information; this should only be FORCE if forecast and ob grids are
+               # identical, as they are for GOES since we already did an interpolation
+               'regrid_method': 'FORCE',
                # Input and output directory/file information.
                'metplus_config_fn': metplus_config_fn,
                'metplus_log_fn': metplus_log_fn,
                'obs_input_dir': obs_in_dir,
                'obs_input_fn_template': obs_in_fn_template,
-               'adp_input_fn_template': adp_input_fn_template,
                'output_dir': output_dir,
-               'output_fn_template': output_fn_template,
-               'fcst_fn_template': fcst_fn_template,
+               'output_fn_template': modecfg["OUTPUT_TEMPLATE"],
+               'fcst_input_dir': fcst_in_dir,
+               'fcst_input_fn_template': fcst_in_fn_template,
+               'vx_fcst_model_name': vxcfg['VX_FCST_MODEL_NAME'],
+               # Variable lists
+               'fcst_var_list': fcst_var_list,
+               'obs_var_list': obs_var_list,
                # Field information.
                'obtype': obtype,
-               'metplus_templates_dir': cfg['user']['METPLUS_CONF'],
-               'input_field_group': field_group,
-               'input_level_fcst': fcst_level,
-               'input_thresh_fcst': fcst_thresh,
-               # Rest of settings from yaml file
-               'vx_config_dict': vx_config_dict
+               # MODE object generation settings
+               'conv_radius': modecfg["CONV_RADIUS"],
+               'conv_thresh': modecfg["CONV_THRESH"],
+               'merge_thresh': modecfg["MERGE_THRESH"],
+               'merge_flag': modecfg["MERGE_FLAG"],
                }
 
-    numprocs=vxcfg['VX_TASKS']
+    numprocs=modecfg['TASKS']
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
@@ -166,7 +167,6 @@ def setup_logging(debug=False):
     """Calls initialization functions for logging package, and sets the
     user-defined level for logging in the script."""
 
-    logger = logging.getLogger(__name__)
     if debug:
         print("Setting logging to DEBUG")
         level=logging.DEBUG
@@ -186,7 +186,7 @@ def setup_logging(debug=False):
 if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
-                     description="exscript for running METplus Point2Grid tasks"\
+                     description="exscript for running METplus MODE tasks"\
                      "for deterministic verification\n")
 
 #    parser.add_argument('-c', '--config', default='config.yaml',
@@ -197,14 +197,8 @@ if __name__ == "__main__":
                         help='Eight-digit cycle date (YYMMDDHH)')
     parser.add_argument('--field_group', required=True, type=str,
                         help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
-    parser.add_argument('--fcst_level', required=True, type=str,
-                        help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
-    parser.add_argument('--fcst_thresh', required=True, type=str,
-                        help='The set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
                         help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
-    parser.add_argument('--obs_dir', required=True, type=str,
-                        help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Script will be run in verbose mode')
     pargs = parser.parse_args()
@@ -215,7 +209,7 @@ if __name__ == "__main__":
         ========================================================================
         Executing program: {__file__}
 
-        This is the ex-script for the task that runs the METplus Point2Grid
+        This is the ex-script for the task that runs the METplus MODE
         tool to perform deterministic verification of the specified field group
         (FIELD_GROUP) for a single forecast.
         ========================================================================"""))
@@ -223,4 +217,4 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,pargs.fcst_level,pargs.fcst_thresh,pargs.verbose)
+    main(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype,pargs.verbose)

@@ -184,7 +184,7 @@ metatask_ASCII2nc_obs:
             attrs:
               task: '#TASKDEP#'
 
-task_run_MET_Point2Grid_GOES:
+task_run_MET_Point2Grid_GOESAOD:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: forecast
@@ -195,8 +195,8 @@ task_run_MET_Point2Grid_GOES:
   envars:
     <<: *default_vars
     OBS_DIR: '&GOESAOD_OBS_DIR;'
-    OBTYPE: GOES
-    FIELD_GROUP: 'GOES_AOD'
+    OBTYPE: GOESAOD
+    FIELD_GROUP: 'GOESAOD'
   dependency:
     and:
       datadep_aod:
