@@ -44,8 +44,8 @@ def main(config_file,cdate,field_group,obtype,verbose):
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
     MetplusToolName = "MODE"
     if obtype == "GOESAOD":
-        obs_in_dir = Path(exptdir, cdate, "metprd", "Point2Grid")
-        obs_in_fn_template = vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]
+        obs_in_dir = Path(exptdir, cdate, "metprd", "RegridDataPlane")
+        obs_in_fn_template = f'regrid_{vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]}'
         fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
         fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
                                    Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
@@ -131,7 +131,7 @@ def main(config_file,cdate,field_group,obtype,verbose):
                }
 
     numprocs=modecfg['TASKS']
-    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,len(vx_leadhr_list))
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {MetplusToolName} with METplus with {numprocs} tasks")

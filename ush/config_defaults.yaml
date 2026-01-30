@@ -610,6 +610,10 @@ verification_resources:
         walltime: 00:10:00
     check_post_output:
       walltime: 00:30:00
+    regriddataplane:
+      tasks_per_node: '{{ mode.TASKS }}'
+      walltime: 00:30:00
+      memory: '{{ 10 * mode.TASKS }}G'
     mode:
       tasks_per_node: '{{ mode.TASKS }}'
       walltime: 01:00:00
@@ -1004,7 +1008,19 @@ verification:
   VX_TASKS: 1
 
 point2grid:
-  regrid_method: BILIN
+  REGRID_METHOD: BILIN
+  # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
+  # 0: high quality
+  # 1: medium quality
+  # 2: low quality
+  # 3: no retrieval quality flag
+  GOES_QC_FLAGS: '0,1'
+
+regriddataplane:
+  TASKS: 1
+  REGRID_METHOD: MAXGAUSS
+  GAUSSIAN_DX: 81.271
+  GAUSSIAN_RADIUS: 120
 
 mode:
   # Number of MODE instances to run in parallel

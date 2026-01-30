@@ -17,15 +17,31 @@ default_task_mode: &default_task_mode
         value: '&LOGDIR;'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
-    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
+    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.regriddataplane.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-  memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
+  memory: '{{  verification_resources.execution.regriddataplane.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
   nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
   queue: '&QUEUE_DEFAULT;'
+
+task_run_RegridDataPlane_GOESAOD:
+
+  <<: *default_task_mode
+  attrs:
+    <<: *default_attrs
+  command: "&JOBSdir;/REGRIDDATAPLANE.sh"
+  envars:
+    <<: *default_vars
+    FIELD_GROUP: 'GOESAOD'
+    OBTYPE: 'GOESAOD'
+  walltime: "{{ verification_resources.execution.regriddataplane.walltime }}"
+  dependency:
+    taskdep:
+      attrs:
+        task: 'run_MET_Point2Grid_GOESAOD'
 
 task_run_MODE_GOESAOD:
 
@@ -44,4 +60,4 @@ task_run_MODE_GOESAOD:
   dependency:
     taskdep:
       attrs:
-        task: 'run_MET_Point2Grid_GOESAOD'
+        task: 'run_RegridDataPlane_GOESAOD'
