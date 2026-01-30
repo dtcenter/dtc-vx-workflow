@@ -56,7 +56,10 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-$SCRIPTSdir/ascii2nc_obs.sh || \
+python $SCRIPTSdir/ascii2nc_obs.py \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --obtype="${OBTYPE}" || \
 print_err_msg_exit "\
 Call to \"ascii2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 
