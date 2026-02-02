@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
 import sys
-from logging import getLogger
 
 def setup_logging(debug=False):
     

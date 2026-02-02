@@ -24,17 +24,16 @@ from set_vx_params import set_vx_params
 # Core functions ----------------------------------------------------
 # ------------------------------------------------------------------
 
-def main(config_file,cdate,obtype,field_group):
+def main(config_file,cdate,obtype):
     MetplusToolName="Ascii2nc"
     lgr = logging.getLogger(__name__)
     # Read config settings
     cfg = uwconfig.get_yaml_config(config=config_file)
 
-    cfg = set_leadhrs(cfg)
     vxcfg = cfg["verification"]
 
 
-    output_dir=Path(exptdir, cdate, "metprd", "Ascii2nc_obs")
+    output_dir=Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", "Ascii2nc_obs")
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
@@ -42,7 +41,7 @@ def main(config_file,cdate,obtype,field_group):
         obs_in_dir = vxcfg["AERONET_OBS_DIR"]
         obs_in_fn_template = vxcfg["OBS_AERONET_FN_TEMPLATES"][1]
         output_fn_template = f'{vxcfg["OBS_AERONET_FN_TEMPLATE_ASCII2NC_OUTPUT"]}'
-        input_format = aeronetv3
+        input_format = "aeronetv3"
     elif obtype == "AIRNOW":
         obs_in_dir = vxcfg["AIRNOW_OBS_DIR"]
         obs_in_fn_template = vxcfg["OBS_AIRNOW_FN_TEMPLATES"][1]
@@ -59,11 +58,11 @@ def main(config_file,cdate,obtype,field_group):
     lgr.debug(f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
                  f"{obs_in_dir},{time_lag},{obs_in_fn_template},"\
                  f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
-    leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
+    vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                  obs_in_dir,time_lag,str(obs_in_fn_template),
                                  vxcfg['NUM_MISSING_OBS_FILES_MAX']) 
     
-    if not leadhr_list:
+    if not vx_leadhr_list:
         raise RuntimeError(f"Call to set_leadhrs({cdate},{vx_hr_start},"\
                            f"{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},{obs_in_dir},"\
                            f"{time_lag},{obs_in_fn_template},"\
@@ -73,7 +72,7 @@ def main(config_file,cdate,obtype,field_group):
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
     metplus_config_tmpl_fn="Point2Grid.conf"
-    metplus_config_fn=f"{MetplusToolName}_{field_group}.conf.0"
+    metplus_config_fn=f"{MetplusToolName}_{obtype}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Define variables that appear in the jinja template, add to existing settings dict.
@@ -82,7 +81,7 @@ def main(config_file,cdate,obtype,field_group):
                'METPLUS_TOOL_NAME': MetplusToolName.upper(),
                # Date and forecast hour information.
                'cdate': cdate,
-               'leadhr_list': ', '.join(map(str,leadhr_list)),
+               'vx_leadhr_list': ', '.join(map(str,vx_leadhr_list)),
                # Input and output directory/file information.
                'metplus_config_fn': metplus_config_fn,
                'metplus_log_fn': metplus_log_fn,
@@ -95,34 +94,35 @@ def main(config_file,cdate,obtype,field_group):
                'input_format': input_format,
                }
 
-    conf_file = render_metplus_confs(cfg,settings,"Ascii2nc_obs.conf",leadhr_list,1)
+    conf_file = render_metplus_confs(cfg,settings,"Ascii2nc_obs.conf",vx_leadhr_list,1)
     lgr.debug(f"{conf_file=}")
 
     lgr.info(f"Running {MetplusToolName.upper()} with METplus")
-    run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),conf_file)
+    run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),conf_file[0])
 
     lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
     create_flag_file(cfg, obtype, cdate)
     lgr.info(f"{MetplusToolName.upper()} completed successfully.")
 
 
-def run_metplus(cfg, config_fp: Path):
-    metplus_root = Path(os.environ["METPLUS_ROOT"])
-    common_conf = Path(cfg["user"]["METPLUS_CONF"]) / "common.conf"
-    subprocess.run(
-        [
-            str(metplus_root / "ush" / "run_metplus.py"),
-            "-c",
-            str(common_conf),
-            "-c",
-            str(config_fp),
-        ],
-        check=True,
-    )
+def run_metplus(common_config,config_fn):
+    """Calls the run_metplus script as a subprocess."""
+    logger = logging.getLogger(__name__)
+
+    # Run METplus
+    metplus_path = os.environ["METPLUS_ROOT"]
+    logger.debug(f"{common_config=}")
+    logger.debug(f"{config_fn=}")
+    logger.debug(f"{metplus_path=}")
+    subprocess.run([
+        f"{metplus_path}/ush/run_metplus.py",
+        "-c", common_config,
+        "-c", config_fn
+    ], check=True)
 
 
 def create_flag_file(cfg, obtype: str, yyyymmdd: str):
-    flag_dir = Path(cfg["verification"]["WFLOW_FLAG_FILES_DIR"])
+    flag_dir = Path(cfg["workflow"]["WFLOW_FLAG_FILES_DIR"])
     flag_dir.mkdir(parents=True, exist_ok=True)
     flag_file = flag_dir / f"{obtype}_nc_obs_{yyyymmdd}_ready.txt"
     flag_file.touch()
@@ -153,11 +153,11 @@ if __name__ == "__main__":
         help="Observation type (e.g. AERONET, AIRNOW)",
     )
 
-    parser.add_argument('--field_group', required=True, type=str,
-                        help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Script will be run in verbose mode')
 
     pargs = parser.parse_args()
 
     setup_logging(debug=pargs.verbose)
 
-    main(pargs.config,pargs.cycle_date,pargs.obtype,pargs.field_group)
+    main(pargs.config,pargs.cycle_date,pargs.obtype)
