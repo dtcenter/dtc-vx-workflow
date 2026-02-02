@@ -11,14 +11,12 @@ from pathlib import Path
 from string import Template
 from textwrap import dedent
 
-from jinja2 import Environment, FileSystemLoader
-
 import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ['USHdir'])
 
 from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
-from python_utils.metplus_conf_utils import render_metplus_confs
+from python_utils import render_metplus_confs setup_logging
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -102,7 +100,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
                                                      f"{vxcfg['VX_CONFIG_DET_FN']}")
 
-    # Define variables that appear in the jinja template, add to existing settings dict.
+    # Define variables that appear in the jinja template
     settings = {
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
                # Date and forecast hour information.
