@@ -56,11 +56,14 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-python $SCRIPTSdir/ascii2nc_obs.py \
+VERBOSE_FLAG=""
+if [ "${VERBOSE}" = "True" ]; then
+  VERBOSE_FLAG="--verbose"
+fi
+python $SCRIPTSdir/ascii2nc_obs.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
-  --obtype="${OBTYPE}" \
-  --field_group="${FIELD_GROUP}" || \
+  --obtype="${OBTYPE}" || \
 print_err_msg_exit "\
 Call to \"ascii2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 
