@@ -59,7 +59,8 @@ In directory:     \"${scrfunc_dir}\"
 python $SCRIPTSdir/ascii2nc_obs.py \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
-  --obtype="${OBTYPE}" || \
+  --obtype="${OBTYPE}" \
+  --field_group="${FIELD_GROUP}" || \
 print_err_msg_exit "\
 Call to \"ascii2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 
