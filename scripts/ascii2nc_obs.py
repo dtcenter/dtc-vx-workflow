@@ -5,22 +5,16 @@ Converted from scripts/ascii2nc_obs.sh
 
 import argparse
 import os
-import sys
+import logging
 import subprocess
 from pathlib import Path
 from datetime import datetime
 
-# ------------------------------------------------------------------
-# USHdir helpers ----------------------------------------------------
-# ------------------------------------------------------------------
+from jinja2 import Environment, FileSystemLoader
+
 sys.path.insert(1, os.environ["USHdir"])
 
-from source_util_funcs import (
-    print_info_msg,
-    print_err_msg_exit,
-    get_metplus_tool_name,
-    source_yaml,
-)
+from python_utils import source_yaml,setup_logging
 from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from python_utils.metplus_conf_utils import render_metplus_confs
 from set_leadhrs import set_leadhrs
@@ -30,73 +24,38 @@ from set_vx_params import set_vx_params
 # Core functions ----------------------------------------------------
 # ------------------------------------------------------------------
 
-def load_yaml_config(path: Path):
-    cfg = source_yaml(path)
-    return cfg
+def main(config_file,cdate,obtype):
+    logger = logging.getLogger(__name__)
+    # Read config settings
+    cfg = uwconfig.get_yaml_config(config=config_file)
+
+    cfg = set_leadhrs(cfg)
+    vxcfg = cfg["verification"]
 
 
-def get_leadhr_list(cfg, obtype, yyyymmdd_task: str, hh: str) -> str:
-    obs_retrieve_times = cfg["point2grid"]["OBS_RETRIEVE_TIMES_{}".format(obtype)][yyyymmdd_task]
-    leadhr_list = []
-    num_missing_files = 0
-    for yyyymmddhh in obs_retrieve_times:
-        yyyymmdd = yyyymmddhh[:8]
-        hh_str = yyyymmddhh[8:10]
-        sec_ref_task = int(datetime.strptime(yyyymmdd_task, "%Y%m%d%H").timestamp())
-        sec_now = int(datetime.strptime(f"{yyyymmdd} {hh_str} hours", "%Y%m%d %H hours").timestamp())
-        lhr = (sec_now - sec_ref_task) // 3600
-        fp = eval_metplus_timestr_tmpl(
-            init_time=f"{yyyymmdd_task}00",
-            lhr=lhr,
-            fn_template=f"{cfg['verification']['OBS_DIR']}/$OBTYPE_INPUT_FN_TEMPLATE",
-        )
-        if Path(fp).is_file():
-            leadhr_list.append(f"{int(hh_str, 10)}")
-        else:
-            num_missing_files += 1
-    if num_missing_files > cfg["point2grid"]["NUM_MISSING_OBS_FILES_MAX"]:
-        print_err_msg_exit(
-            f"The number of missing {obtype} obs files ({num_missing_files}) "
-            f"is greater than the maximum allowed "
-            f"({cfg['point2grid']['NUM_MISSING_OBS_FILES_MAX']})"
-        )
-    if not leadhr_list:
-        print_err_msg_exit("No valid forecast hours found.")
-    return ",".join(leadhr_list)
+    lgr.debug(f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
+                 f"{obs_in_dir},{time_lag},{obs_in_fn_template},"\
+                 f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
+    vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
+                                 obs_in_dir,time_lag,str(obs_in_fn_template),
+                                 vxcfg['NUM_MISSING_OBS_FILES_MAX']) 
+    
+    if not vx_leadhr_list:
+        raise RuntimeError(f"Call to set_leadhrs({cdate},{vx_hr_start},"\
+                           f"{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},{obs_in_dir},"\
+                           f"{time_lag},{obs_in_fn_template},"\
+                           f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})\n"\
+                            "returned an empty list.")
 
+    conf_file = render_metplus_confs(cfg,settings,"Ascii2nc_obs.conf",vx_leadhr_list,1)
+    lgr.debug(f"{conf_file=}")
 
-def render_template(cfg, obtype, cdate: str, leadhr_list: str):
-    from jinja2 import Environment, FileSystemLoader
-    tmpl_dir = Path(cfg["user"]["METPLUS_CONF"])
-    env = Environment(loader=FileSystemLoader(tmpl_dir))
-    tmpl = env.get_template(f"{cfg['point2grid']['METPLUSTOOLNAME']}_obs.conf")
-    rendered = tmpl.render(
-        metplus_tool_name=cfg["point2grid"]["METPLUSTOOLNAME"],
-        MetplusToolName=cfg["point2grid"]["METPLUSTOOLNAME"],
-        METPLUS_TOOL_NAME=cfg["point2grid"]["METPLUSTOOLNAME"].upper(),
-        metplus_verbosity_level=cfg["point2grid"]["METPLUS_VERBOSITY_LEVEL"],
-        cdate=cdate,
-        fhr_list=leadhr_list,
-        metplus_config_fn="",
-        metplus_log_fn="",
-        obs_input_dir=cfg["verification"]["OBS_DIR"],
-        obs_input_fn_template=cfg["point2grid"]["OBS_INPUT_FN_TEMPLATE"],
-        fcst_input_dir="",
-        fcst_input_fn_template="",
-        output_dir=cfg["verification"]["VX_OUTPUT_BASEDIR"],
-        output_fn_template="",
-        staging_dir="",
-        vx_fcst_model_name="",
-        input_format=cfg["point2grid"]["ASCII2NC_INPUT_FORMAT"],
-        num_ens_members=cfg["point2grid"]["NUM_ENS_MEMBERS"],
-        ensmem_name="",
-        time_lag="",
-        obtype=obtype,
-    )
-    output_path = Path(cfg["verification"]["VX_OUTPUT_BASEDIR"]) / "metprd" / cfg["point2grid"]["METPLUSTOOLNAME"] / f"{cdate}/metplus.log.{cdate}.0"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(rendered)
-    return output_path
+    lgr.info(f"Running {MetplusToolName} with METplus")
+    run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn)
+
+    lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
+    create_flag_file(cfg, obtype, cdate)
+    lgr.info(f"{MetplusToolName} completed successfully.")
 
 
 def run_metplus(cfg, config_fp: Path):
@@ -145,18 +104,8 @@ if __name__ == "__main__":
         type=str,
         help="Observation type (e.g. AERONET, AIRNOW)",
     )
-    args = parser.parse_args()
+    pargs = parser.parse_args()
 
-    cfg = load_yaml_config(Path(args.config))
-    cfg = set_vx_params(cfg)
-    cfg = set_leadhrs(cfg)
+    setup_logging(debug=pargs.verbose)
 
-    yyyymmdd_task = args.cycle_date[:6]
-    hh = args.cycle_date[6:8]
-    cdate = args.cycle_date
-
-    leadhr_list = get_leadhr_list(cfg, args.obtype, yyyymmdd_task, hh)
-    config_fp = render_template(cfg, args.obtype, cdate, leadhr_list)
-    run_metplus(cfg, config_fp)
-    create_flag_file(cfg, args.obtype, yyyymmdd_task)
-    print_info_msg("METplus ASCII2NC conversion completed successfully.")
+main(pargs.config)
