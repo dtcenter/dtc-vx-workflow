@@ -17,7 +17,7 @@ from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
 
-def main(config_file: str, cycle_date: str, obtype: str, field_group: str, accum_hh: int, verbose: bool = False):
+def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     """Main routine for PB2NC observation conversion.
 
     Parameters
@@ -28,10 +28,6 @@ def main(config_file: str, cycle_date: str, obtype: str, field_group: str, accum
         Eight‑digit cycle date in ``YYMMDDHH`` format.
     obtype : str
         Observation type (e.g. ``NDAS``).
-    field_group : str
-        Field group for the observation type.
-    accum_hh : int
-        Accumulation hour.
     verbose : bool, optional
         Enable debug logging.
     """
@@ -154,11 +150,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="PB2NC NetCDF conversion for observation files"
     )
-    parser.add_argument("--config", default="config.yaml", help="YAML experiment configuration file")
+    parser.add_argument("--config", default="config.yaml", help="YAML experiment config file")
     parser.add_argument("--cycle_date", required=True, help="Eight‑digit cycle date (YYMMDDHH)")
     parser.add_argument("--obtype", required=True, help="Observation type (e.g., NDAS)")
-    parser.add_argument("--field_group", required=True, help="Field group for the observation type")
-    parser.add_argument("--accum_hh", required=True, type=int, help="Accumulation hour")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose debug output")
     args = parser.parse_args()
 
@@ -166,7 +160,5 @@ if __name__ == "__main__":
         args.config,
         args.cycle_date,
         args.obtype,
-        args.field_group,
-        args.accum_hh,
         args.verbose,
     )

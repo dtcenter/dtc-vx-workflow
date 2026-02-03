@@ -9,16 +9,13 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from datetime import datetime
 
 import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ["USHdir"])
 
 from python_utils import setup_logging,render_metplus_confs
-from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from set_leadhrs import set_leadhrs
-from set_vx_params import set_vx_params
 
 # ------------------------------------------------------------------
 # Core functions ----------------------------------------------------
@@ -60,14 +57,14 @@ def main(config_file,cdate,obtype):
                  f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
     vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                  obs_in_dir,time_lag,str(obs_in_fn_template),
-                                 vxcfg['NUM_MISSING_OBS_FILES_MAX']) 
-    
+                                 vxcfg['NUM_MISSING_OBS_FILES_MAX'])
+
     if not vx_leadhr_list:
         raise RuntimeError(f"Call to {slh_string} returned an empty list.")
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
-    metplus_config_tmpl_fn="Point2Grid.conf"
+    metplus_config_tmpl_fn="Ascii2nc_obs.conf"
     metplus_config_fn=f"{MetplusToolName}_{obtype}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
@@ -90,7 +87,7 @@ def main(config_file,cdate,obtype):
                'input_format': input_format,
                }
 
-    conf_file = render_metplus_confs(cfg,settings,"Ascii2nc_obs.conf",vx_leadhr_list,1)
+    conf_file = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,1)
     lgr.debug(f"{conf_file=}")
 
     lgr.info(f"Running {MetplusToolName.upper()} with METplus")
