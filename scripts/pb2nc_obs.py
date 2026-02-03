@@ -7,11 +7,13 @@ import argparse
 import os
 import logging
 import subprocess
+import sys
 from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
 # Import utilities and helpers
+sys.path.insert(1, os.environ["USHdir"])
 from python_utils import setup_logging, render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -56,7 +58,7 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     # ---------------------------------------------------------------------
     # METplus tool name and derived filenames
     # ---------------------------------------------------------------------
-    MetplusToolName = "Pb2NC"
+    MetplusToolName = "Pb2nc"
     metplus_config_tmpl_fn = f"{MetplusToolName}_obs.conf"
     metplus_config_fn = f"{metplus_config_tmpl_fn}_NDAS_{cycle_date}.conf"
     metplus_log_fn = f"metplus.log.{metplus_config_fn}_NDAS"
@@ -124,7 +126,7 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     # ---------------------------------------------------------------------
     flag_dir = Path(cfg["workflow"]["WFLOW_FLAG_FILES_DIR"])
     flag_dir.mkdir(parents=True, exist_ok=True)
-    flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date[:6]}_ready.txt"
+    flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date}_ready.txt"
     flag_file.touch()
 
     lgr.info("Pb2NC completed successfully.")
