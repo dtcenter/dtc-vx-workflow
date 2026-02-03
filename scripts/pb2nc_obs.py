@@ -13,7 +13,6 @@ import uwtools.api.config as uwconfig
 
 # Import utilities and helpers
 from python_utils import setup_logging, render_metplus_confs
-from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -51,55 +50,38 @@ def main(config_file: str, cycle_date: str, obtype: str, field_group: str, accum
     # ---------------------------------------------------------------------
     # Determine observation and output directories and templates
     # ---------------------------------------------------------------------
-    OBS_DIR = vxcfg["OBS_DIR"]
-    OBS_NDAS_FN_TEMPLATES = vxcfg["OBS_NDAS_FN_TEMPLATES"]
-    if len(OBS_NDAS_FN_TEMPLATES) < 2:
-        raise ValueError("OBS_NDAS_FN_TEMPLATES must contain at least two templates.")
-    OBS_INPUT_FN_TEMPLATE = OBS_NDAS_FN_TEMPLATES[1]
-    OUTPUT_FN_TEMPLATE = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+    obs_dir = vxcfg[f"{obtype}_OBS_DIR"]
+    obs_input_fn_template = vxcfg[f"OBS_{obtype}_FN_TEMPLATES"][1]
+    if obtype == "NDAS":
+        output_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+    else:
+        raise ValueError(f"Invalid obtype for PB2NC: {obtype}")
 
     # ---------------------------------------------------------------------
     # METplus tool name and derived filenames
     # ---------------------------------------------------------------------
     MetplusToolName = "Pb2NC"
     metplus_config_tmpl_fn = f"{MetplusToolName}_obs.conf"
-    CDATE = cycle_date
-    metplus_config_fn = f"{metplus_config_tmpl_fn}_NDAS_{CDATE}.conf"
+    metplus_config_fn = f"{metplus_config_tmpl_fn}_NDAS_{cycle_date}.conf"
     metplus_log_fn = f"metplus.log.{metplus_config_fn}_NDAS"
 
     # ---------------------------------------------------------------------
     # Output directories
     # ---------------------------------------------------------------------
     output_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", MetplusToolName)
-    staging_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "stage", MetplusToolName)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    # ---------------------------------------------------------------------
-    # Resolve verification parameters via set_vx_params
-    # ---------------------------------------------------------------------
-    try:
-        (
-            grid_or_point,
-            FIELDNAME_IN_OBS_INPUT,
-            FIELDNAME_IN_FCST_INPUT,
-            FIELDNAME_IN_MET_OUTPUT,
-            FIELDNAME_IN_MET_FILEDIR_NAMES,
-        ) = set_vx_params(obtype, field_group, accum_hh)
-    except Exception as exc:
-        lgr.error("Failed to get verification parameters: %s", exc)
-        raise
 
     # ---------------------------------------------------------------------
     # Build the list of lead hours for which observation files exist
     # ---------------------------------------------------------------------
     vx_leadhr_list = set_leadhrs(
-        date_init=f"{CDATE[:6]}00",  # YYMMDD00
+        date_init=cycle_date,
         lhr_min=0,
         lhr_max=cfg["workflow"]["FCST_LEN_HRS"],
         lhr_intvl=vxcfg["VX_FCST_OUTPUT_INTVL_HRS"],
-        base_dir=OBS_DIR,
+        base_dir=obs_dir,
         time_lag=0,
-        fn_template=OBS_INPUT_FN_TEMPLATE,
+        fn_template=obs_input_fn_template,
         num_missing_files_max=vxcfg["NUM_MISSING_OBS_FILES_MAX"],
         skip_check_files=False,
         verbose=verbose,
@@ -111,32 +93,19 @@ def main(config_file: str, cycle_date: str, obtype: str, field_group: str, accum
     # ---------------------------------------------------------------------
     # Prepare METplus configuration variables
     # ---------------------------------------------------------------------
-    vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
-    vx_hr_start = 0
 
     # Render METplus configuration file
     settings = {
-        "metplus_tool_name": MetplusToolName.lower(),
-        "MetplusToolName": MetplusToolName,
         "METPLUS_TOOL_NAME": MetplusToolName.upper(),
         "metplus_verbosity_level": vxcfg["METPLUS_VERBOSITY_LEVEL"],
-        "cdate": CDATE,
+        "cdate": cycle_date,
         "vx_leadhr_list": ", ".join(map(str, vx_leadhr_list)),
         "metplus_config_fn": metplus_config_fn,
         "metplus_log_fn": metplus_log_fn,
-        "obs_input_dir": OBS_DIR,
-        "obs_input_fn_template": OBS_INPUT_FN_TEMPLATE,
-        "output_dir": str(output_dir),
-        "output_fn_template": OUTPUT_FN_TEMPLATE,
-        "staging_dir": str(staging_dir),
-        "vx_fcst_model_name": vxcfg.get("VX_FCST_MODEL_NAME", ""),
-        "vx_intvl": vx_intvl,
-        "vx_hr_start": vx_hr_start,
-        "grid_or_point": grid_or_point,
-        "fieldname_in_obs_input": FIELDNAME_IN_OBS_INPUT,
-        "fieldname_in_fcst_input": FIELDNAME_IN_FCST_INPUT,
-        "fieldname_in_met_output": FIELDNAME_IN_MET_OUTPUT,
-        "fieldname_in_met_filedir_names": FIELDNAME_IN_MET_FILEDIR_NAMES,
+        "obs_input_dir": obs_dir,
+        "obs_input_fn_template": obs_input_fn_template,
+        "output_dir": output_dir,
+        "output_fn_template": output_fn_template,
         "obtype": obtype,
     }
 
@@ -159,7 +128,7 @@ def main(config_file: str, cycle_date: str, obtype: str, field_group: str, accum
     # ---------------------------------------------------------------------
     flag_dir = Path(cfg["workflow"]["WFLOW_FLAG_FILES_DIR"])
     flag_dir.mkdir(parents=True, exist_ok=True)
-    flag_file = flag_dir / f"{obtype}_nc_obs_{CDATE[:6]}_ready.txt"
+    flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date[:6]}_ready.txt"
     flag_file.touch()
 
     lgr.info("Pb2NC completed successfully.")
