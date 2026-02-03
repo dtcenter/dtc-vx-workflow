@@ -55,19 +55,15 @@ def main(config_file,cdate,obtype):
     vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
     vx_hr_start = 0
 
-    lgr.debug(f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
-                 f"{obs_in_dir},{time_lag},{obs_in_fn_template},"\
+    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},"\
+                 f"{vx_intvl},{obs_in_dir},{time_lag},{obs_in_fn_template},"\
                  f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
     vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                  obs_in_dir,time_lag,str(obs_in_fn_template),
                                  vxcfg['NUM_MISSING_OBS_FILES_MAX']) 
     
     if not vx_leadhr_list:
-        raise RuntimeError(f"Call to set_leadhrs({cdate},{vx_hr_start},"\
-                           f"{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},{obs_in_dir},"\
-                           f"{time_lag},{obs_in_fn_template},"\
-                           f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})\n"\
-                            "returned an empty list.")
+        raise RuntimeError(f"Call to {slh_string} returned an empty list.")
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
