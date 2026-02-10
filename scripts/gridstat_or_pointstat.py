@@ -17,7 +17,7 @@ import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ['USHdir'])
 
-from python_utils import render_metplus_confs
+from python_utils import setup_logging, render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -268,27 +268,6 @@ def run_metplus(common_config,config_fn):
         "-c", config_fn
     ], check=True)
 
-
-def setup_logging(debug=False):
-
-    """Calls initialization functions for logging package, and sets the
-    user-defined level for logging in the script."""
-
-    logger = logging.getLogger(__name__)
-    if debug:
-        print("Setting logging to DEBUG")
-        level=logging.DEBUG
-    else:
-        print("Setting logging to INFO")
-        level=logging.INFO
-
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
 
 if __name__ == "__main__":
     #Parse arguments
