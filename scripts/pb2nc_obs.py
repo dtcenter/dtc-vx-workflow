@@ -8,12 +8,14 @@ import os
 import logging
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
 # Import utilities and helpers
 sys.path.insert(1, os.environ["USHdir"])
+from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
 from python_utils import setup_logging, render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -66,24 +68,23 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     # ---------------------------------------------------------------------
     # Output directories
     # ---------------------------------------------------------------------
-    output_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", MetplusToolName)
+    output_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", f"{MetplusToolName}_obs")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # ---------------------------------------------------------------------
     # Build the list of lead hours for which observation files exist
     # ---------------------------------------------------------------------
-    vx_leadhr_list = set_leadhrs(
-        date_init=cycle_date,
-        lhr_min=0,
-        lhr_max=cfg["workflow"]["FCST_LEN_HRS"],
-        lhr_intvl=vxcfg["VX_FCST_OUTPUT_INTVL_HRS"],
-        base_dir=obs_dir,
-        time_lag=0,
-        fn_template=obs_input_fn_template,
-        num_missing_files_max=vxcfg["NUM_MISSING_OBS_FILES_MAX"],
-        skip_check_files=False,
-        verbose=verbose,
-    )
+    
+    vx_leadhr_list=[]
+    cycle_dt=datetime.strptime(cycle_date, '%Y%m%d%H')
+    for time in vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}_{cycle_date[0:8]}"]:
+        validdt=datetime.strptime(time, '%Y%m%d%H')
+        
+        lead = validdt - cycle_dt
+        leadhr=int(lead.total_seconds()/3600)
+        file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_dir}/{obs_input_fn_template}",True)
+        if os.path.exists(file):
+            vx_leadhr_list.append(leadhr)
 
     if not vx_leadhr_list:
         raise RuntimeError("No lead hours found for observation files.")
