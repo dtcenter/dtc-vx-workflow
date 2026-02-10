@@ -45,6 +45,32 @@ def eval_metplus_timestr_tmpl(init_time, lhr, time_lag, fn_template, verbose=Fal
     return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
                                    lead=leadsec,time_lag=time_lag)
 
+
+def eval_metplus_dt_tmpl(initdate, validdate, time_lag, fn_template, verbose=False):
+    """
+    Calls native METplus routine for evaluating filename templates
+
+    Args:
+        initdate (dt)    : Datetime object of initial time
+        validdate (dt)   : Datetime object for valid time
+        time_lag    (int): Hours of time lag for a time-lagged ensemble member
+        fn_template (str): The METplus filename template for finding the files
+        verbose    (bool): By default this script only outputs the list of forecast hours
+    Returns:
+        str: The fully resolved filename based on the input parameters
+    """
+
+    lead = validdate - initdate
+    leadsec=lead.total_seconds()
+    # Evaluate the METplus timestring template for the current lead hour
+    if verbose:
+        print("Resolving METplus template for:")
+        print(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n")
+    # Return the full path with templates resolved
+    return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
+                                   lead=leadsec,time_lag=time_lag)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
