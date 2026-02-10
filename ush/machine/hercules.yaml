@@ -11,10 +11,18 @@ platform:
   TEST_AIRNOW_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/airnow'
   PARTITION_DEFAULT: hercules
   QUEUE_DEFAULT: batch
+  PARTITION_FCST: hercules
+  QUEUE_FCST: batch
   PARTITION_HPSS: service
   QUEUE_HPSS: batch
+  RUN_CMD_FCST: srun --export=ALL
+  RUN_CMD_POST: srun --export=ALL
+  RUN_CMD_PRDGEN: srun --export=ALL
+  RUN_CMD_SERIAL: time
+  RUN_CMD_UTILS: srun --export=ALL -n $nprocs
   SCHED_NATIVE_CMD: --export=NONE
   PRE_TASK_CMDS: '{ ulimit -s unlimited; ulimit -a; }'
+  TEST_EXTRN_MDL_SOURCE_BASEDIR: /work/noaa/epic/role-epic/contrib/UFS_SRW_data/develop/input_model_data
   TEST_VX_FCST_INPUT_BASEDIR: '{{ "/work/noaa/epic/role-epic/contrib/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{% raw %}{% endraw %}'
   EXTRN_MDL_DATA_STORES: aws
   MET_BASE: /apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/oneapi/2024.2.1/
