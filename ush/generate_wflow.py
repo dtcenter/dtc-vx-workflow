@@ -19,7 +19,7 @@ from textwrap import dedent
 
 from setup import setup
 from get_crontab_contents import add_crontab_line
-from check_python_version import check_python_version
+from python_utils import check_python_version
 
 from uwtools.api import rocoto as uwrocoto
 

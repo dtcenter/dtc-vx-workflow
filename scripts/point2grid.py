@@ -16,7 +16,7 @@ import uwtools.api.config as uwconfig
 sys.path.insert(1, os.environ['USHdir'])
 
 from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
-from python_utils import render_metplus_confs setup_logging
+from python_utils import render_metplus_confs, setup_logging
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
