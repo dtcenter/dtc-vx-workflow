@@ -12,5 +12,5 @@ workflow:
 verification:
   VX_FCST_MODEL_NAME: srw.RRFS_CONUS_25km
   VX_MASK: ["CONUS"]
-  VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/UFS/workdir/test_develop/2025-11-18/intel/expt_dirs/MET_verification'
+  VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_verification'
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
