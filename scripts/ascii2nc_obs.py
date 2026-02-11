@@ -8,12 +8,14 @@ import os
 import logging
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
 sys.path.insert(1, os.environ["USHdir"])
 
+from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
 from python_utils import setup_logging,render_metplus_confs
 from set_leadhrs import set_leadhrs
 
@@ -48,19 +50,19 @@ def main(config_file,cdate,obtype):
         raise ValueError(f"Invalid OBTYPE for {MetplusToolName.upper()}: {obtype}")
 
 
-    time_lag=0
-    vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
-    vx_hr_start = 0
+    vx_leadhr_list=[]
+    cycle_dt=datetime.strptime(cdate, '%Y%m%d%H')
+    for time in vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}_{cdate[0:8]}"]:
+        validdt=datetime.strptime(time, '%Y%m%d%H')
 
-    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},"\
-                 f"{vx_intvl},{obs_in_dir},{time_lag},{obs_in_fn_template},"\
-                 f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
-    vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
-                                 obs_in_dir,time_lag,str(obs_in_fn_template),
-                                 vxcfg['NUM_MISSING_OBS_FILES_MAX'])
+        lead = validdt - cycle_dt
+        leadhr=int(lead.total_seconds()/3600)
+        file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_in_dir}/{obs_in_fn_template}",True)
+        if os.path.exists(file):
+            vx_leadhr_list.append(leadhr)
 
     if not vx_leadhr_list:
-        raise RuntimeError(f"Call to {slh_string} returned an empty list.")
+        raise RuntimeError("No lead hours found for observation files.")
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
