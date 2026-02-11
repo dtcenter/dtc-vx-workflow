@@ -38,16 +38,16 @@ verification:
   GOESADP_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesadp"
   VX_MASK:
   - 'EAST'
-  VX_TASKS: 6
+  VX_TASKS: 8
   OBS_DATA_STORE_AERONET: http
 regriddataplane:
-  TASKS: 6
+  TASKS: 8
   REGRID_METHOD: MAXGAUSS
   GAUSSIAN_DX: 12
   GAUSSIAN_RADIUS: 18
 mode:
   TOTAL_INTEREST_THRESH: 0.6
-  TASKS: 6
+  TASKS: 8
   CONV_THRESH: '>=0.3'
   MERGE_THRESH: '>=5'
   MERGE_FLAG: ENGINE
