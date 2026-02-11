@@ -19,10 +19,10 @@ from monitor_jobs import monitor_jobs, write_monitor_file
 
 from uwtools.api.config import get_yaml_config
 
-sys.path.insert(1, Path(__file__).resolve().parent.parent / "ush")
+sys.path.append("../../ush")
 # pylint: disable=wrong-import-order, wrong-import-position
 from generate_wflow import generate_wflow
-from check_python_version import check_python_version
+from python_utils import check_python_version
 
 
 
