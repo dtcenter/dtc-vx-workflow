@@ -11,7 +11,7 @@ if [ ! -d "${CONDA_BUILD_DIR}" ] ; then
   test $os == Darwin && os=MacOSX
   hardware=$(uname -m)
   installer=Miniforge3-${os}-${hardware}.sh
-  curl -L -O "https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/${installer}"
+  curl -L -O "https://github.com/conda-forge/miniforge/releases/download/26.1.0-0/${installer}"
   bash ./${installer} -bfp "${CONDA_BUILD_DIR}"
   rm -f ${installer}
 fi
@@ -23,7 +23,7 @@ if [ "${os}" == "MacOSX" ] ; then
 fi
 conda activate
 if ! conda env list | grep -q "^vx_workflow\s" ; then
-  mamba env create -n vx_workflow --file "${VX_WFLOW_DIR}/environment.yml"
+  mamba env create -n vx_workflow --file "${VX_WFLOW_DIR}/environment.yml" -y
 fi
 
 if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
