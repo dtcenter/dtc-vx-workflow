@@ -929,7 +929,7 @@ verification:
   # This is used in forming the names of the verification output files and
   # is also included in the contents of those files.
   #
-  VX_FCST_MODEL_NAME: 'srw.{{ workflow.PREDEF_GRID_NAME | lower() }}'
+  VX_FCST_MODEL_NAME: 'srw'
   #
   # VX_FCST_OUTPUT_INTVL_HRS:
   # The forecast output interval (in hours) to assume for verification

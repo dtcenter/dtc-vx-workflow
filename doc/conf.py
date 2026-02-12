@@ -99,7 +99,8 @@ pygments_style = 'sphinx'
 # Documentation-wide substitutions
 
 rst_prolog = """
-.. |wflow_env| replace:: ``srw_app``
+.. |topdir| replace:: ``dtc-vx-workflow``
+.. |wflow_env| replace:: ``vx_workflow``
 .. |graphics_env| replace:: ``regional_workflow``
 .. |cmaq_env| replace:: ``regional_workflow_cmaq``
 .. |activate| replace:: ``conda activate srw_app``

@@ -1,27 +1,16 @@
 metadata:
   description: |-
-    SRW App configuration file to first pull CCPA, NOHRSC, MRMS, and NDAS
-    observations from HPSS for a single cycle with a relatively long forecast
-    (36 hours) cycle and then perform deterministic verification, including
-    first performing vx preprocessing with METplus tools such as PcpCombine
-    and Pb2Nc.
-
-    The staged forecast data are from the SRW itself.
+    This test retrieves CCPA, NOHRSC, MRMS, and NDAS observations from HPSS
+    for a relatively long forecast, then performs deterministic verification
+    including vx preprocessing with METplus tools such as PcpCombine and Pb2Nc.
 
     This test uses a winter case to ensure that ASNOW is verified correctly
     for both 6-hour and 24-hour accumulations.
-
-user:
-  RUN_ENVIR: community
-
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
 
 workflow:
   PREEXISTING_DIR_METHOD: rename
   # This is required in the experiment generation step, although it shouldn't
   # since a forecast is not being run.
-  PREDEF_GRID_NAME: RRFS_CONUS_25km
   INCR_CYCL_FREQ: 24
   DATE_FIRST_CYCL: '2023021700'
   DATE_LAST_CYCL: '2023021700'
@@ -29,14 +18,6 @@ workflow:
   taskgroups:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'custom_esggrid_michigan_ontario'
 
 verification:
   # Base directories in which to look for obs.  If these do not exist and/or

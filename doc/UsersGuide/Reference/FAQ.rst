@@ -243,7 +243,7 @@ If you already built the SRW App, you can simply reload the conda environment an
    module load wflow_<platform>
    conda activate srw_app
 
-For example, from here, you can `configure a new experiment <https://ufs-srweather-app.readthedocs.io/en/develop/UsersGuide/BuildingRunningTesting/RunSRW.html#general-instructions-for-all-systems>`__ (in config.yaml) or check on `progress from an old experiment <https://ufs-srweather-app.readthedocs.io/en/develop/UsersGuide/BuildingRunningTesting/RunSRW.html#run-the-workflow-using-rocoto>`__ (e.g., using rocotostat or the tail command from within the experiment directory). 
+For example, from here, you can `configure a new experiment <https://ufs-srweather-app.readthedocs.io/en/develop/UsersGuide/BuildingRunningTesting/RunVX.html#general-instructions-for-all-systems>`__ (in config.yaml) or check on `progress from an old experiment <https://ufs-srweather-app.readthedocs.io/en/develop/UsersGuide/BuildingRunningTesting/RunVX.html#run-the-workflow-using-rocoto>`__ (e.g., using rocotostat or the tail command from within the experiment directory). 
 
 I ran one experiment; how can I configure a new experiment?
 ============================================================
@@ -341,7 +341,7 @@ If you encounter issues while generating ICS and LBCS for a predefined 3-km grid
 
 Additionally, users can try increasing the number of processors or the wallclock time requested for the jobs. Sometimes jobs may fail without errors because the process is cut short. These settings can be adusted in one of the ``ufs-srweather-app/parm/wflow`` files. For ICs/LBCs tasks, these parameters are set in the ``coldstart.yaml`` file. 
 
-Users can also update the hash of UFS_UTILS in the ``Externals.cfg`` file to the HEAD of that repository. There was a known memory issue with how ``chgres_cube`` was handling regridding of the 3-D wind field for large domains at high resolutions (see `UFS_UTILS PR #766 <https://github.com/ufs-community/UFS_UTILS/pull/766>`__ and the associated issue for more information). If changing the hash in ``Externals.cfg``, users will need to rerun ``manage_externals`` and rebuild the code (see :numref:`Section %s <BuildSRW>`). 
+Users can also update the hash of UFS_UTILS in the ``Externals.cfg`` file to the HEAD of that repository. There was a known memory issue with how ``chgres_cube`` was handling regridding of the 3-D wind field for large domains at high resolutions (see `UFS_UTILS PR #766 <https://github.com/ufs-community/UFS_UTILS/pull/766>`__ and the associated issue for more information). If changing the hash in ``Externals.cfg``, users will need to rerun ``manage_externals`` and rebuild the code (see :numref:`Section %s <Setup>`). 
 
 .. _Enable-REFC-plots:
 

@@ -19,15 +19,6 @@ function get_metplus_tool_name() {
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; set -u +x; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Specify the set of valid argument names for this script/function.  Then
 # process the arguments provided to this script/function (which should
 # consist of a set of name-value pairs of the form arg1="value1", etc).
@@ -130,13 +121,4 @@ unupported:
   if [ ! -z "${outvarname_METPLUS_TOOL_NAME}" ]; then
     printf -v ${outvarname_METPLUS_TOOL_NAME} "%s" "${_METPLUS_TOOL_NAME_}"
   fi
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
-
 }

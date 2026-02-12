@@ -35,15 +35,6 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-# Source the file containing functions to save and restore shell op-
-# tions.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/save_restore_shell_opts.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file that defines MacOS-specific UNIX command-line
 # utilities, that mimic the functionality of the GNU equivalents
 #

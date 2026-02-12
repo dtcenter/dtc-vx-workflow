@@ -19,15 +19,6 @@ function echo_uppercase() {
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; . ${USHdir}/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -85,17 +76,6 @@ where:
 
 echo $input| tr '[a-z]' '[A-Z]'
 
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
-
-
 }
 
 
@@ -107,15 +87,6 @@ echo $input| tr '[a-z]' '[A-Z]'
 #-----------------------------------------------------------------------
 #
 function echo_lowercase() {
-#
-#-----------------------------------------------------------------------
-#
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; . ${USHdir}/preamble.sh; } > /dev/null 2>&1
 #
 #-----------------------------------------------------------------------
 #
@@ -175,16 +146,6 @@ where:
 # Echo the input string as lowercase
 
 echo $input| tr '[A-Z]' '[a-z]'
-
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
 
 
 }

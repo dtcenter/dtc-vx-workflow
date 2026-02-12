@@ -16,15 +16,6 @@ function is_array() {
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; . ${USHdir}/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located 
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -78,15 +69,6 @@ or not it is an array.
   local regex="^declare -[aA] ${var_name}(=|$)"
   printf "%s" "$declare_output" | grep --extended-regexp "$regex" >/dev/null 
   is_an_array="$?"
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
 #
 #-----------------------------------------------------------------------
 #

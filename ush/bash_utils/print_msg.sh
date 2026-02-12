@@ -18,15 +18,6 @@ function print_info_msg() {
 #
 #-----------------------------------------------------------------------
 #
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; . ${USHdir}/preamble.sh; } > /dev/null 2>&1
-#
-#-----------------------------------------------------------------------
-#
 # Get the full path to the file in which this script/function is located 
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
@@ -117,15 +108,6 @@ only if verbose is set to \"TRUE\".
   if [ "$verbose" = "TRUE" ]; then
     printf "%s\n" "${info_msg}"
   fi
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
 }
 
 
@@ -140,15 +122,6 @@ only if verbose is set to \"TRUE\".
 #-----------------------------------------------------------------------
 #
 function print_err_msg_exit() {
-#
-#-----------------------------------------------------------------------
-#
-# Save current shell options (in a global array).  Then set new options
-# for this script/function.
-#
-#-----------------------------------------------------------------------
-#
-  { save_shell_opts; . ${USHdir}/preamble.sh; } > /dev/null 2>&1
 #
 #-----------------------------------------------------------------------
 #
@@ -279,18 +252,6 @@ the header and footer.
     exit 1
 
   fi
-#
-#-----------------------------------------------------------------------
-#
-# Restore the shell options saved at the beginning of this script/func-
-# tion.  This statement will not be reached due to the preceeding exit
-# statement, but we include it here for completeness (i.e. there should
-# be a call to restore_shell_opts that matches a preceeding call to 
-# save_shell_opts).
-#
-#-----------------------------------------------------------------------
-#
-  { restore_shell_opts; } > /dev/null 2>&1
 
 }
 

@@ -3,9 +3,7 @@ metadata:
     This test checks the capability of the workflow to run verification tasks
     on a user-specified grid. This also serves as a winter snowstorm case for
     checking snowfall verification statistics using observations retrieved from
-    HPSS, and a test for custom domains with RAP data retrieved from HPSS
-user:
-  RUN_ENVIR: community
+    HPSS, using specified verification mask regions
 workflow:
   GRID_GEN_METHOD: ESGgrid
   DATE_FIRST_CYCL: '2023021700'
@@ -28,4 +26,3 @@ verification:
   NOHRSC_OBS_DIR: '{{ workflow.EXPTDIR }}/NOHRSC_obs'
   VX_FCST_MODEL_NAME: custom_ESGgrid_Michigan_Ontario
   VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/UFS/workdir/test_develop/2025-11-18/intel/expt_dirs/MET_verification_winter_wx'
-#  FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.natlev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'

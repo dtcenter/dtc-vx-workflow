@@ -1,3 +1,3 @@
 .. code-block:: console
 
-   git clone -b develop https://github.com/ufs-community/ufs-srweather-app.git
+   git clone https://github.com/dtcenter/dtc-vx-workflow.git

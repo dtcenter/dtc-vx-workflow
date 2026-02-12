@@ -174,7 +174,7 @@ def generate_wflow(
         logger.info(
             f"""
             To launch the workflow, change location to the experiment directory
-            (EXPTDIR) and issue the rocotrun command, as follows:
+            (EXPTDIR) and issue the rocotorun command, as follows:
 
               > cd {exptdir}
               > {rocotorun_cmd}

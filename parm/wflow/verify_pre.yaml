@@ -6,15 +6,12 @@ default_task_verify_pre: &default_task_verify_pre
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
-    PDY:
+    YYMMDD:
       cyclestr:
         value: '@Y@m@d'
-    cyc:
+    HH:
       cyclestr:
         value: '@H'
-    subcyc:
-      cyclestr:
-        value: '@M'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
     LOGDIR:
@@ -32,7 +29,7 @@ default_task_verify_pre: &default_task_verify_pre
 
 task_get_obs_goes_aod:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'GOESAOD'
@@ -44,7 +41,7 @@ task_get_obs_goes_aod:
 
 task_get_obs_goes_adp:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'GOESADP'
@@ -56,7 +53,7 @@ task_get_obs_goes_adp:
 
 task_get_obs_aeronet:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'AERONET'
@@ -68,7 +65,7 @@ task_get_obs_aeronet:
 
 task_get_obs_airnow:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'AIRNOW'
@@ -84,7 +81,7 @@ task_get_obs_ccpa:
   attrs:
     cycledefs: cycledefs_obs_days_cumul
     maxtries: '1'
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'CCPA'
@@ -98,7 +95,7 @@ task_get_obs_nohrsc:
   attrs:
     cycledefs: cycledefs_obs_days_cumul
     maxtries: '1'
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'NOHRSC'
@@ -109,7 +106,7 @@ task_get_obs_nohrsc:
 
 task_get_obs_mrms:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'MRMS'
@@ -120,7 +117,7 @@ task_get_obs_mrms:
 
 task_get_obs_ndas:
   <<: *default_task_verify_pre
-  command: "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: 'NDAS'
@@ -134,7 +131,7 @@ task_run_MET_Pb2nc_obs_NDAS:
   attrs:
     cycledefs: cycledefs_obs_days_inst
     maxtries: '2'
-  command: "&JOBSdir;/JREGIONAL_RUN_MET_PB2NC_OBS"
+  command: "&JOBSdir;/PB2NC_OBS.sh"
   envars:
     <<: *default_vars
     FIELD_GROUP: 'SFC'
@@ -167,7 +164,7 @@ metatask_ASCII2nc_obs:
     attrs:
       cycledefs: cycledefs_obs_days_inst
       maxtries: '2'
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_ASCII2NC_OBS"
+    command: "&JOBSdir;/ASCII2NC_OBS.sh"
     walltime: "{{ verification_resources.execution.ascii2nc.walltime }}"
     envars:
       <<: *default_vars
@@ -195,7 +192,7 @@ metatask_PcpCombine_APCP_all_accums_obs_CCPA:
     attrs:
       cycledefs: forecast
       maxtries: '2'
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_PCPCOMBINE"
+    command: "&JOBSdir;/PCPCOMBINE.sh"
     walltime: "{{ verification_resources.execution.pcpcombine.obs.walltime }}"
     envars:
       <<: *default_vars
@@ -228,7 +225,7 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
     attrs:
       cycledefs: forecast
       maxtries: '2'
-    command: "&JOBSdir;/JREGIONAL_RUN_MET_PCPCOMBINE"
+    command: "&JOBSdir;/PCPCOMBINE.sh"
     envars:
       <<: *default_vars
       FIELD_GROUP: 'ASNOW'
@@ -261,7 +258,7 @@ metatask_check_post_output_all_mems:
     attrs:
       cycledefs: forecast
       maxtries: '1'
-    command: "&JOBSdir;/JREGIONAL_CHECK_POST_OUTPUT"
+    command: "&JOBSdir;/CHECK_POST_OUTPUT.sh"
     envars:
       <<: *default_vars
       ENSMEM_INDX: '#mem#'
@@ -284,7 +281,7 @@ metatask_PcpCombine_APCP_all_accums_all_mems:
       attrs:
         cycledefs: forecast
         maxtries: '2'
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_PCPCOMBINE"
+      command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
         <<: *default_vars
@@ -314,7 +311,7 @@ metatask_PcpCombine_ASNOW_all_accums_all_mems:
       attrs:
         cycledefs: forecast
         maxtries: '2'
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_PCPCOMBINE"
+      command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
         <<: *default_vars
@@ -344,7 +341,7 @@ metatask_PcpCombine_fcst_PM_all_mems:
       attrs:
         cycledefs: forecast
         maxtries: '2'
-      command: "&JOBSdir;/JREGIONAL_RUN_MET_PCPCOMBINE"
+      command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
         <<: *default_vars

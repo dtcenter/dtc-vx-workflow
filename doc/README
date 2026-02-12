@@ -19,6 +19,11 @@ Steps to build and use the Sphinx documentation tool:
 
     py310 can be replaced with the user's version of Python (e.g., py39) 
 
+    If your system supports conda, you can instead create and activate a new conda environment from the provided requirements.txt file:
+
+    $ conda create --name vxdocs --file requirements.txt
+    $ conda activate vxdocs
+
 To build html:
 
 $ cd ufs-srweather-app/doc

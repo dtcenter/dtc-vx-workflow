@@ -23,7 +23,7 @@ if [ "${os}" == "MacOSX" ] ; then
 fi
 conda activate
 if ! conda env list | grep -q "^vx_workflow\s" ; then
-  mamba env create -n vx_workflow --file environment.yml
+  mamba env create -n vx_workflow --file "${VX_WFLOW_DIR}/environment.yml"
 fi
 
 if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
