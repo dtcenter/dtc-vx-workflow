@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# pylint: disable=logging-fstring-interpolation
 """
 Converted from scripts/pb2nc_obs.sh
 """
@@ -7,7 +7,6 @@ import argparse
 import os
 import logging
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -16,11 +15,10 @@ import uwtools.api.config as uwconfig
 # Import utilities and helpers
 from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
 from python_utils import setup_logging, render_metplus_confs
-from set_leadhrs import set_leadhrs
-from set_vx_params import set_vx_params
 
 
 def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
+    # pylint: disable=too-many-locals
     """Main routine for PB2NC observation conversion.
 
     Parameters
@@ -59,26 +57,26 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     # ---------------------------------------------------------------------
     # METplus tool name and derived filenames
     # ---------------------------------------------------------------------
-    MetplusToolName = "Pb2nc"
-    metplus_config_tmpl_fn = f"{MetplusToolName}_obs.conf"
+    metplus_tool_camel_case = "Pb2nc"
+    metplus_config_tmpl_fn = f"{metplus_tool_camel_case}_obs.conf"
     metplus_config_fn = f"{metplus_config_tmpl_fn}_NDAS_{cycle_date}.conf"
     metplus_log_fn = f"metplus.log.{metplus_config_fn}_NDAS"
 
     # ---------------------------------------------------------------------
     # Output directories
     # ---------------------------------------------------------------------
-    output_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", f"{MetplusToolName}_obs")
+    output_dir = Path(vxcfg["VX_OUTPUT_BASEDIR"], "metprd", f"{metplus_tool_camel_case}_obs")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # ---------------------------------------------------------------------
     # Build the list of lead hours for which observation files exist
     # ---------------------------------------------------------------------
-    
+
     vx_leadhr_list=[]
     cycle_dt=datetime.strptime(cycle_date, '%Y%m%d%H')
     for time in vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}_{cycle_date[0:8]}"]:
         validdt=datetime.strptime(time, '%Y%m%d%H')
-        
+
         lead = validdt - cycle_dt
         leadhr=int(lead.total_seconds()/3600)
         file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_dir}/{obs_input_fn_template}",True)
@@ -94,7 +92,7 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
 
     # Render METplus configuration file
     settings = {
-        "METPLUS_TOOL_NAME": MetplusToolName.upper(),
+        "METPLUS_TOOL_NAME": metplus_tool_camel_case.upper(),
         "metplus_verbosity_level": vxcfg["METPLUS_VERBOSITY_LEVEL"],
         "cdate": cycle_date,
         "vx_leadhr_list": ", ".join(map(str, vx_leadhr_list)),
@@ -129,7 +127,7 @@ def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date}_ready.txt"
     flag_file.touch()
 
-    lgr.info("Pb2NC completed successfully.")
+    lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
 
 
