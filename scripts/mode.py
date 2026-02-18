@@ -1,24 +1,28 @@
+"""
+This module contains a command‑line wrapper that sets up and executes the
+METplus *MODE* verification task for deterministic verification.
+The script parses arguments, reads configuration files, generates
+per‑lead‑hour METplus configuration files with Jinja2 templates,
+and runs the METplus wrapper in parallel using a process pool.
+"""
+# pylint: disable=logging-fstring-interpolation
 import argparse
 import logging
 import os
 import subprocess
-import sys
 
 from multiprocessing import Pool
 from pathlib import Path
 from string import Template
 from textwrap import dedent
 
-from jinja2 import Environment, FileSystemLoader
-
 import uwtools.api.config as uwconfig
 
-from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from python_utils import setup_logging, render_metplus_confs, make_var_lists
 from set_leadhrs import set_leadhrs
-from set_vx_params import set_vx_params
 
-def main(config_file,cdate,field_group,obtype,verbose):
+def main(config_file,cdate,field_group,obtype):
+    # pylint: disable=too-many-locals
     """Main program for setting up MODE task and calling METplus wrapper"""
     lgr = logging.getLogger(__name__)
 
@@ -40,7 +44,7 @@ def main(config_file,cdate,field_group,obtype,verbose):
     # METplus tool to be run as well as other file/directory parameters.
 
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
-    MetplusToolName = "MODE"
+    metplus_tool_camel_case = "MODE"
     if obtype == "GOESAOD":
         obs_in_dir = Path(exptdir, cdate, "metprd", "RegridDataPlane")
         obs_in_fn_template = f'regrid_{vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]}'
@@ -49,9 +53,9 @@ def main(config_file,cdate,field_group,obtype,verbose):
                                    Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
         # Get the list of all the times in the current day at which to retrieve obs.
     else:
-        raise ValueError(f"Invalid OBTYPE for {MetplusToolName}: {obtype}")
+        raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case}: {obtype}")
 
-    output_dir=Path(exptdir, cdate, "metprd", MetplusToolName)
+    output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
@@ -62,8 +66,9 @@ def main(config_file,cdate,field_group,obtype,verbose):
     vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
     vx_hr_start = 0
 
-    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
-                 f"{obs_in_dir},0,{obs_in_fn_template},{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
+    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},"\
+                 f"{vx_intvl},{obs_in_dir},0,{obs_in_fn_template},"\
+                 f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
     vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                  obs_in_dir,0,str(obs_in_fn_template),
                                  vxcfg['NUM_MISSING_OBS_FILES_MAX'])
@@ -82,7 +87,7 @@ def main(config_file,cdate,field_group,obtype,verbose):
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
     metplus_config_tmpl_fn="MODE.conf"
-    metplus_config_fn=f"{MetplusToolName}_{field_group}.conf.0"
+    metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Load YAML file containing configuration for deterministic verification
@@ -90,8 +95,9 @@ def main(config_file,cdate,field_group,obtype,verbose):
                                                      f"{vxcfg['VX_CONFIG_DET_FN']}")
 
     # Create the entries for forecast and variable names to pass to METplus conf file. This logic
-    # is overkill for now but serves as a template for how this could be done in gridstat_or_pointstat.py
-    
+    # is overkill for now but serves as a template for how this could be done in
+    # gridstat_or_pointstat.py
+
     fcst_var_list,obs_var_list=make_var_lists(vx_config_dict,field_group)
 
     # Define variables that appear in the jinja template, add to existing settings dict.
@@ -131,10 +137,11 @@ def main(config_file,cdate,field_group,obtype,verbose):
                }
 
     numprocs=modecfg['TASKS']
-    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,len(vx_leadhr_list))
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,
+                                      len(vx_leadhr_list))
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {MetplusToolName} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
     args = []
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
@@ -143,7 +150,7 @@ def main(config_file,cdate,field_group,obtype,verbose):
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus,args)
 
-    lgr.info(f"{MetplusToolName} completed successfully.")
+    lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
 
 def run_metplus(common_config,config_fn):
@@ -168,18 +175,26 @@ if __name__ == "__main__":
                      description="exscript for running METplus MODE tasks"\
                      "for deterministic verification\n")
 
-#    parser.add_argument('-c', '--config', default='config.yaml',
-#                        help='Name of experiment config file in YAML format')
-    parser.add_argument('--config', default='config.yaml',type=str,
-                        help='Name of experiment config file in YAML format')
-    parser.add_argument('--cycle_date', required=True, type=str,
-                        help='Eight-digit cycle date (YYMMDDHH)')
-    parser.add_argument('--field_group', required=True, type=str,
-                        help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
-    parser.add_argument('--obtype', required=True, type=str,
-                        help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Script will be run in verbose mode')
+    parser.add_argument(
+        "--config", default="config.yaml", type=str,
+        help="Name of experiment config file in YAML format",
+    )
+    parser.add_argument(
+        "--cycle_date", required=True, type=str,
+        help="Eight-digit cycle date (YYMMDDHH)",
+    )
+    parser.add_argument(
+        "--field_group", required=True, type=str,
+        help="Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)",
+    )
+    parser.add_argument(
+        "--obtype", required=True, type=str,
+        help="Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true",
+        help="Script will be run in verbose mode",
+    )
     pargs = parser.parse_args()
 
     setup_logging(debug=pargs.verbose)
@@ -196,4 +211,4 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype,pargs.verbose)
+    main(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype)
