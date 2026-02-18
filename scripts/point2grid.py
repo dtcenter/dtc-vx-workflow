@@ -1,10 +1,17 @@
+# pylint: disable=logging-fstring-interpolation
+"""
+This module implements the command‑line wrapper for the METplus
+*Point2Grid* verification task.
+It reads user arguments, loads configuration files, prepares per‑lead‑hour
+METplus configuration files with Jinja2 templates, and launches the METplus
+wrapper in parallel using a process pool.  The script is used for
+deterministic verification of GOES AOD observations against forecast
+data.
+"""
 import argparse
-import ast
 import logging
-import math
 import os
 import subprocess
-import sys
 
 from multiprocessing import Pool
 from pathlib import Path
@@ -13,12 +20,11 @@ from textwrap import dedent
 
 import uwtools.api.config as uwconfig
 
-from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 from python_utils import render_metplus_confs, setup_logging
 from set_leadhrs import set_leadhrs
-from set_vx_params import set_vx_params
 
-def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,verbose):
+def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     """Main program for setting up Point2Grid task and calling METplus wrapper"""
     lgr = logging.getLogger(__name__)
 
@@ -36,7 +42,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
-    subvars = {   
+    subvars = {
             "time_lag": 0,
               }
 
@@ -44,7 +50,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     # METplus tool to be run as well as other file/directory parameters.
 
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
-    MetplusToolName = "Point2Grid"
+    metplus_tool_camel_case = "Point2Grid"
     if obtype == "GOESAOD":
         obs_in_dir = vxcfg["GOESAOD_OBS_DIR"]
         obs_in_fn_template = vxcfg["OBS_GOESAOD_FN_TEMPLATES"][1]
@@ -52,7 +58,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
         output_fn_template = f'{vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]}'
         # Get the list of all the times in the current day at which to retrieve obs.
     else:
-        raise ValueError(f"Invalid OBTYPE for {MetplusToolName}: {obtype}")
+        raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case}: {obtype}")
 
     #Point2Grid does not honor "time lag" shifts, so remove from template
     fcst_fn_template=Path(
@@ -60,7 +66,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
                      Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
                      Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars)
                      )
-    output_dir=Path(exptdir, cdate, "metprd", MetplusToolName)
+    output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
@@ -71,7 +77,8 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     vx_intvl = vxcfg["VX_FCST_OUTPUT_INTVL_HRS"]
     vx_hr_start = 0
 
-    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
+    lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},"\
+                 f"{vx_intvl},"\
                  f"{obs_in_dir},0,{obs_in_fn_template},{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
     vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                  obs_in_dir,0,str(obs_in_fn_template),
@@ -91,7 +98,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
     metplus_config_tmpl_fn="Point2Grid.conf"
-    metplus_config_fn=f"{MetplusToolName}_{field_group}.conf.0"
+    metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Load YAML file containing configuration for deterministic verification
@@ -130,7 +137,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {MetplusToolName} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
     args = []
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
@@ -139,7 +146,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh,ver
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus,args)
 
-    lgr.info(f"{MetplusToolName} completed successfully.")
+    lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
 
 def run_metplus(common_config,config_fn):
@@ -158,28 +165,6 @@ def run_metplus(common_config,config_fn):
     ], check=True)
 
 
-def setup_logging(debug=False):
-
-    """Calls initialization functions for logging package, and sets the
-    user-defined level for logging in the script."""
-
-    logger = logging.getLogger(__name__)
-    if debug:
-        print("Setting logging to DEBUG")
-        level=logging.DEBUG
-    else:
-        print("Setting logging to INFO")
-        level=logging.INFO
-
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
-
-
 if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
@@ -189,21 +174,21 @@ if __name__ == "__main__":
 #    parser.add_argument('-c', '--config', default='config.yaml',
 #                        help='Name of experiment config file in YAML format')
     parser.add_argument('--config', default='config.yaml',type=str,
-                        help='Name of experiment config file in YAML format')
+           help='Name of experiment config file in YAML format')
     parser.add_argument('--cycle_date', required=True, type=str,
-                        help='Eight-digit cycle date (YYMMDDHH)')
+           help='Eight-digit cycle date (YYMMDDHH)')
     parser.add_argument('--field_group', required=True, type=str,
-                        help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
+           help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--fcst_level', required=True, type=str,
-                        help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
+           help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
     parser.add_argument('--fcst_thresh', required=True, type=str,
-                        help='The set of forecast thresholds to verify against. Valid options are "all" and "none".')
+           help='Set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
-                        help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
+           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
-                        help='Observation directory for this obtype')
+           help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Script will be run in verbose mode')
+           help='Script will be run in verbose mode')
     pargs = parser.parse_args()
 
     setup_logging(debug=pargs.verbose)
@@ -220,4 +205,5 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,pargs.fcst_level,pargs.fcst_thresh,pargs.verbose)
+    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,
+         pargs.fcst_level,pargs.fcst_thresh)
