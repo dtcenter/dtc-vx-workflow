@@ -23,7 +23,7 @@ from python_utils import setup_logging, render_metplus_confs
 
 def main(config_file, cdate, obtype):
     # pylint: disable=too-many-locals
-    """Convert ASCII observation files to NetCDF.
+    """Call METplus ASCII2NC tool to convert ASCII observation files to NetCDF.
 
     Parameters
     ----------
@@ -120,7 +120,7 @@ def main(config_file, cdate, obtype):
 
     lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
     create_flag_file(cfg, obtype, cdate)
-    lgr.info(f"{metplus_tool_camel_case.upper()} completed successfully.")
+    lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
 
 def run_metplus(common_config, config_fn):
