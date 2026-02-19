@@ -3,7 +3,6 @@ from .check_for_preexist_dir_file import check_for_preexist_dir_file
 from .check_python_version import check_python_version
 from .check_var_valid_value import check_var_valid_value
 from .create_symlink_to_file import create_symlink_to_file
-from .define_macos_utilities import define_macos_utilities
 from .environment import (
     str_to_date,
     date_to_str,

@@ -163,7 +163,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
 
     def test_import_vars_specific(self):
         os.environ["VAR1"] = "1"
-        os.environ["VAR2"] = "2"
+        os.environ["VAR3"] = "3"
         import_vars(env_vars=["VAR1"])
         self.assertEqual(VAR1, 1)
         with self.assertRaises(NameError):

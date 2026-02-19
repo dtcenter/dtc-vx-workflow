@@ -110,21 +110,6 @@ class Testing(unittest.TestCase):
                 )
             util.create_symlink_to_file(target, symlink)
 
-    def test_define_macos_utilities(self):
-        """ Test that environment setting and getting utils work. Also,
-        that environment contains macos utilities (arranged in setUP)"""
-
-        util.set_env_var("MACOS_TEST_VAR", "MYVAL")
-        py_val = os.getenv("MACOS_TEST_VAR")
-        workflow_val = util.get_env_var("MACOS_TEST_VAR")
-
-        # Validate the real env was set, and that the
-        # function retrieves the same value.
-        self.assertEqual(py_val, "MYVAL")
-        self.assertEqual(workflow_val, "MYVAL")
-
-        self.assertEqual(os.getenv("SED"), "gsed" if os.uname() == "Darwin" else "sed")
-
     def test_print_input_args(self):
         """ Test that print_input_args can count the args. """
         valid_args = {"arg1": 1, "arg2": 2, "arg3": 3, "arg4": 4}
@@ -152,7 +137,6 @@ class Testing(unittest.TestCase):
         If you need to download files for running test cases, prepare common stuff
         for all test cases etc, this is the best place to do it"""
 
-        util.define_macos_utilities()
         util.set_env_var("DEBUG", "FALSE")
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
         self.ushdir = os.path.join(self.test_dir, "..", "..", "ush")
