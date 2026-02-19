@@ -164,8 +164,13 @@ class TestEnvironmentFunctions(unittest.TestCase):
     def test_import_vars_specific(self):
         os.environ["VAR1"] = "1"
         os.environ["VAR3"] = "3"
+        # Clear any stale global that might have been left over from
+        # previous test runs or other test methods.
+        globals().pop("VAR2", None)
+
         import_vars(env_vars=["VAR1"])
         self.assertEqual(VAR1, 1)
+        # VAR2 should not be created; accessing it should raise NameError
         with self.assertRaises(NameError):
             _ = VAR2  # not imported
 
