@@ -1,7 +1,6 @@
 """ Defines an integration test for generate_wflow script in the
 ush directory """
 
-#pylint: disable=invalid-name
 import glob
 import os
 import shutil
@@ -22,7 +21,7 @@ from generate_wflow import generate_wflow
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 USH_DIR = os.path.join(TEST_DIR, "..", "..", "ush")
-WE2E_DIR = os.path.join(TEST_DIR, "..", "WE2E") 
+WE2E_DIR = os.path.join(TEST_DIR, "..", "WE2E")
 class Testing(unittest.TestCase):
     """ Class to run the tests. """
     def test_generate_wflow_community(self) -> None:

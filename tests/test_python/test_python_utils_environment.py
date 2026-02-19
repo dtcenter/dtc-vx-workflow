@@ -1,9 +1,8 @@
 """Tests all functions in ush/python_utils/environment.py"""
+#pylint: disable=missing-function-docstring
 import os
-import sys
 import unittest
 from datetime import datetime
-from pathlib import Path
 
 # Import the target module
 from python_utils import (
@@ -105,7 +104,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
     def test_list_to_str_multiline(self):
         long = ["a"] * 10
         # >4 items, multiline
-        expected = "( \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n)"
+        expected = '( ' + ' '.join(['"a"']*10) + ')'
         self.assertEqual(list_to_str(long), expected)
 
     def test_list_to_str_nonlist(self):
@@ -147,6 +146,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
     # 8. import_vars / export_vars ------------------------------------- #
     # ------------------------------------------------------------------ #
     def test_import_and_export_vars(self):
+        #pylint: disable=global-variable-undefined
         # Set some globals
         global TEST_GLOBAL
         TEST_GLOBAL = "hello"
@@ -170,6 +170,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
             _ = VAR2  # not imported
 
     def test_export_vars_specific(self):
+        #pylint: disable=global-variable-undefined
         global VAR1, VAR2
         VAR1 = "x"
         VAR2 = "y"
@@ -180,4 +181,3 @@ class TestEnvironmentFunctions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
