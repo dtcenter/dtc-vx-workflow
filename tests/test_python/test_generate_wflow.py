@@ -12,7 +12,6 @@ from typing import Union
 
 from python_utils import (
     run_command,
-    define_macos_utilities,
     set_env_var,
     get_env_var,
 )
@@ -33,7 +32,6 @@ class Testing(unittest.TestCase):
             self._run_generate_wflow_test_(test)
 
     def setUp(self) -> None:
-        define_macos_utilities()
         set_env_var("DEBUG", False)
         set_env_var("VERBOSE", False)
 
