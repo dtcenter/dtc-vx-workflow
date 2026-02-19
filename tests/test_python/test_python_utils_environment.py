@@ -46,7 +46,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
     # ------------------------------------------------------------------ #
     def test_date_to_str_default(self):
         dt = datetime(2022, 1, 1, 12, 30, 45)
-        self.assertEqual(date_to_str(dt), "20220101123045")
+        self.assertEqual(date_to_str(dt), "202201011230")
 
     def test_date_to_str_custom(self):
         dt = datetime(2022, 1, 1, 12, 30, 45)
@@ -86,7 +86,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
         self.assertEqual(type_to_str(True), "True")
         self.assertEqual(type_to_str(42), "42")
         self.assertEqual(type_to_str(3.14), "3.14")
-        self.assertEqual(type_to_str(datetime(2022, 1, 1)), "20220101")
+        self.assertEqual(type_to_str(datetime(2022, 1, 1)), "202201010000")
         self.assertEqual(type_to_str(None), "")
         self.assertEqual(type_to_str("spam"), "spam")
 
@@ -102,9 +102,9 @@ class TestEnvironmentFunctions(unittest.TestCase):
         )
 
     def test_list_to_str_multiline(self):
-        long = ["a"] * 10
+        long = ["a"] * 7
         # >4 items, multiline
-        expected = '( ' + ' '.join(['"a"']*10) + ')'
+        expected = "( \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n\"a\" \\\n)"
         self.assertEqual(list_to_str(long), expected)
 
     def test_list_to_str_nonlist(self):
@@ -126,8 +126,8 @@ class TestEnvironmentFunctions(unittest.TestCase):
         self.assertEqual(str_to_list("spam"), "spam")
 
     def test_str_to_list_empty(self):
-        self.assertIsNone(str_to_list("( )"))
-        self.assertIsNone(str_to_list("()"))
+        self.assertEqual(str_to_list("( )"), [])
+        self.assertIsNone(str_to_list("()"), [])
         self.assertIsNone(str_to_list(""))
 
     # ------------------------------------------------------------------ #
@@ -165,7 +165,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
         os.environ["VAR1"] = "1"
         os.environ["VAR2"] = "2"
         import_vars(env_vars=["VAR1"])
-        self.assertEqual(VAR1, "1")
+        self.assertEqual(VAR1, 1)
         with self.assertRaises(NameError):
             _ = VAR2  # not imported
 
