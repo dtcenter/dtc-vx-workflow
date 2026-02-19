@@ -2,6 +2,7 @@
 ush directory """
 
 #pylint: disable=invalid-name
+import glob
 import os
 import shutil
 import sys
@@ -19,16 +20,18 @@ from python_utils import (
 
 from generate_wflow import generate_wflow
 
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+USH_DIR = os.path.join(TEST_DIR, "..", "..", "ush")
+WE2E_DIR = os.path.join(TEST_DIR, "..", "WE2E") 
 class Testing(unittest.TestCase):
     """ Class to run the tests. """
     def test_generate_wflow_community(self) -> None:
 
-        """ Test that a sample config can successfully
-        lead to the creation of an experiment directory. No jobs are
-        submitted. """
+        """ Test that, for each workflow end-to-end test, the config file can successfully lead to
+        the creation of an experiment directory. No jobs are submitted. """
 
-        src_config_yaml_filename = "config.community.yaml"
-        self._run_generate_wflow_test_(src_config_yaml_filename)
+        for test in glob.glob(os.path.join(WE2E_DIR,"test_configs/*/config*yaml")):
+            self._run_generate_wflow_test_(test)
 
     def setUp(self) -> None:
         define_macos_utilities()
@@ -38,8 +41,8 @@ class Testing(unittest.TestCase):
     @staticmethod
     def _run_generate_wflow_test_(src_config_yaml_filename: Union[str, Path]) -> None:
         # run workflows in separate process to avoid conflict between community and nco settings
-        def run_workflow(USHdir, logfile):
-            p = Process(target=generate_wflow, args=(USHdir, "config.yaml", logfile))
+        def run_workflow(logfile):
+            p = Process(target=generate_wflow, args=(USH_DIR, "config.yaml", logfile))
             p.start()
             p.join()
             exit_code = p.exitcode
@@ -50,26 +53,20 @@ class Testing(unittest.TestCase):
 
         logfile = "log.generate_wflow"
         sed = get_env_var("SED")
-        # create a build settings file if needed
-        test_dir = os.path.dirname(os.path.abspath(__file__))
-        USHdir = os.path.join(test_dir, "..", "..", "ush")
-        EXECdir = os.path.join(USHdir, "..", "exec")
-        build_settings_file = os.path.join(EXECdir, "build_settings.yaml")
-        if not os.path.exists(build_settings_file):
-            os.makedirs(EXECdir, exist_ok=True)
-            with open(build_settings_file, 'w', encoding='utf-8') as build_settings:
-                build_settings.write('Machine: LINUX\n')
-                build_settings.write('Application:\n')
-        src_config_yaml = Path(USHdir) / src_config_yaml_filename
-        shutil.copy(src_config_yaml, f"{USHdir}/config.yaml")
+        shutil.copy(src_config_yaml_filename, f"{USH_DIR}/config.yaml")
+        # Append mandatory variables to end of config file
+        addtext = "\nuser:\n  MACHINE: LINUX\n  ACCOUNT: an_account"
+        addtext += "\nplatform:\n  MET_INSTALL_DIR: /dummy/path\n  METPLUS_ROOT: /dummy/path"
+        with open(f"{USH_DIR}/config.yaml", "a", encoding="utf-8") as f:
+            f.write(addtext)
 
         # If running CI, point config.yaml to correct location for fix files
         if fix_files := get_env_var("CI_FIX_FILES"):
             run_command(
-                f"""{sed} -i 's/MACHINE: HERA/MACHINE: LINUX/g' {USHdir}/config.yaml"""
+                f"""{sed} -i 's/MACHINE: HERA/MACHINE: LINUX/g' {USH_DIR}/config.yaml"""
             )
-            machine_file = f"{USHdir}/machine/linux.yaml"
+            machine_file = f"{USH_DIR}/machine/linux.yaml"
             sed_command = f"{sed} -i 's|/home/username/DATA/UFS|{fix_files}|g' " \
                           f"{machine_file}"
             run_command(sed_command)
-        run_workflow(USHdir, logfile)
+        run_workflow(logfile)
