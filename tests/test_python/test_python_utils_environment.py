@@ -127,7 +127,7 @@ class TestEnvironmentFunctions(unittest.TestCase):
 
     def test_str_to_list_empty(self):
         self.assertEqual(str_to_list("( )"), [])
-        self.assertIsNone(str_to_list("()"), [])
+        self.assertEqual(str_to_list("()"), [])
         self.assertIsNone(str_to_list(""))
 
     # ------------------------------------------------------------------ #
