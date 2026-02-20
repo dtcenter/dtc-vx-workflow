@@ -6,7 +6,6 @@ import logging
 import time
 from textwrap import dedent
 from datetime import datetime
-from pathlib import Path
 
 sys.path.append("../../ush")
 from python_utils import check_python_version, load_config_file

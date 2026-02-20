@@ -3,7 +3,6 @@
 import sys
 import argparse
 import logging
-from pathlib import Path
 
 
 sys.path.append("../../ush")
