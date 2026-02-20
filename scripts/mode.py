@@ -235,15 +235,6 @@ if __name__ == "__main__":
 
     setup_logging(debug=pargs.verbose)
 
-    logging.info(dedent(f"""
-        ========================================================================
-        Executing program: {__file__}
-
-        This is the ex-script for the task that runs the METplus MODE
-        tool to perform deterministic verification of the specified field group
-        (FIELD_GROUP) for a single forecast.
-        ========================================================================"""))
-
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
