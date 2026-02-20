@@ -1,18 +1,12 @@
 # pylint: disable=logging-fstring-interpolation
-"""gridstat_or_pointstat.py
-
-Main script to set up and run GridStat or PointStat tasks via METplus.
-The module exposes a ``main()`` function that:
-
-* Parses experiment configuration
-* Determines grid or point mode and associated parameters
-* Computes lead hours
-* Renders a METplus configuration
-* Invokes the METplus wrapper
-* Creates completion flag files
-
-The script is intended to be called from ../jobs/GRIDSTAT_OR_POINTSTAT.sh.
 """
+Converted from gridstat_or_pointstat.sh, this script calls the METplus "GridStat" or "PointStat"
+tool depending on the runtime settings, to verify a meteorological forecast against gridded or
+point observations respectively.
+
+The script is intended to be called from jobs/GRIDSTAT_OR_POINTSTAT.sh.
+"""
+
 import argparse
 import ast
 import logging
@@ -31,9 +25,52 @@ from python_utils import setup_logging, render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst_level,fcst_thresh):
+def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,
+                          fcst_level,fcst_thresh):
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
-    """Main program for setting up GridStat task and calling METplus wrapper"""
+    """
+    Execute a METplus ``GridStat`` or ``PointStat`` verification task.
+
+    Parameters
+    ----------
+    config_file : str
+        Path to the experiment YAML configuration file.
+    cdate : str
+        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+    obs_dir : str
+        Directory containing observation files for the chosen ``obtype``.
+    field_group : str
+        Group of observation fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
+    obtype : str
+        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``).
+    accum_hh : int
+        Accumulation hours for the observation type.
+    ensmem_index : int
+        Index of the ensemble member to process (``0`` for deterministic runs).
+    fcst_level : str
+        METplus forecast level (e.g., ``L0``, ``A03``).
+    fcst_thresh : str
+        Forecast threshold set to verify against, usually ``"all"`` or ``"none"``.
+
+    Returns
+    -------
+    None
+        The function runs METplus, potentially in parallel with multiprocessing depending on user
+        settings, and exits when all tasks finish.
+
+    Notes
+    -----
+    * The function reads the experiment configuration, determines whether the verification should
+      run in *grid* or *point* mode based on the field geometry defined in the Rocoto task and set
+      by the set_vx_params() function, and constructs all the directory and file paths required
+      for the METplus run.
+    * For each parallel task, it builds a list of valid lead hours, renders a configuration file
+      based on the Jinja template in parm/metplus/, and executes the METplus tasks in parallel
+      using ``multiprocessing.Pool``.
+    * Errors are raised for missing observation directories, empty lead‑hour lists, or unsupported
+      task/observation type combinations.
+    * A METplus log file is written for each parallel task.
+    """
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -45,9 +82,10 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
 
     # Check that basic input directories exist:
     if not Path(obs_dir).is_dir():
-        raise FileNotFoundError(f"OBS_DIR does not exist or is not a directory:\n{obs_dir=}")
+        raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
 
-    # Set various verification parameters associated with the field to be verified
+    # Set various verification parameters associated with the field to be verified, including
+    # whether we are running GridStat or Pointstat (geom)
     geom, _, _, met_out_name, met_filedir_name = set_vx_params(obtype,field_group,accum_hh)
 
     ensmem=f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
@@ -320,16 +358,7 @@ if __name__ == "__main__":
 
     setup_logging(debug=args.verbose)
 
-    logging.info(dedent(f"""
-        ========================================================================
-        Executing program: {__file__}
-
-        This is the ex-script for the task that runs the METplus GridStat or PointStat
-        tool to perform deterministic verification of the specified field group
-        (FIELD_GROUP) for a single forecast.
-        ========================================================================"""))
-
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,args.accum_hh,
-         args.ensmem_index,args.fcst_level,args.fcst_thresh)
+    gridstat_or_pointstat(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,
+         args.accum_hh,args.ensmem_index,args.fcst_level,args.fcst_thresh)

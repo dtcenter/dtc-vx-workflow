@@ -1,11 +1,10 @@
-"""
-This module contains a command‑line wrapper that sets up and executes the
-METplus *MODE* verification task for deterministic verification.
-The script parses arguments, reads configuration files, generates
-per‑lead‑hour METplus configuration files with Jinja2 templates,
-and runs the METplus wrapper in parallel using a process pool.
-"""
 # pylint: disable=logging-fstring-interpolation
+"""
+This is a python wrapper that sets up and executes the METplus *MODE* verification task for
+deterministic verification.
+
+The script is intended to be called from jobs/MODE.sh.
+"""
 import argparse
 import logging
 import os
@@ -21,9 +20,46 @@ import uwtools.api.config as uwconfig
 from python_utils import setup_logging, render_metplus_confs, make_var_lists
 from set_leadhrs import set_leadhrs
 
-def main(config_file,cdate,field_group,obtype):
+def mode(config_file,cdate,field_group,obtype):
     # pylint: disable=too-many-locals
-    """Main program for setting up MODE task and calling METplus wrapper"""
+    """
+    Execute a METplus MODE verification task.
+
+    Parameters
+    ----------
+    config_file : str
+        Path to the experiment YAML configuration file.
+    cdate : str
+        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+    field_group : str
+        Group of fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
+    obtype : str
+        Observation type for this verification task (e.g., ``GOESAOD``).
+
+    Returns
+    -------
+    None
+        The function runs METplus, potentially in parallel with multiprocessing depending on user
+        settings, and exits when all tasks finish.
+
+    Notes
+    -----
+    * Reads the experiment configuration and pulls-verification and MODE-specific settings from the
+      YAML files.
+    * For the current implementation only ``GOESAOD`` is supported; the function sets up observation
+      and forecast directories, and constructs templates for input files.
+    * A list of valid lead hours is computed with `set_leadhrs`.  If the list is empty a
+      `RuntimeError` is raised.
+    * Mask files for verification over specific regions are located from the METplus configuration
+      directory or the MET install directory.
+    * Variable names for forecast and observation data are built with `make_var_lists` based on the
+      field group.
+    * A Jinja configuration template (``MODE.conf``) is rendered into a METplus conf file for each
+      lead hour, then each rendered file is run with `run_metplus` using a `multiprocessing.Pool`
+      of `mode: TASKS` workers.
+    * A METplus log file is written for each parallel task.
+
+    """
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -211,4 +247,4 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype)
+    mode(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype)

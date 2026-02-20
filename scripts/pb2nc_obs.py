@@ -1,6 +1,9 @@
 # pylint: disable=logging-fstring-interpolation
 """
-Converted from scripts/pb2nc_obs.sh
+Converted from scripts/pb2nc_obs.sh, this script calls the METplus "PB2NC" tool to convert
+PrepBUFR observation files to NetCDF.
+
+The script is intended to be called from jobs/PB2NC_OBS.sh
 """
 
 import argparse
@@ -17,7 +20,7 @@ from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
 from python_utils import setup_logging, render_metplus_confs
 
 
-def main(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
+def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
     # pylint: disable=too-many-locals
     """Main routine for PB2NC observation conversion.
 
@@ -156,7 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose debug output")
     args = parser.parse_args()
 
-    main(
+    pb2nc(
         args.config,
         args.cycle_date,
         args.obtype,

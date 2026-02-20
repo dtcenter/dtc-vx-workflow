@@ -1,8 +1,10 @@
-#!/usr/bin/env python3
-"""
-Converted from scripts/ascii2nc_obs.sh
-"""
 # pylint: disable=logging-fstring-interpolation
+"""
+Converted from scripts/ascii2nc_obs.sh, this script calls the METplus "ASCII2NC" tool to convert
+ASCII observation files to NetCDF.
+
+The script is intended to be called from jobs/ASCII2NC_OBS.sh
+"""
 
 import argparse
 import os
@@ -16,12 +18,8 @@ import uwtools.api.config as uwconfig
 from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
 from python_utils import setup_logging, render_metplus_confs
 
-# ------------------------------------------------------------------
-# Core functions ----------------------------------------------------
-# ------------------------------------------------------------------
 
-
-def main(config_file, cdate, obtype):
+def ascii2nc_obs(config_file, cdate, obtype):
     # pylint: disable=too-many-locals
     """Call METplus ASCII2NC tool to convert ASCII observation files to NetCDF.
 
@@ -31,7 +29,7 @@ def main(config_file, cdate, obtype):
         Path to the YAML experiment configuration file.
     cdate : str
         Cycle date in ``YYYYMMDDHH`` format that identifies the forecast
-        window to process.
+        cycle start date to process.
     obtype : str
         Observation type, e.g. ``"AERONET"`` or ``"AIRNOW"``.
 
@@ -49,6 +47,8 @@ def main(config_file, cdate, obtype):
     None
 
     """
+    # Name of the METplus tool in "CamelCase"; previous variable name MetplusToolName is not
+    # allowed by PEP8 standards
     metplus_tool_camel_case = "Ascii2nc"
     lgr = logging.getLogger(__name__)
     # Read config settings
@@ -71,10 +71,11 @@ def main(config_file, cdate, obtype):
         output_fn_template = f'{vxcfg["OBS_AIRNOW_FN_TEMPLATE_ASCII2NC_OUTPUT"]}'
         input_format = vxcfg["AIRNOW_INPUT_FORMAT"]
     else:
-        raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case.upper()}: {obtype}")
+        raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case}: {obtype}")
 
     vx_leadhr_list = []
     cycle_dt = datetime.strptime(cdate, '%Y%m%d%H')
+    # Read the "OBS_RETRIEVE_TIMES" variable set when the experiment was generated
     for time in vxcfg[f"OBS_RETRIEVE_TIMES_{obtype}_{cdate[0:8]}"]:
         validdt = datetime.strptime(time, '%Y%m%d%H')
 
@@ -93,7 +94,7 @@ def main(config_file, cdate, obtype):
     metplus_config_fn = f"{metplus_tool_camel_case}_{obtype}.conf.0"
     metplus_log_fn = f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Define variables that appear in the jinja template, add to existing settings dict.
+    # Define variables that appear in the conf file jinja template
     settings = {
         'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
         'METPLUS_TOOL_NAME': metplus_tool_camel_case.upper(),
@@ -115,7 +116,7 @@ def main(config_file, cdate, obtype):
     conf_file = render_metplus_confs(cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, 1)
     lgr.debug(f"{conf_file=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case.upper()} with METplus")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus")
     run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"), conf_file[0])
 
     lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
@@ -147,9 +148,6 @@ def create_flag_file(cfg, obtype: str, yyyymmdd: str):
     flag_file.touch()
 
 
-# ------------------------------------------------------------------
-# Main ---------------------------------------------------------------
-# ------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="ASCII→NetCDF conversion for observation files"
@@ -180,4 +178,4 @@ if __name__ == "__main__":
 
     setup_logging(debug=pargs.verbose)
 
-    main(pargs.config, pargs.cycle_date, pargs.obtype)
+    ascii2nc_obs(pargs.config, pargs.cycle_date, pargs.obtype)

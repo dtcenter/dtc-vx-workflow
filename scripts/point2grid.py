@@ -1,12 +1,9 @@
 # pylint: disable=logging-fstring-interpolation
 """
-This module implements the command‑line wrapper for the METplus
-*Point2Grid* verification task.
-It reads user arguments, loads configuration files, prepares per‑lead‑hour
-METplus configuration files with Jinja2 templates, and launches the METplus
-wrapper in parallel using a process pool.  The script is used for
-deterministic verification of GOES AOD observations against forecast
-data.
+This is a python wrapper that sets up and executes the METplus *Point2Grid* verification task for
+converting point observations onto the same grid as a provided forecast file.
+        
+The script is intended to be called from jobs/POINT2GRID.sh.
 """
 import argparse
 import logging
@@ -23,9 +20,46 @@ import uwtools.api.config as uwconfig
 from python_utils import render_metplus_confs, setup_logging
 from set_leadhrs import set_leadhrs
 
-def main(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
+def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
-    """Main program for setting up Point2Grid task and calling METplus wrapper"""
+    """Execute the METplus Point2Grid task.
+
+    Parameters
+    ----------
+    config_file : str
+        Path to the experiment YAML configuration file.
+    cdate : str
+        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+    obs_dir : str
+        Directory containing point observations for the selected ``obtype``.
+    field_group : str
+        Group of fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
+    obtype : str
+        Observation type for this verification (currently only ``GOESAOD`` is supported).
+    fcst_level : str
+        Forecast level (e.g., ``L0`` or ``A03``) expected by MET.
+    fcst_thresh : str
+        Forecast threshold set to verify against; usually ``"all"`` or ``"none"``.
+
+    Returns
+    -------
+    None
+        The function runs METplus, potentially in parallel with multiprocessing depending on user
+        settings, and exits when all tasks finish.
+
+    Notes
+    -----
+    * Reads the experiment configuration and pulls verification settings.
+    * Constructs observation, forecast, and output directories, and creates file templates for the
+      Point2Grid run.
+    * Determines valid lead hours with `set_leadhrs`.  If the list is empty a `RuntimeError` is
+      raised.
+    * Generates a configuration file from the Point2Grid.conf jinja template for each lead hour
+      using `render_metplus_confs`
+    * Executes :func:`run_metplus` for each rendered .conf file through a `multiprocessing.Pool` of
+      ``vxcfg['VX_TASKS']`` workers.
+    * A METplus log file is written for each parallel task.
+    """
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -168,7 +202,7 @@ def run_metplus(common_config,config_fn):
 if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
-                     description="exscript for running METplus Point2Grid tasks"\
+                     description="script for running METplus Point2Grid tasks"\
                      "for deterministic verification\n")
 
 #    parser.add_argument('-c', '--config', default='config.yaml',
@@ -193,17 +227,8 @@ if __name__ == "__main__":
 
     setup_logging(debug=pargs.verbose)
 
-    logging.info(dedent(f"""
-        ========================================================================
-        Executing program: {__file__}
-
-        This is the ex-script for the task that runs the METplus Point2Grid
-        tool to perform deterministic verification of the specified field group
-        (FIELD_GROUP) for a single forecast.
-        ========================================================================"""))
-
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,
+    point2grid(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,
          pargs.fcst_level,pargs.fcst_thresh)

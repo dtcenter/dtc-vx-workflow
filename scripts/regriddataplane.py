@@ -1,9 +1,9 @@
 # pylint: disable=logging-fstring-interpolation
 """
-This module provides an executable script for running the METplus RegridDataPlane task
-for deterministic verification. It parses command‑line arguments, prepares
-configuration files, and launches METplus in parallel processes. The script
-expects a configuration file, cycle date, field group, and observation type.
+This is a python wrapper that sets up and executes the METplus *RegridDataPlane* verification task
+for interpolating sparse observations onto a forecast grid
+        
+The script is intended to be called from jobs/REGRIDDATAPLANE.sh.
 """
 import argparse
 import logging
@@ -20,9 +20,35 @@ import uwtools.api.config as uwconfig
 from python_utils import setup_logging,render_metplus_confs
 from set_leadhrs import set_leadhrs
 
-def main(config_file,cdate,field_group,obtype):
+def regrid_data_plane(config_file,cdate,field_group,obtype):
     # pylint: disable=too-many-locals
-    """Main program for setting up RegridDataPlane task and calling METplus wrapper"""
+    """Execute a METplus RegridDataPlane verification task.
+
+    Parameters
+    ----------
+    config_file : str
+        Path to the experiment YAML configuration file.
+    cdate : str
+        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+    field_group : str
+        Group of fields to verify (e.g., APCP, REFC, SFC).
+    obtype : str
+        Observation type for this verification task (currently only ``GOESAOD`` is supported).
+
+    Returns
+    -------
+    None
+        The function runs METplus as a side effect and exits when all tasks finish.
+
+    Notes
+    -----
+    * Reads the experiment configuration and pulls verification settings.
+    * Determines valid lead hours with `set_leadhrs`. Raises RuntimeError if the list is empty.
+    * Generates a METplus configuration file for each lead hour using `render_metplus_confs`.
+    * Executes `run_metplus` for each config file via a `multiprocessing.Pool` of 
+      `regriddataplane: TASKS` workers.
+    * A METplus log file is written for each parallel task.
+    """
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -185,15 +211,6 @@ if __name__ == "__main__":
 
     setup_logging(debug=pargs.verbose)
 
-    logging.info(dedent(f"""
-        ========================================================================
-        Executing program: {__file__}
-
-        This is the ex-script for the task that runs the METplus RegridDataPlane
-        tool to perform deterministic verification of the specified field group
-        (FIELD_GROUP) for a single forecast.
-        ========================================================================"""))
-
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype)
+    regrid_data_plane(pargs.config,pargs.cycle_date,pargs.field_group,pargs.obtype)
