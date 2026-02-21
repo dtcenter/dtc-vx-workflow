@@ -163,7 +163,6 @@ class TestEnvironmentFunctions(unittest.TestCase):
 
     def test_import_vars_specific(self):
         os.environ["VAR1"] = "1"
-        os.environ["VAR3"] = "3"
         # Clear any stale global that might have been left over from
         # previous test runs or other test methods.
         globals().pop("VAR2", None)
