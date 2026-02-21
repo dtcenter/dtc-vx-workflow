@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+"""
+Common utilities for creating/handling METplus configuration files
+"""
 import logging
 import os
 import sys

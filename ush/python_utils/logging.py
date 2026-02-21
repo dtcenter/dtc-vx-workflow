@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-
+"""
+Common logging functions for all python scripts in scripts/ directory
+"""
 import logging
 import sys
 
