@@ -17,7 +17,6 @@ import subprocess
 from multiprocessing import Pool
 from pathlib import Path
 from string import Template
-from textwrap import dedent
 
 import uwtools.api.config as uwconfig
 
