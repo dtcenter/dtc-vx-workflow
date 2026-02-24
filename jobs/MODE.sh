@@ -53,7 +53,11 @@ scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
 # Add ush/ directory to PYTHONPATH so python script can access helper functions
-export PYTHONPATH="${PYTHONPATH}:${USHdir}"
+if [ -n "${PYTHONPATH-}" ]; then
+  export PYTHONPATH="$PYTHONPATH:$USHdir"
+else
+  export PYTHONPATH="$USHdir"
+fi
 
 print_info_msg "
 ========================================================================
