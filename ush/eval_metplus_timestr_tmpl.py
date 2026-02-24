@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import logging
 import os
 import sys
 from datetime import datetime, timedelta
+from python_utils import setup_logging
 try:
     sys.path.append(os.environ['METPLUS_ROOT'])
 except:
@@ -11,7 +13,7 @@ except:
     raise
 from metplus.util import string_template_substitution as sts
 
-def eval_metplus_timestr_tmpl(init_time, lhr, time_lag, fn_template, verbose=False):
+def eval_metplus_timestr_tmpl(init_time, lhr, time_lag, fn_template):
     """
     Calls native METplus routine for evaluating filename templates
 
@@ -21,10 +23,10 @@ def eval_metplus_timestr_tmpl(init_time, lhr, time_lag, fn_template, verbose=Fal
         lhr         (int): Lead hour (number of hours since init_time)
         time_lag    (int): Hours of time lag for a time-lagged ensemble member
         fn_template (str): The METplus filename template for finding the files
-        verbose    (bool): By default this script only outputs the list of forecast hours
     Returns:
         str: The fully resolved filename based on the input parameters
     """
+    lgr = logging.getLogger(__name__)
 
     if len(init_time) == 10:
         initdate=datetime.strptime(init_time, '%Y%m%d%H')
@@ -38,34 +40,32 @@ def eval_metplus_timestr_tmpl(init_time, lhr, time_lag, fn_template, verbose=Fal
     validdate=initdate + timedelta(hours=lhr)
     leadsec=lhr*3600
     # Evaluate the METplus timestring template for the current lead hour
-    if verbose:
-        print("Resolving METplus template for:")
-        print(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n")
+    lgr.debug("Resolving METplus template for:")
+    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n")
     # Return the full path with templates resolved
     return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
                                    lead=leadsec,time_lag=time_lag)
 
 
-def eval_metplus_dt_tmpl(initdate, validdate, time_lag, fn_template, verbose=False):
+def eval_metplus_dt_tmpl(initdate, validdate, time_lag, fn_template):
     """
-    Calls native METplus routine for evaluating filename templates
+    Calls native METplus routine for evaluating filename templates with Datetime objects as input
 
     Args:
         initdate (dt)    : Datetime object of initial time
         validdate (dt)   : Datetime object for valid time
         time_lag    (int): Hours of time lag for a time-lagged ensemble member
         fn_template (str): The METplus filename template for finding the files
-        verbose    (bool): By default this script only outputs the list of forecast hours
     Returns:
         str: The fully resolved filename based on the input parameters
     """
+    lgr = logging.getLogger(__name__)
 
     lead = validdate - initdate
     leadsec=lead.total_seconds()
     # Evaluate the METplus timestring template for the current lead hour
-    if verbose:
-        print("Resolving METplus template for:")
-        print(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n")
+    lgr.debug("Resolving METplus template for:")
+    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n")
     # Return the full path with templates resolved
     return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
                                    lead=leadsec,time_lag=time_lag)
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     parser.add_argument("-ft", "--fn_template", help="Template for file names to search; see ??? for details on template settings", type=str, default='')
 
     args = parser.parse_args()
+    setup_logging(debug=args.verbose)
 
     filename = eval_metplus_timestr_tmpl(**vars(args))
     # If called from command line, we want to print the resolved filename

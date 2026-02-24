@@ -1,5 +1,5 @@
 """
-Unit tests for miscellaneous python utilities.
+Unit tests for python utilities.
 
 To run them, issue the following command from the top-level directory:
     python3 -m unittest -b tests/test_python/test_python_utils.py
