@@ -82,7 +82,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
 
         lead = validdt - cycle_dt
         leadhr=int(lead.total_seconds()/3600)
-        file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_dir}/{obs_input_fn_template}",True)
+        file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_dir}/{obs_input_fn_template}")
         if os.path.exists(file):
             vx_leadhr_list.append(leadhr)
 
