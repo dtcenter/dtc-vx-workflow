@@ -2,32 +2,31 @@ import argparse
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import glob
+import logging
 import matplotlib.pyplot as plt
-import numpy as np
-import xarray as xr
 import shapely.geometry as sgeom
 import netCDF4 as nc
+import sys
 from matplotlib.colors import ListedColormap
 
-def plot_mode_map_poly(files, debug):
+def plot_mode_map_poly(files):
+    lgr = logging.getLogger(__name__)
 
     for f in glob.glob(files):
 
         print(f"Plotting data for file {f}")
         ds = nc.Dataset(f)
 
-        if debug:
-            print(f"{ds=}")
-            print(f"{ds.ncattrs()=}")
-            print(f"{ds.dimensions.values()=}")
-            print(f"{ds.variables.values()=}")
+        lgr.debug(f"{ds=}")
+        lgr.debug(f"{ds.ncattrs()=}")
+        lgr.debug(f"{ds.dimensions.values()=}")
+        lgr.debug(f"{ds.variables.values()=}")
 
         fcst_raw = ds['fcst_raw']
         obs_raw = ds['obs_raw']
         init_time = fcst_raw.init_time
         valid_time = fcst_raw.valid_time
-        if debug:
-            print(f"{obs_raw[:,:]=}")
+        lgr.debug(f"{obs_raw[:,:]=}")
         obtype=getattr(ds, "obtype", "unknown_obtype")
 #        simp_polys = []
 #        for start_idx, npts in tuple(zip(ds['fcst_simp_bdy_start'][:],ds['fcst_simp_bdy_npts'][:])):
@@ -64,7 +63,7 @@ def plot_mode_map_poly(files, debug):
                 maxlon=max(lons)
                 minlon=min(lons)
         if not fcst_clus_polys and not obs_clus_polys:
-            print(f"WARNING: no observation or forecast objects found in file: {f}")
+            lgr.warning(f"No observation or forecast objects found in file: {f}")
             continue
         fig = plt.figure(1, figsize=(8,4))
         ax = plt.subplot(111,projection=ccrs.LambertConformal(central_longitude=-97.5,central_latitude=38.5))
@@ -98,7 +97,7 @@ def plot_mode_map_poly(files, debug):
 #                linewidth=1.0,
 #                linestyle='--'
 #            )
-        print("Adding forecast cluster polygons")
+        lgr.info("Adding forecast cluster polygons")
         for p in fcst_clus_polys:
             ax.add_geometries(
                 [p],
@@ -108,7 +107,7 @@ def plot_mode_map_poly(files, debug):
                 linewidth=1.0,
                 linestyle='--'
             )
-        print("Adding obs cluster polygons")
+        lgr.info("Adding obs cluster polygons")
         for p in obs_clus_polys:
             ax.add_geometries(
                 [p],
@@ -129,15 +128,36 @@ def plot_mode_map_poly(files, debug):
 
         ax.pcolormesh(ds['lon'][:][:],ds['lat'][:][:],ds['fcst_raw'][:][:],cmap=fcstcols,vmin=0.1,transform=ccrs.PlateCarree())
         ax.pcolormesh(ds['lon'][:][:],ds['lat'][:][:],ds['obs_raw'][:][:],cmap=obscols,vmin=0.1,transform=ccrs.PlateCarree())
-        if debug:
-            print(f"{ds['fcst_raw'][:][:].max()=}")
-            print(f"{ds['obs_raw'][:][:].max()=}")
+        lgr.debug(f"{ds['fcst_raw'][:][:].max()=}")
+        lgr.debug(f"{ds['obs_raw'][:][:].max()=}")
         crs = ccrs.LambertConformal(central_longitude=-97.5, central_latitude=38.5)
         #plt.show()
         plt_name=f"mode_{obtype}_fcst_valid_{valid_time}.png"
-        print(f"Saving plot {plt_name}")
+        lgr.info(f"Saving plot {plt_name}")
         fig.savefig(plt_name, format='png', dpi=300)
         plt.close(fig)
+
+
+def setup_logging(debug=False):
+    
+    """Calls initialization functions for logging package, and sets the
+    user-defined level for logging in the script."""
+    
+    if debug:
+        print("Setting logging to DEBUG")
+        level=logging.DEBUG                          
+    else:
+        print("Setting logging to INFO")
+        level=logging.INFO
+               
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+        ],     
+    )          
+
 
 if __name__ == "__main__":
 
@@ -146,4 +166,5 @@ if __name__ == "__main__":
     ap.add_argument("-d","--debug", action='store_true', help="Print debug output")
     args = ap.parse_args()
 
-    plot_mode_map_poly(args.files,args.debug)
+    setup_logging(debug=args.debug)
+    plot_mode_map_poly(args.files)
