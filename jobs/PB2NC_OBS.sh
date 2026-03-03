@@ -36,6 +36,8 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+# Sets up PYTHONPATH and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -49,13 +51,6 @@ scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
-# Add ush/ directory to PYTHONPATH so python script can access helper functions
-if [ -n "${PYTHONPATH-}" ]; then
-  export PYTHONPATH="$PYTHONPATH:$USHdir"
-else
-  export PYTHONPATH="$USHdir"
-fi
-
 print_info_msg "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
@@ -64,10 +59,6 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-VERBOSE_FLAG=""
-if [ "${VERBOSE}" = "True" ]; then
-  VERBOSE_FLAG="--verbose"
-fi
 python $SCRIPTSdir/pb2nc_obs.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \

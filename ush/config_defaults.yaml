@@ -232,11 +232,11 @@ platform:
   #-----------------------------------------------------------------------
   #
   # EXTRN_MDL_DATA_STORES:
-  # A list of data stores where the scripts should look for external model
-  # data. The list is in priority order. If disk information is provided
-  # via USE_USER_STAGED_EXTRN_FILES or a known location on the platform,
-  # the disk location will be highest priority. Options are disk, hpss,
-  # aws, and nomads.
+  # A space-separated list of data stores where the scripts should look for
+  # external model data. The list is in priority order. If disk information
+  # is provided via USE_USER_STAGED_EXTRN_FILES or a known location on the
+  # platform, the disk location will be highest priority. Options are disk,
+  # hpss, aws, and nomads.
   #
   #-----------------------------------------------------------------------
   #
