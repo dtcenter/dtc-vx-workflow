@@ -1,6 +1,9 @@
 metadata:
   description: |-
-    RRFS retro verification smoke/dust (Summer 2023)
+    A test for MODE analysis of GOES AOD, which exercises Point2Grid (regrids GOES AOD obs to the
+    forecast grid) RegridDataPlane (interpolates GOES_AOD data to fill in missing data) and MODE
+    tasks. In addition, smoke/dust verification with PointStat and conventional obs verification
+    with GridStat and PointStat are also run.
 workflow:
   DATE_FIRST_CYCL: '2023071712'
   DATE_LAST_CYCL: '2023071712'
