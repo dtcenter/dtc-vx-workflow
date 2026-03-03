@@ -213,9 +213,8 @@ platform:
   # for verification tasks. They test the ability for users to manually set 
   # these observation directories.
   # 
-  # TEST_VX_FCST_INPUT_BASEDIR: 
-  # The path to user-staged forecast files for WE2E testing of verificaton 
-  # using user-staged forecast files in a known location on a given platform. 
+  # STAGED_DATA:
+  # The base path to staged test data for WE2E testing.
   #
   #-----------------------------------------------------------------------
   #
@@ -228,7 +227,7 @@ platform:
   TEST_NOHRSC_OBS_DIR: ""
   TEST_AERONET_OBS_DIR: ""
   TEST_AIRNOW_OBS_DIR: ""
-  TEST_VX_FCST_INPUT_BASEDIR: ""
+  STAGED_DATA: ""
   #
   #-----------------------------------------------------------------------
   #
