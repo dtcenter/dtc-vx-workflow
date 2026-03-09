@@ -8,10 +8,7 @@ from textwrap import dedent
 from datetime import datetime
 
 sys.path.append("../../ush")
-
-from python_utils import load_config_file
-
-from check_python_version import check_python_version
+from python_utils import check_python_version, load_config_file
 
 from utils import calculate_core_hours, write_monitor_file, update_expt_status,\
                   update_expt_status_parallel, print_WE2E_summary

@@ -1,27 +1,75 @@
+# pylint: disable=logging-fstring-interpolation
+"""
+Converted from gridstat_or_pointstat.sh, this script calls the METplus "GridStat" or "PointStat"
+tool depending on the runtime settings, to verify a meteorological forecast against gridded or
+point observations respectively.
+
+The script is intended to be called from jobs/GRIDSTAT_OR_POINTSTAT.sh.
+"""
+
 import argparse
 import ast
 import logging
 import math
 import os
 import subprocess
-import sys
 
 from multiprocessing import Pool
 from pathlib import Path
 from string import Template
-from textwrap import dedent
-
-from jinja2 import Environment, FileSystemLoader
 
 import uwtools.api.config as uwconfig
 
-sys.path.insert(1, os.environ['USHdir'])
-
+from python_utils import setup_logging, render_metplus_confs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst_level,fcst_thresh):
-    """Main program for setting up GridStat task and calling METplus wrapper"""
+def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,
+                          fcst_level,fcst_thresh):
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
+    """
+    Execute a METplus ``GridStat`` or ``PointStat`` verification task.
+
+    Parameters
+    ----------
+    config_file : str
+        Path to the experiment YAML configuration file.
+    cdate : str
+        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+    obs_dir : str
+        Directory containing observation files for the chosen ``obtype``.
+    field_group : str
+        Group of observation fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
+    obtype : str
+        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``).
+    accum_hh : int
+        Accumulation hours for the observation type.
+    ensmem_index : int
+        Index of the ensemble member to process (``0`` for deterministic runs).
+    fcst_level : str
+        METplus forecast level (e.g., ``L0``, ``A03``).
+    fcst_thresh : str
+        Forecast threshold set to verify against, usually ``"all"`` or ``"none"``.
+
+    Returns
+    -------
+    None
+        The function runs METplus, potentially in parallel with multiprocessing depending on user
+        settings, and exits when all tasks finish.
+
+    Notes
+    -----
+    * The function reads the experiment configuration, determines whether the verification should
+      run in *grid* or *point* mode based on the field geometry defined in the Rocoto task and set
+      by the set_vx_params() function, and constructs all the directory and file paths required
+      for the METplus run.
+    * For each parallel task, it builds a list of valid lead hours, renders a configuration file
+      based on the Jinja template in parm/metplus/, and executes the METplus tasks in parallel
+      using ``multiprocessing.Pool``.
+    * Errors are raised for missing observation directories, empty lead‑hour lists, or unsupported
+      task/observation type combinations.
+    * A METplus log file is written for each parallel task.
+    """
     lgr = logging.getLogger(__name__)
 
     # Read config settings
@@ -33,9 +81,10 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
 
     # Check that basic input directories exist:
     if not Path(obs_dir).is_dir():
-        raise FileNotFoundError(f"OBS_DIR does not exist or is not a directory:\n{obs_dir=}")
+        raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
 
-    # Set various verification parameters associated with the field to be verified
+    # Set various verification parameters associated with the field to be verified, including
+    # whether we are running GridStat or Pointstat (geom)
     geom, _, _, met_out_name, met_filedir_name = set_vx_params(obtype,field_group,accum_hh)
 
     ensmem=f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
@@ -65,8 +114,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
     if geom == "grid":
         metplus_tool_name = "grid_stat"
-        MetplusToolName = "GridStat"
-        METPLUS_TOOL_NAME = "GRID_STAT"
+        metplus_tool_camel_case = "GridStat"
         if "APCP" in met_filedir_name:
             if do_ens:
                 obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
@@ -74,9 +122,13 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
             else:
                 obs_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_obs")
                 fcst_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_fcst")
-            obs_in_fn_template = Template(vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
+            obs_in_fn_template = Template(
+                vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
             lgr.debug(f"{vxcfg['FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT']=}")
-            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
+            fcst_in_fn_template = Template(
+                vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
             lgr.debug(f"{fcst_in_fn_template=}")
         elif "ASNOW" in met_filedir_name:
             if do_ens:
@@ -85,8 +137,14 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
             else:
                 obs_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_obs")
                 fcst_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_fcst")
-            obs_in_fn_template = Path(Template(vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars))
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars))
+            obs_in_fn_template = Path(
+                Template(
+                    vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+                ).substitute(subvars)
+            )
+            fcst_in_fn_template = Path(
+                Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
+            )
         elif met_filedir_name == "REFC":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
@@ -104,8 +162,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
 
     elif geom == "point":
         metplus_tool_name = "point_stat"
-        MetplusToolName = "PointStat"
-        METPLUS_TOOL_NAME = "POINT_STAT"
+        metplus_tool_camel_case = "PointStat"
         if obtype == "NDAS":
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
@@ -136,17 +193,19 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
             else:
                 fcst_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_fcst")
             obs_in_fn_template = vxcfg["OBS_AIRNOW_FN_TEMPLATE_ASCII2NC_OUTPUT"]
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars))
+            fcst_in_fn_template = Path(
+                Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
+            )
         else:
             raise ValueError(f"Invalid OBTYPE for PointStat: {obtype}")
     else:
         raise ValueError(f"Invalid parameters:\n{obtype=}\n{field_group=}\n{accum_hh=}")
 
     if do_ens:
-        output_dir=Path(exptdir, cdate, ensmem, "metprd", MetplusToolName)
+        output_dir=Path(exptdir, cdate, ensmem, "metprd", metplus_tool_camel_case)
         staging_dir=Path(exptdir, cdate, ensmem, "stage", met_filedir_name)
     else:
-        output_dir=Path(exptdir, cdate, "metprd", MetplusToolName)
+        output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
         staging_dir=Path(exptdir, cdate, "stage", met_filedir_name)
 
     # Make sure the MET/METplus output directory(ies) exists.
@@ -188,7 +247,7 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
     # and the METplus log file
 
     metplus_config_tmpl_fn="GridStat_or_PointStat.conf"
-    metplus_config_fn=f"{MetplusToolName}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
+    metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Load YAML file containing configuration for deterministic verification
@@ -198,8 +257,8 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
                'metplus_tool_name': metplus_tool_name,
-               'MetplusToolName': MetplusToolName,
-               'METPLUS_TOOL_NAME': METPLUS_TOOL_NAME,
+               'MetplusToolName': metplus_tool_camel_case,
+               'METPLUS_TOOL_NAME': metplus_tool_name.upper(),
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
                # Date and forecast hour information.
                'cdate': cdate,
@@ -243,76 +302,17 @@ def main(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,fcst
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {MetplusToolName} with METplus with {numprocs} tasks")
-    args = []
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    mpargs = []
     for config_fn in conf_files:
-        args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+        mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{args=}")
+        lgr.debug(f"{mpargs=}")
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus,args)
+        pool.starmap(run_metplus,mpargs)
 
-    lgr.info(f"{MetplusToolName} completed successfully.")
+    lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
-
-def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
-    """Renders metplus conf files from the appropriate template and user settings.
-    If VX_TASKS > 1 and vx_leadhr_list > 1, renders a conf file for each parallel task.
-    Returns the filename(s) of metplus conf files that were rendered"""
-
-    logger = logging.getLogger(__name__)
-
-    num_fhrs = len(vx_leadhr_list)
-    outconfs = []
-    logger.debug(f"Loading METplus conf template file: {template_fn}")
-    logger.debug(f"from directory {cfg['user']['METPLUS_CONF']}")
-    env = Environment(loader=FileSystemLoader(cfg['user']['METPLUS_CONF']))
-    template = env.get_template(template_fn)
-
-    if tasks > 1:
-        # Break down forecast hours according to number of tasks requested
-        if tasks > num_fhrs:
-            logger.warning("Number of tasks is greater than number of forecast hours\n"\
-                           f"Only running {num_fhrs} tasks in parallel")
-            tasks = len(vx_leadhr_list)
-
-
-        for i in range(tasks):
-            logger.debug(f"Rendering conf file for task {i}")
-            # We will have i conf files, so append i to the base filename for each
-            settings['metplus_log_fn'] = f"{settings['metplus_log_fn'].rsplit('.',1)[0]}.{i}"
-            settings['metplus_config_fn'] = f"{settings['metplus_config_fn'].rsplit('.',1)[0]}.{i}"
-            outconf = f"{settings['output_dir']}/{settings['metplus_config_fn']}"
-            logger.debug(f"metplus log file for task: {settings['metplus_log_fn']}")
-            logger.debug(f"metplus final rendered conf for task: {outconf}")
-            hours_per_task,remainder = divmod(num_fhrs,tasks)
-            # For cases where things don't divide evenly, ensure we get best distribution
-            if i >= remainder:
-                vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task:],vx_leadhr_list[:hours_per_task]
-            else:
-                vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task+1:],vx_leadhr_list[:hours_per_task+1]
-            settings['vx_leadhr_list'] = ', '.join(map(str,task_fhrs))
-            logger.debug(f"Task {i} will process lead hours: {settings['vx_leadhr_list']}")
-            rendered = template.render(settings)
-            with open(outconf,'w', encoding="utf-8") as f:
-                f.write(rendered)
-            outconfs.append(outconf)
-
-    else:
-        #Remove task-specific suffixes if we're only using one task
-        settings['metplus_log_fn'] = settings['metplus_log_fn'].rsplit('.',1)[0]
-        settings['metplus_config_fn'] = settings['metplus_config_fn'].rsplit('.',1)[0]
-        outconf = f"{settings['output_dir']}/{settings['metplus_config_fn']}"
-        logger.debug("Rendering conf file")
-        logger.debug(f"metplus log file: {settings['metplus_log_fn']}")
-        logger.debug(f"metplus final rendered conf: {settings['metplus_config_fn']}")
-        logger.debug(f"Will process lead hours: {settings['vx_leadhr_list']}")
-        rendered = template.render(settings)
-        with open(outconf,'w', encoding="utf-8") as f:
-            f.write(rendered)
-        outconfs = [outconf]
-
-    return outconfs
 
 def run_metplus(common_config,config_fn):
     """Calls the run_metplus script as a subprocess. If VX_TASKS > 1 and vx_leadhr_list > 1,
@@ -327,20 +327,6 @@ def run_metplus(common_config,config_fn):
     ], check=True)
 
 
-def setup_logging(debug=False):
-
-    """Calls initialization functions for logging package, and sets the
-    user-defined level for logging in the script."""
-
-    logging.basicConfig()
-    logger = logging.getLogger(__name__)
-    if debug:
-        print("Setting logging to DEBUG")
-        logger.setLevel(logging.DEBUG)
-    else:
-        print("Setting logging to INFO")
-        logger.setLevel(logging.INFO)
-
 if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
@@ -348,39 +334,30 @@ if __name__ == "__main__":
                      "for deterministic verification\n")
 
     parser.add_argument('--accum_hh', default=1,type=int,
-                        help='Accumulation hours for this observation type')
+           help='Accumulation hours for this observation type')
     parser.add_argument('--config', default='config.yaml',type=str,
-                        help='Name of experiment config file in YAML format')
+           help='Name of experiment config file in YAML format')
     parser.add_argument('--cycle_date', required=True, type=str,
-                        help='Eight-digit cycle date (YYMMDDHH)')
+           help='Eight-digit cycle date (YYMMDDHH)')
     parser.add_argument('--ensmem_index', required=True, type=int,
-                        help='The ensemble member index (e.g. 0 for deterministic, 1,2,3 etc. for ensemble member number 1,2,3 etc.')
+           help='The index for this ensemble member (0 for deterministic)')
     parser.add_argument('--field_group', required=True, type=str,
-                        help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
+           help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--fcst_level', required=True, type=str,
-                        help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
+           help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
     parser.add_argument('--fcst_thresh', required=True, type=str,
-                        help='The set of forecast thresholds to verify against. Valid options are "all" and "none".')
+           help='Set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
-                        help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
+           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
-                        help='Observation directory for this obtype')
+           help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Script will be run in verbose mode')
+           help='Script will be run in verbose mode')
     args = parser.parse_args()
 
     setup_logging(debug=args.verbose)
 
-    logging.info(dedent(f"""
-        ========================================================================
-        Executing program: {__file__}
-
-        This is the ex-script for the task that runs the METplus GridStat or PointStat
-        tool to perform deterministic verification of the specified field group
-        (FIELD_GROUP) for a single forecast.
-        ========================================================================"""))
-
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
-    main(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,args.accum_hh,
-         args.ensmem_index,args.fcst_level,args.fcst_thresh)
+    gridstat_or_pointstat(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,
+         args.accum_hh,args.ensmem_index,args.fcst_level,args.fcst_thresh)

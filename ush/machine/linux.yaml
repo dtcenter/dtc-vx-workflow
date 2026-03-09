@@ -7,6 +7,9 @@ platform:
   TEST_MRMS_OBS_DIR: /Users/username/DATA/UFS/obs_data/mrms/proc
   TEST_NDAS_OBS_DIR: /Users/username/DATA/UFS/obs_data/ndas/proc
   TEST_NOHRSC_OBS_DIR: /Users/username/DATA/UFS/obs_data/nohrsc/proc
+  TEST_AERONET_OBS_DIR: /Users/username/DATA/UFS/obs_data/aeronet/proc 
+  TEST_AIRNOW_OBS_DIR: /Users/username/DATA/UFS/obs_data/airnow/proc
+  TEST_GDAS_OBS_DIR: /Users/username/DATA/UFS/obs_data/gdas/proc
   RUN_CMD_FCST: mpirun -n ${PE_MEMBER01}
   RUN_CMD_POST: mpirun
   RUN_CMD_PRDGEN: mpirun

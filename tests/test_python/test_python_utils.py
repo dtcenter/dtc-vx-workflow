@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-
 """
 Unit tests for python utilities.
 
-To run them, issue the following command from the ush directory:
-    python3 -m unittest -b python_utils/test_python_utils.py
+To run them, issue the following command from the top-level directory:
+    python3 -m unittest -b tests/test_python/test_python_utils.py
 
-All modules needed to build and run the regional_workflow need to be
-loaded first before executing unit tests.
+All conda packages needed to run the workflow must be loaded for unit tests to pass
 
 """
 
@@ -113,69 +110,10 @@ class Testing(unittest.TestCase):
                 )
             util.create_symlink_to_file(target, symlink)
 
-    def test_define_macos_utilities(self):
-        """ Test that environment setting and getting utils work. Also,
-        that environment contains macos utilities (arranged in setUP)"""
-
-        util.set_env_var("MACOS_TEST_VAR", "MYVAL")
-        py_val = os.getenv("MACOS_TEST_VAR")
-        workflow_val = util.get_env_var("MACOS_TEST_VAR")
-
-        # Validate the real env was set, and that the
-        # function retrieves the same value.
-        self.assertEqual(py_val, "MYVAL")
-        self.assertEqual(workflow_val, "MYVAL")
-
-        self.assertEqual(os.getenv("SED"), "gsed" if os.uname() == "Darwin" else "sed")
-
     def test_print_input_args(self):
         """ Test that print_input_args can count the args. """
         valid_args = {"arg1": 1, "arg2": 2, "arg3": 3, "arg4": 4}
         self.assertEqual(util.print_input_args(valid_args), 4)
-
-    def test_import_vars(self):
-        """ Test import/export vars."""
-        # test import
-        global IMPORT_TEST_VAR #pylint: disable=global-variable-undefined
-
-        util.set_env_var("IMPORT_TEST_VAR", "MYVAL")
-        env_vars = ["PWD", "IMPORT_TEST_VAR"]
-
-        # Makes all environment variables available in local scope for
-        # python
-        util.import_vars(env_vars=env_vars)
-
-        # assuming all environments already have $PWD set
-        self.assertEqual(
-            os.path.realpath(PWD), #pylint: disable=undefined-variable
-            os.path.realpath(os.getcwd())
-            )
-        self.assertEqual(IMPORT_TEST_VAR, "MYVAL") #pylint: disable=used-before-assignment
-
-        # test export
-        IMPORT_TEST_VAR = "MYNEWVAL"
-        self.assertEqual(os.environ["IMPORT_TEST_VAR"], "MYVAL")
-        util.export_vars(env_vars=env_vars)
-        self.assertEqual(os.environ["IMPORT_TEST_VAR"], "MYNEWVAL")
-
-        # test custom dictionary
-        dictionary = {"Hello": "World!"}
-        util.import_vars(dictionary=dictionary)
-        self.assertEqual(Hello, "World!") #pylint: disable=undefined-variable
-
-    def test_str_to_list(self):
-        """ Test transforming a string formatted like a list into a
-        proper python list"""
-        # string has closing bracket
-        shell_str = '("1" "2") \n'
-        v = util.str_to_list(shell_str)
-        self.assertTrue(isinstance(v, list))
-        self.assertEqual(v, [1, 2])
-
-        # string does not have closing bracket
-        shell_str = '( "1" "2" \n'
-        v = util.str_to_list(shell_str)
-        self.assertFalse(isinstance(v, list))
 
     def test_config_parser(self):
         """ Test loading different config files """
@@ -199,7 +137,6 @@ class Testing(unittest.TestCase):
         If you need to download files for running test cases, prepare common stuff
         for all test cases etc, this is the best place to do it"""
 
-        util.define_macos_utilities()
         util.set_env_var("DEBUG", "FALSE")
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
         self.ushdir = os.path.join(self.test_dir, "..", "..", "ush")

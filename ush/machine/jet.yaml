@@ -26,7 +26,6 @@ platform:
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/input_model_data
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
-  TEST_VX_FCST_INPUT_BASEDIR: '{{ "/mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{% raw %}{% endraw %}'
   EXTRN_MDL_DATA_STORES: hpss aws nomads
   MET_BASE: /contrib/spack-stack/spack-stack-1.6.0/envs/fms-2024.01/install/intel/2021.5.0/
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-iw45pz7'

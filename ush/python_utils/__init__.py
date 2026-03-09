@@ -1,8 +1,8 @@
 from .misc import uppercase, lowercase, find_pattern_in_str, find_pattern_in_file, dict_find
 from .check_for_preexist_dir_file import check_for_preexist_dir_file
+from .check_python_version import check_python_version
 from .check_var_valid_value import check_var_valid_value
 from .create_symlink_to_file import create_symlink_to_file
-from .define_macos_utilities import define_macos_utilities
 from .environment import (
     str_to_date,
     date_to_str,
@@ -15,6 +15,7 @@ from .environment import (
     import_vars,
     export_vars,
 )
+from .logging import setup_logging
 from .print_input_args import print_input_args
 from .print_msg import print_err_msg_exit
 from .run_command import run_command
@@ -39,3 +40,4 @@ from .config_parser import (
     cfg_to_yaml_str,
     extend_yaml,
 )
+from .metplus_conf_utils import render_metplus_confs, make_var_lists

@@ -1,0 +1,80 @@
+metadata:
+  description: |-
+    A test for MODE analysis of GOES AOD, which exercises Point2Grid (regrids GOES AOD obs to the
+    forecast grid) RegridDataPlane (interpolates GOES_AOD data to fill in missing data) and MODE
+    tasks. In addition, smoke/dust verification with PointStat and conventional obs verification
+    with GridStat and PointStat are also run.
+workflow:
+  DATE_FIRST_CYCL: '2023071712'
+  DATE_LAST_CYCL: '2023071712'
+  INCR_CYCL_FREQ: 6
+  FCST_LEN_HRS: 6
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+  - parm/wflow/verify_pre.yaml
+  - parm/wflow/verify_det.yaml
+  - parm/wflow/mode.yaml
+verification:
+  METPLUS_VERBOSITY_LEVEL: 4
+  VX_FIELD_GROUPS:
+  - APCP
+  - REFC
+  - RETOP
+  - SFC
+  - UPA
+  - AOD
+  - PM25
+  - PM10
+  - GOESADP
+  - GOESAOD
+  VX_FCST_MODEL_NAME: RRFS_verification
+  VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/RRFS'
+  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H}'
+  FCST_FN_TEMPLATE: 'rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
+  CCPA_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/ccpa"
+  NOHRSC_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/nohrsc"
+  MRMS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/mrms"
+  NDAS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/ndas"
+  AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
+  AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
+  GOESAOD_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesaod"
+  GOESADP_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesadp"
+  VX_MASK:
+  - 'EAST'
+  VX_TASKS: 8
+  OBS_DATA_STORE_AERONET: http
+regriddataplane:
+  TASKS: 8
+  REGRID_METHOD: MAXGAUSS
+  GAUSSIAN_DX: 12
+  GAUSSIAN_RADIUS: 18
+mode:
+  TOTAL_INTEREST_THRESH: 0.6
+  TASKS: 8
+  CONV_THRESH: '>=0.3'
+  MERGE_THRESH: '>=5'
+  MERGE_FLAG: ENGINE
+verification_resources:
+  execution:
+    deterministic:
+      gridstat:
+        tasks_per_node: '{{ verification.VX_TASKS }}'
+        walltime: 01:00:00
+        memory: '{{ 5 * verification.VX_TASKS }}G'
+      pointstat:
+        tasks_per_node: '{{ verification.VX_TASKS }}'
+        walltime: 01:00:00
+        memory: '{{ 5 * verification.VX_TASKS }}G'
+    pcpcombine:
+      fcst:
+        walltime: 01:00:00
+      obs:
+        walltime: 00:30:00
+    point2grid:
+      walltime: 00:30:00
+    regriddataplane:
+      memory: '30G'
+    mode:
+      walltime: 01:00:00
+      memory: '30G'
+

@@ -36,6 +36,8 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+# Sets up PYTHONPATH and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -57,7 +59,10 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-$SCRIPTSdir/pb2nc_obs.sh || \
+python $SCRIPTSdir/pb2nc_obs.py ${VERBOSE_FLAG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --obtype="${OBTYPE}" || \
 print_err_msg_exit "\
 Call to \"pb2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
 

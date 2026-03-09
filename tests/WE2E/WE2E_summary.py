@@ -4,17 +4,15 @@ import sys
 import argparse
 import logging
 
-sys.path.append("../../ush")
 
+sys.path.append("../../ush")
 try:
-    from python_utils import load_config_file
+    from python_utils import check_python_version, load_config_file
 except ModuleNotFoundError:
     print("\n\nERROR: Could not load python utilities.")
     print('Note that this script can only be run in the workflow from the directory:')
     print("tests/WE2E\n\n")
     raise
-
-from check_python_version import check_python_version
 
 from utils import calculate_core_hours, create_expts_dict, print_WE2E_summary, write_monitor_file
 

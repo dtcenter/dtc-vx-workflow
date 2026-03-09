@@ -4,9 +4,9 @@ metadata:
     for smoke obs (AERONET AOD and AIRNOW PM) using RRFS prototype output.
 workflow:
   CCPP_PHYS_SUITE: FV3_RAP
-  DATE_FIRST_CYCL: '2024011100'
-  DATE_LAST_CYCL: '2024011100'
-  FCST_LEN_HRS: 18
+  DATE_FIRST_CYCL: '2023071712'
+  DATE_LAST_CYCL: '2023071712'
+  FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
     - parm/wflow/verify_pre.yaml
@@ -15,7 +15,10 @@ verification:
   VX_FCST_MODEL_NAME: RRFS_smoke_test
   VX_FIELD_GROUPS: [ "AOD", "PM25", "PM10" ]
   VX_FCST_MODEL_NAME: RRFS_CONUS
-  VX_FCST_INPUT_BASEDIR: '{{ platform.WE2E_TEST_DATA }}/input_model_data/RRFS'
+  VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/RRFS'
   FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H}'
-  FCST_FN_TEMPLATE: 'rrfs.t00z.prslev.f{lead?fmt=%HHH}.conus.grib2'
+  FCST_FN_TEMPLATE: 'rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
+  AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
+  AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
+  OBS_DATA_STORE_AERONET: http
   VX_TASKS: 4

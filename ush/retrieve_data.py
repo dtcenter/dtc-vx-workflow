@@ -177,13 +177,14 @@ def awscli_get_file(bucket,fname):
     return True
 
 
-def wget_file(url):
+def wget_file(url,debug=False):
 
     """
     Download a file from a URL source, and place it in a target location on disk.
 
     Args:
       url: URL for file to be retrieved
+      debug: Print additional progress messages
 
     Returns:
       Boolean value reflecting whether the copy was successful (True) or unsuccessful (False)
@@ -193,7 +194,10 @@ def wget_file(url):
     # -c continue previous attempt
     # -T timeout seconds
     # -t number of tries
-    cmd = f"wget -c -T 15 -t 2 '{url}'"
+    if debug:
+        cmd = f"wget -c -T 15 -t 2 '{url}'"
+    else:
+        cmd = f"wget -nv -c -T 15 -t 2 '{url}'"
     logging.debug(f"Running command: \n {cmd}")
     try:
         subprocess.run(
@@ -521,7 +525,7 @@ def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs
                             retrieved = check_file(input_loc)
 
                         else:
-                            retrieved = wget_file(input_loc)
+                            retrieved = wget_file(input_loc,cla.debug)
                         # Wait a bit before trying the next download.
                         # Seems to reduce the occurrence of timeouts
                         # when downloading from AWS

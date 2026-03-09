@@ -1,26 +1,19 @@
 #!/usr/bin/env bash
 
-
 #
 #-----------------------------------------------------------------------
 #
-# This J-Job script runs a set of tests at the end of WE2E tests.
+# This script runs the METplus Point2Grid tool for verification
 #
 # Run-time environment variables:
 #
 #    GLOBAL_VAR_DEFNS_FP
-#    FCST_DIR
-#    SLASH_ENSMEM_SUBDIR
 #
 # Experiment variables
 #
 #  user:
-#    RUN_ENV
 #    SCRIPTSdir
 #    USHdir
-#
-#  workflow:
-#    FCST_LEN_HRS
 #
 #-----------------------------------------------------------------------
 #
@@ -37,12 +30,12 @@
 sections=(
   user
   workflow
-  task_integration_test.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-
+# Sets up PYTHONPATH and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -64,8 +57,14 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-$SCRIPTSdir/integration_test.py \
-           --fcst_dir="${FCST_DIR}" \
-           --fcst_len=${FCST_LEN_HRS} || \
+python $SCRIPTSdir/point2grid.py ${VERBOSE_FLAG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --field_group="${FIELD_GROUP}" \
+  --fcst_level="${FCST_LEVEL}" \
+  --fcst_thresh="${FCST_THRESH}" \
+  --obtype="${OBTYPE}" \
+  --obs_dir="${OBS_DIR}" || \
 print_err_msg_exit "\
-Call to script \"integration_test.py\" from \"${scrfunc_fn}\" failed."
+Call to \"point2grid.py\" from \"${scrfunc_fn}\" failed."
+

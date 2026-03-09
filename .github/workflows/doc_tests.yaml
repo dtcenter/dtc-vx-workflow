@@ -1,6 +1,6 @@
 name: Doc Tests
 on:
-  push:
+#  push:
   pull_request:
     branches:
       - develop

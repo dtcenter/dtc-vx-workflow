@@ -3,13 +3,16 @@
 #
 #-----------------------------------------------------------------------
 #
-#
-# The J-Job that runs METplus for point-stat by initialization time for
-# all forecast hours.
+# This script runs the METplus MODE tool for verification
 #
 # Run-time environment variables:
 #
 #    GLOBAL_VAR_DEFNS_FP
+#    YYMMDD
+#    HH
+#    VERBOSE
+#    FIELD_GROUP
+#    OBTYPE
 #
 # Experiment variables
 #
@@ -59,10 +62,11 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-python $SCRIPTSdir/ascii2nc_obs.py ${VERBOSE_FLAG} \
+python $SCRIPTSdir/mode.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
-  --obtype="${OBTYPE}" || \
+  --field_group="${FIELD_GROUP}" \
+  --obtype="${OBTYPE}"  || \
 print_err_msg_exit "\
-Call to \"ascii2nc_obs.sh\" from \"${scrfunc_fn}\" failed."
+Call to \"mode.py\" from \"${scrfunc_fn}\" failed."
 
