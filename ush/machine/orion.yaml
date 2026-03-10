@@ -28,4 +28,4 @@ platform:
   MET_BASE: /apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/oneapi/2024.2.1
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-5zajnpj'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-24hbfcj'
-
+  STAGED_DATA: '/work2/noaa/gsd-fv3-dev/kavulich/vx_workflow/staged_data'

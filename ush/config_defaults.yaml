@@ -597,14 +597,6 @@ verification_resources:
         walltime: 00:10:00
     check_post_output:
       walltime: 00:30:00
-    regriddataplane:
-      tasks_per_node: '{{ mode.TASKS }}'
-      walltime: 00:30:00
-      memory: '{{ 10 * mode.TASKS }}G'
-    mode:
-      tasks_per_node: '{{ mode.TASKS }}'
-      walltime: 01:00:00
-      memory: '{{ 10 * mode.TASKS }}G'
 
 #----------------------------
 # Verification (VX) parameters
@@ -1004,12 +996,30 @@ point2grid:
   GOES_QC_FLAGS: '0,1'
 
 regriddataplane:
+  # Runtime settings for REGRIDDATAPLANE jobs
+  execution:
+    tasks_per_node: '{{ regriddataplane.TASKS }}'
+    walltime: 00:30:00
+    memory: '{{ 10 * regriddataplane.TASKS }}G'
+  # Number of REGRIDDATAPLANE instances to run in parallel
   TASKS: 1
+  
+  # Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
   REGRID_METHOD: MAXGAUSS
+
+  # Overrides default settings for Gaussian smoothing. Only used if REGRID_METHOD=MAXGAUSS
   GAUSSIAN_DX: 81.271
   GAUSSIAN_RADIUS: 120
 
 mode:
+  # Runtime settings for MODE jobs
+  execution:
+    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    tasks_per_node: '{{ mode.TASKS }}'
+    # Wallclock time to allocate to submitted MODE job
+    walltime: 01:00:00
+    # Memory to allocate to MODE job
+    memory: '{{ 10 * mode.TASKS }}G'
   # Number of MODE instances to run in parallel
   TASKS: 1
 
