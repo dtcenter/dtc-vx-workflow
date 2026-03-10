@@ -35,6 +35,8 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+# Sets up PYTHONPATH and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -57,8 +59,23 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-module load hpss
-$SCRIPTSdir/get_verif_obs.sh || \
-print_err_msg_exit "\
-Call to script \"get_verif_obs.sh\" from \"${scrfunc_fn}\" failed."
+cmd="\
+python3 ${SCRIPTSdir}/get_obs.py ${VERBOSE_FLAG} \
+--var_defns_path "${GLOBAL_VAR_DEFNS_FP}" \
+--obtype ${OBTYPE} \
+--obs_day ${YYMMDD}"
+print_info_msg "
+CALLING: ${cmd}"
+${cmd} || print_err_msg_exit "Error calling get_obs.py"
+#
+#-----------------------------------------------------------------------
+#
+# Create flag file that indicates completion of task.  This is needed by
+# the workflow.
+#
+#-----------------------------------------------------------------------
+#
+mkdir -p ${WFLOW_FLAG_FILES_DIR}
+file_bn="get_obs_$(echo_lowercase ${OBTYPE})"
+touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${YYMMDD}_complete.txt"
 

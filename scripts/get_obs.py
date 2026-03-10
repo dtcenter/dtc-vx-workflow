@@ -1002,17 +1002,11 @@ def parse_args(argv):
         help="Path to variable definitions file.",
     )
 
-    choices_log_level = [pair for lvl in list(logging._nameToLevel.keys())
-                              for pair in (str.lower(lvl), str.upper(lvl))]
     parser.add_argument(
-        "--log_level",
-        type=str,
-        required=False,
-        default='info',
-        choices=choices_log_level,
-        help=dedent(f"""
-            Logging level to use with the 'logging' module.
-            """))
+        "--verbose",
+        action="store_true",
+        help="Script will be run in verbose mode",
+    )
 
     parser.add_argument(
         "--log_fp",
@@ -1043,7 +1037,9 @@ if __name__ == "__main__":
     # If the name/path of a log file has been specified in the command line
     # arguments, place the logging output in it (existing log files of the
     # same name are overwritten).  Otherwise, direct the output to the screen.
-    log_level = str.upper(args.log_level)
+    log_level = "INFO"
+    if args.verbose:
+        log_level = "DEBUG"
     msg_format = "[%(levelname)s:%(name)s:  %(filename)s, line %(lineno)s: %(funcName)s()] %(message)s"
     if args.log_fp:
         logging.basicConfig(level=log_level, format=msg_format, filename=args.log_fp, filemode='w')
