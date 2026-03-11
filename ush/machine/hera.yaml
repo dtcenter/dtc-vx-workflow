@@ -33,3 +33,4 @@ platform:
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-oawslux'
 #  TUTORIAL_DATA: '/scratch3/NCEPDEV/nems/role.epic/hera/UFS_SRW_data/develop/output_data/fcst_det/RRFS_CONUS_25km/2019061500/postprd'
   STAGED_DATA: '/scratch3/BMC/hmtb/Michael.Kavulich/VX/vx_test_data'
+

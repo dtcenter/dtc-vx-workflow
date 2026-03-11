@@ -134,7 +134,8 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
         logger.debug("Rendering conf file")
         logger.debug(f"metplus log file: {settings['metplus_log_fn']}")
         logger.debug(f"metplus final rendered conf: {settings['metplus_config_fn']}")
-        logger.debug(f"Will process lead hours: {settings['vx_leadhr_list']}")
+        logger.debug(f"Will process lead hours: {vx_leadhr_list}")
+        settings['vx_leadhr_list'] = vx_leadhr_list
         rendered = template.render(settings)
         with open(outconf,'w', encoding="utf-8") as f:
             f.write(rendered)

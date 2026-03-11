@@ -1,0 +1,42 @@
+default_task_tc: &default_task_tc
+  account: '&ACCOUNT;'
+  attrs: &default_attrs
+    cycledefs: forecast
+    maxtries: '1'
+  envars: &default_vars
+    GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    YYMMDD:
+      cyclestr:
+        value: '@Y@m@d'
+    HH:
+      cyclestr:
+        value: '@H'
+    LOGDIR:
+      cyclestr:
+        value: '&LOGDIR;'
+    MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
+    METPLUS_ROOT: '&METPLUS_ROOT;'
+    nprocs: '{{ verification_resources.execution.nodes * tcpairs.execution.tasks_per_node }}'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  native: '{{ platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
+  queue: '&QUEUE_DEFAULT;'
+
+task_tcpairs:
+  <<: *default_task_tc
+  attrs:
+    cycledefs: forecast
+    maxtries: '1'
+  command: "&JOBSdir;/TCPAIRS.sh"
+  envars:
+    <<: *default_vars
+    USHdir: '&USHdir;'
+    CYCLE_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+  memory: '{{  tcpairs.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcpairs.execution.tasks_per_node }}'
+  walltime: "{{ tcpairs.execution.walltime }}"

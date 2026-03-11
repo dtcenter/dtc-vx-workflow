@@ -1,0 +1,41 @@
+#----------------------------
+# Test description
+#----------------------------
+metadata:
+  description: A basic HAFS verification test
+user:
+  workflow_blocks:
+    - verify_tc.yaml
+
+workflow:
+  DATE_FIRST_CYCL: "2023090512"
+  DATE_LAST_CYCL: "2023090512"
+  CYCL_FREQ: 6
+  FCST_LEN_HRS: 126
+  taskgroups:
+    - parm/wflow/verify_tc.yaml
+  PREEXISTING_DIR_METHOD: rename
+tropical:
+  STORM_IDS:
+    - 13
+
+verification:
+  VX_FCST_MODEL_NAME: 'hfsa'
+  VX_FCST_INPUT_BASEDIR: "/work2/noaa/dtc-hwrf/scrub/mbiswas/hfsa-01/com/2023090512/13L/"
+  FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
+  # LOG_LEVEL
+  # Python logging level for METplus wrappers. Details here:
+  # https://metplus.readthedocs.io/en/latest/Users_Guide/systemconfiguration.html#log-level
+  #
+  # METPLUS_VERBOSITY_LEVEL: 
+  # Logging verbosity level used by METplus verification tools.  0 to 9,
+  # with 0 having the fewest log messages and 9 having the most. Levels 5
+  # and above can result in very large log files and slower tool execution.
+  # 
+  METPLUS_VERBOSITY_LEVEL: 2
+  LOG_MET_VERBOSITY: 2
+  LOG_LEVEL: INFO
+
+tcpairs:
+  TECH_ID: 'OFCL'
+  MODEL: 'HFSA'

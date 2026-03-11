@@ -241,6 +241,10 @@ platform:
   #-----------------------------------------------------------------------
   #
   EXTRN_MDL_DATA_STORES: ""
+  #
+  # BEST_TRACK:
+  # Staged location on disk for TC "best track" data
+  BEST_TRACK: "" 
 
 #-----------------------------
 # WORKFLOW config parameters
@@ -438,6 +442,7 @@ workflow:
   FCST_LEN_CYCL:
     - !int '{{ workflow.FCST_LEN_HRS }}'
   LONG_FCST_LEN: !int '{{ workflow.FCST_LEN_CYCL|max if workflow.FCST_LEN_HRS < 0 else workflow.FCST_LEN_HRS }}'
+
   #
   #-----------------------------------------------------------------------
   #
@@ -535,6 +540,30 @@ global:
   NUM_ENS_MEMBERS: 0
   ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
   ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+
+tropical:
+#-----------------------------
+# Settings for tropical-cyclone-specific verification tasks (TCPAIRS, TCSTAT, TCRMW, etc.)
+#-----------------------------
+  # More information on the following settings can be found in the documentation for Automated
+  # Tropical Cyclone Forecast Data/Text Files: https://ftp.nhc.noaa.gov/atcf/README
+  #
+  # BASIN:
+  # Two-character indicator of the tropical cyclone basin: "AL", "EP", or "CP"
+  #
+  # STORM_ID:
+  # AKA "storm number", the numerical ID for the storm being forecast. This must be specified in
+  # config_vx.yaml; the default value '00' is invalid.
+  #
+
+  BASIN: "AL"
+  STORM_ID: 00
+
+  # The directory where the "a-deck" forecast track file can be found.
+  # https://hurricanes.ral.ucar.edu/realtime/index.php#about_adecks
+  ADECK_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
+  # Format for A-deck forecast track file name
+  ADECK_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.trak.atcfunix"
 
 #
 #-----------------------------------------------------------------------
@@ -924,12 +953,10 @@ verification:
   # String that specifies a descriptive name for the model being verified.
   # This is used in forming the names of the verification output files and
   # is also included in the contents of those files.
-  #
   VX_FCST_MODEL_NAME: 'srw'
   #
   # VX_FCST_OUTPUT_INTVL_HRS:
-  # The forecast output interval (in hours) to assume for verification
-  # purposes.
+  # The interval between forecast output files (in hours)
   #
   VX_FCST_OUTPUT_INTVL_HRS: 1
   #
@@ -1010,6 +1037,31 @@ regriddataplane:
   # Overrides default settings for Gaussian smoothing. Only used if REGRID_METHOD=MAXGAUSS
   GAUSSIAN_DX: 81.271
   GAUSSIAN_RADIUS: 120
+
+tcpairs:
+  # Runtime settings for TCPAIRS jobs
+  execution:
+    # Number of TCPAIRS instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCPAIRS job
+    walltime: 00:10:00
+    # Memory to allocate to TCPAIRS job
+    memory: '2G'
+  #
+  # TECH_ID_VX:
+  # The identifier for the best track data to use for TCPAIRS comparison, as read in from the
+  # ATCF-format input file. Valid values are documented here:
+  # https://ftp.nhc.noaa.gov/atcf/docs/nhc_techlist.dat
+  TECH_ID_VX: 'OFCL'
+  # MODEL:
+  # The identifier for the forecast data to use for TCPAIRS comparison; for now the valid options
+  # are 'HFSA' (HAFS-A) and 'HFSB' (HAFS-B)
+  MODEL: 'HFSA'
+
+  # OUTPUT_TEMPLATE:
+  # Template for output file(s) from TCPAIRS. {basin} {cyclone} and {init} are substituted in the
+  # METplus process, not in the workflow 
+  OUTPUT_TEMPLATE: 'tc_pairs.{{tcpairs.MODEL}}.{basin}{cyclone}{init?fmt=%Y}'
 
 mode:
   # Runtime settings for MODE jobs

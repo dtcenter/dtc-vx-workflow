@@ -28,4 +28,4 @@ platform:
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-o2ig5z3'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-sfkd4q2'
   STAGED_DATA: '/work2/noaa/gsd-fv3-dev/kavulich/vx_workflow/staged_data'
-
+  BEST_TRACK: /work/noaa/hwrf/noscrub/input/abdeck/btk
