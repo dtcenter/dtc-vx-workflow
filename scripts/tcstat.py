@@ -16,8 +16,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, run_metplus
-from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
+from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
 
 def tcstat(config_file,cdate):
     # pylint: disable=too-many-locals

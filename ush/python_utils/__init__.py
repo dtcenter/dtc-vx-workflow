@@ -41,3 +41,4 @@ from .config_parser import (
     extend_yaml,
 )
 from .metplus_conf_utils import render_metplus_confs, make_var_lists
+from .eval_metplus_tmpl import eval_metplus_timestr_tmpl, eval_metplus_dt_tmpl

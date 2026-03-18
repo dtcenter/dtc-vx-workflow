@@ -15,8 +15,7 @@ from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
-from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import eval_metplus_dt_tmpl, render_metplus_confs, setup_logging
 
 
 def ascii2nc_obs(config_file, cdate, obtype):

@@ -5,13 +5,6 @@ import os
 import sys
 from datetime import datetime, timedelta
 from python_utils import setup_logging
-try:
-    sys.path.append(os.environ['METPLUS_ROOT'])
-except:
-    print("\nERROR ERROR ERROR\n")
-    print("Environment variable METPLUS_ROOT must be set to use this script\n")
-    raise
-from metplus.util import string_template_substitution as sts
 
 def eval_metplus_timestr_tmpl(fn_template, init_time, lhr=0, time_lag=0, cyclone=0):
     """
@@ -27,6 +20,15 @@ def eval_metplus_timestr_tmpl(fn_template, init_time, lhr=0, time_lag=0, cyclone
     Returns:
         str: The fully resolved filename based on the input parameters
     """
+    # We import this here to avoid errors for unrelated functions
+    try:
+        sys.path.append(os.environ['METPLUS_ROOT'])
+    except:
+        print("\nERROR ERROR ERROR\n")
+        print("Environment variable METPLUS_ROOT must be set to use this function\n")
+        raise
+    from metplus.util import string_template_substitution as sts
+
     lgr = logging.getLogger(__name__)
 
     if len(init_time) == 10:
@@ -61,6 +63,15 @@ def eval_metplus_dt_tmpl(fn_template, initdate, validdate=None, time_lag=0, cycl
     Returns:
         str: The fully resolved filename based on the input parameters
     """
+    # We import this here to avoid errors for unrelated functions
+    try:
+        sys.path.append(os.environ['METPLUS_ROOT'])
+    except:
+        print("\nERROR ERROR ERROR\n")
+        print("Environment variable METPLUS_ROOT must be set to use this function\n")
+        raise
+    from metplus.util import string_template_substitution as sts
+
     lgr = logging.getLogger(__name__)
 
     if validdate is None:

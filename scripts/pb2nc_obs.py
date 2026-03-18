@@ -16,8 +16,7 @@ from pathlib import Path
 import uwtools.api.config as uwconfig
 
 # Import utilities and helpers
-from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import eval_metplus_dt_tmpl, render_metplus_confs, setup_logging
 
 
 def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
