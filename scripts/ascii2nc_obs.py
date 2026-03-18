@@ -81,7 +81,7 @@ def ascii2nc_obs(config_file, cdate, obtype):
 
         lead = validdt - cycle_dt
         leadhr = int(lead.total_seconds()/3600)
-        file = eval_metplus_dt_tmpl(cycle_dt, validdt, 0, f"{obs_in_dir}/{obs_in_fn_tmpl}")
+        file = eval_metplus_dt_tmpl(f"{obs_in_dir}/{obs_in_fn_tmpl}", cycle_dt, validdt)
         if os.path.exists(file):
             vx_leadhr_list.append(leadhr)
 

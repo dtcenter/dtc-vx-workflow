@@ -46,7 +46,7 @@ def set_leadhrs(date_init, lhr_min, lhr_max, lhr_intvl, base_dir, time_lag, fn_t
     for lhr in lhrs_list:
 
         # Evaluate the METplus timestring template for the current lead hour
-        fn = eval_metplus_timestr_tmpl(date_init, lhr, time_lag, fn_template)
+        fn = eval_metplus_timestr_tmpl(fn_template, date_init, lhr, time_lag)
 
         # Get the full path and check if the file exists
         fp = os.path.join(base_dir, fn)
