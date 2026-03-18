@@ -40,3 +40,24 @@ task_tcpairs:
   memory: '{{  tcpairs.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcpairs.execution.tasks_per_node }}'
   walltime: "{{ tcpairs.execution.walltime }}"
+
+task_tcstat:
+  <<: *default_task_tc
+  attrs:
+    cycledefs: forecast
+    maxtries: '1'
+  command: "&JOBSdir;/TCSTAT.sh"
+  envars:
+    <<: *default_vars
+    USHdir: '&USHdir;'
+    CYCLE_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+  memory: '{{  tcstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcstat.execution.tasks_per_node }}'
+  walltime: "{{ tcstat.execution.walltime }}"
+  dependency:
+    taskdep:
+      attrs:
+        task: tcpairs
+

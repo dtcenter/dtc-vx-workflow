@@ -565,6 +565,11 @@ tropical:
   # Format for A-deck forecast track file name
   ADECK_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.trak.atcfunix"
 
+  # MODEL:
+  # The identifier for the forecast data to use for TCPAIRS and TCSTAT comparison; for now the valid options
+  # are 'HFSA' (HAFS-A) and 'HFSB' (HAFS-B)
+  MODEL: 'HFSA'
+
 #
 #-----------------------------------------------------------------------
 #
@@ -1053,15 +1058,30 @@ tcpairs:
   # ATCF-format input file. Valid values are documented here:
   # https://ftp.nhc.noaa.gov/atcf/docs/nhc_techlist.dat
   TECH_ID_VX: 'OFCL'
-  # MODEL:
-  # The identifier for the forecast data to use for TCPAIRS comparison; for now the valid options
-  # are 'HFSA' (HAFS-A) and 'HFSB' (HAFS-B)
-  MODEL: 'HFSA'
 
   # OUTPUT_TEMPLATE:
   # Template for output file(s) from TCPAIRS. {basin} {cyclone} and {init} are substituted in the
-  # METplus process, not in the workflow 
-  OUTPUT_TEMPLATE: 'tc_pairs.{{tcpairs.MODEL}}.{basin}{cyclone}{init?fmt=%Y}'
+  # METplus process, not in the workflow. The final filename will have the ".tcst" extension added
+  # to it
+  OUTPUT_TEMPLATE: 'tc_pairs.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{init?fmt=%Y}'
+
+tcstat:
+  # Runtime settings for TCSTAT jobs
+  execution:
+    # Number of TCSTAT instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCSTAT job
+    walltime: 00:10:00
+    # Memory to allocate to TCSTAT job
+    memory: '2G'
+
+  # SUMMARY_FILE:
+  # Filename for TCstat summary output
+  # RI_FILE:
+  # Filename for TCstat rapid intensification statistics output
+  #
+  SUMMARY_FILE: 'tc_stat_summary.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
+  RI_FILE: 'tc_rirw.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
 
 mode:
   # Runtime settings for MODE jobs

@@ -1,9 +1,9 @@
 # pylint: disable=logging-fstring-interpolation
 """
-This is a python wrapper that sets up and executes the METplus TCPAIRS verification task for
+This is a python wrapper that sets up and executes the METplus TCSTAT verification task for
 verifying cyclone track forecasts.
 
-The script is intended to be called from jobs/TCPAIRS.sh.
+The script is intended to be called from jobs/TCSTAT.sh.
 """
 import argparse
 import logging
@@ -17,8 +17,9 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import setup_logging, render_metplus_confs, run_metplus
+from eval_metplus_timestr_tmpl import eval_metplus_timestr_tmpl
 
-def tcpairs(config_file,cdate):
+def tcstat(config_file,cdate):
     # pylint: disable=too-many-locals
     lgr = logging.getLogger(__name__)
 
@@ -28,23 +29,28 @@ def tcpairs(config_file,cdate):
     # Set some aliases
     vxcfg = cfg["verification"]
     tccfg = cfg["tropical"]
-    tcpcfg = cfg["tcpairs"]
+    tcstcfg = cfg["tcstat"]
 
     # Set paths and file templates for input to and output from the MET/
     # METplus tool to be run as well as other file/directory parameters.
 
     exptdir=vxcfg["VX_OUTPUT_BASEDIR"]
-    metplus_tool_camel_case = "TCPairs"
+    metplus_tool_camel_case = "TCStat"
 
     output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
     # Make sure the MET/METplus output directory(ies) exists.
     os.makedirs(output_dir, exist_ok=True)
 
+
     conf_files=[]
     for storm_id in tccfg['STORM_IDS']:
+        # Filenames for TCstat output
+        summary_file = tcstcfg["SUMMARY_FILE"]
+        # File for Rapid Intensification statistics
+        ri_file = tcstcfg["RI_FILE"]
         # Set the names of the template METplus configuration file, the resulting rendered conf file,
         # and the METplus log file
-        metplus_config_tmpl_fn="TCPAIRS.conf"
+        metplus_config_tmpl_fn="TCSTAT.conf"
         metplus_config_fn=f"{metplus_tool_camel_case}_{storm_id}.conf.0"
         metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
     
@@ -52,6 +58,11 @@ def tcpairs(config_file,cdate):
         vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
                                                          f"{vxcfg['VX_CONFIG_DET_FN']}")
     
+        # Need to substitute keywords manually since TCSTAT does not accept the "cyclone" keyword
+        tcpairs_template = eval_metplus_timestr_tmpl(cfg["tcpairs"]["OUTPUT_TEMPLATE"], cdate, cyclone=storm_id)
+        print(f"{tcpairs_template=}")
+        tcpairs_output = Path(exptdir, cdate, "metprd", "TCPairs", tcpairs_template + '.tcst')
+
         # Define variables that appear in the jinja template, add to existing settings dict.
         settings = {
                    'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
@@ -62,15 +73,14 @@ def tcpairs(config_file,cdate):
                    # must always be included in this dictionary
                    'metplus_config_fn': metplus_config_fn,
                    'metplus_log_fn': metplus_log_fn,
-                   'fcst_input_dir': tccfg['ADECK_DIR'],
+                   'tcpairs_output': tcpairs_output,
                    'output_dir': output_dir,
-                   'output_fn_template': tcpcfg["OUTPUT_TEMPLATE"],
-                   'model': tcpcfg['MODEL'],
+                   'summary_file': summary_file,
+                   'ri_file': ri_file,
+                   'model': tccfg['MODEL'],
                    # HAFS storm attributes
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
-                   'fcst_track_file': tccfg['ADECK_TEMPLATE'],
-                   'best_track_dir': cfg["platform"]["BEST_TRACK"]
                    }
     
         numprocs=1
@@ -93,7 +103,7 @@ def tcpairs(config_file,cdate):
 if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
-                     description="exscript for running METplus TCPAIRS task"\
+                     description="exscript for running METplus TCSTAT task"\
                      "for deterministic verification\n")
 
     parser.add_argument(
@@ -115,4 +125,4 @@ if __name__ == "__main__":
     # Retrieve needed args from environment; should pass these explicitly in the future
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
-    tcpairs(pargs.config,pargs.cycle_date)
+    tcstat(pargs.config,pargs.cycle_date)
