@@ -498,7 +498,7 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
     return file_templates
 
 
-def wget_requested_files(tracker, store, file_templates, input_locs, debug, **kwargs):
+def retrieve_requested_files(tracker, store, file_templates, input_locs, debug, **kwargs):
 
     """Downloads files from a URL
 
@@ -598,7 +598,7 @@ def wget_requested_files(tracker, store, file_templates, input_locs, debug, **kw
     os.chdir(orig_path)
 
 
-def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs):
+def get_requested_files(tracker, store, file_templates, input_locs, debug, **kwargs):
 
     # pylint: disable=too-many-locals
 
@@ -624,7 +624,6 @@ def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs
     """
 
     members = kwargs.get("members", "")
-    members = cla.members if isinstance(cla.members, list) else [members]
 
     check_all = kwargs.get("check_all", False)
 
@@ -643,14 +642,14 @@ def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs
 
     locs_files = pair_locs_with_files(input_locs, file_templates, check_all)
     for mem in members:
-        target_path = fill_template(cla.output_path, cla.cycle_date, mem=mem)
+        target_path = fill_template(tracker.output_path, tracker.cycle_date, mem=mem)
         target_path = create_target_path(target_path)
 
         logging.info(f"Retrieved files will be placed here: \n {target_path}")
         Path(target_path).mkdir(parents=True, exist_ok=True)
         os.chdir(target_path)
 
-        for fcst_hr in cla.fcst_hrs:
+        for fcst_hr in cla.lead_hrs:
             logging.debug(f"Looking for fhr = {fcst_hr}")
             for loc, templates in locs_files:
 
@@ -841,7 +840,7 @@ def hpss_requested_files(cla, file_names, store_specs, members=-1, ens_group=-1)
                 logging.info(f"Will place files in {os.path.abspath(output_path)}")
 
             source_paths = []
-            for fcst_hr in cla.fcst_hrs:
+            for fcst_hr in cla.lead_hrs:
                 for file_name in file_names:
                     source_paths.append(
                         fill_template(
@@ -1051,7 +1050,7 @@ def _write_summary_file(cla, data_store, file_templates) -> None:
             tmpl = tmpl if isinstance(tmpl, list) else [tmpl]
             for t in tmpl:
                 files.extend(
-                    [fill_template(t, cla.cycle_date, fcst_hr=fh, mem=mem) for fh in cla.fcst_hrs]
+                    [fill_template(t, cla.cycle_date, fcst_hr=fh, mem=mem) for fh in cla.lead_hrs]
                 )
 
         # Strip any nested directories from the external model file templates
@@ -1066,7 +1065,7 @@ def _write_summary_file(cla, data_store, file_templates) -> None:
             EXTRN_MDL_CDATE={cla.cycle_date.strftime('%Y%m%d%H')}
             EXTRN_MDL_STAGING_DIR={output_path}
             EXTRN_MDL_FNS=( {' '.join(files)} )
-            EXTRN_MDL_FHRS=( {' '.join([str(i) for i in cla.fcst_hrs])} )
+            EXTRN_MDL_FHRS=( {' '.join([str(i) for i in cla.lead_hrs])} )
             """
         )
         logging.info(f"Contents: {file_contents}")
@@ -1330,7 +1329,7 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
 
         if store_specs.get("protocol") == "wget":
             logging.debug(f"{tracker.files=}")
-            wget_requested_files(
+            retrieve_requested_files(
                 tracker,
                 data_store,
                 check_all=known_data_info.get("check_all", False),
@@ -1341,14 +1340,14 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
             )
             logging.debug(f"{tracker.files=}")
         elif store_specs.get("protocol") == "awscli":
-            unavailable = get_requested_files(
-                [],
+            retrieve_requested_files(
+                tracker,
+                data_store,
                 check_all=known_data_info.get("check_all", False),
                 file_templates=known_data_info.get(data_store, {}).get("file_names"),
                 input_locs=store_specs["bucket"],
-                method=store_specs.get("protocol"),
                 members=[0],
-
+                debug=debug,
             )
 
         elif store_specs.get("protocol") == "htar":
@@ -1558,14 +1557,6 @@ def parse_args(argv):
         description=description,
     )
 
-    # Required
-    parser.add_argument(
-        "--file_set",
-        choices=("anl", "fcst", "obs", "fix"),
-        help="Flag for whether analysis, forecast, \
-        fix, or observation files should be gathered",
-        required=True,
-    )
     parser.add_argument(
         "--config",
         help="Full path to a configuration file containing paths and \
@@ -1597,7 +1588,7 @@ def parse_args(argv):
         required=True,
     )
     parser.add_argument(
-        "--fcst_hrs",
+        "--lead_hrs",
         help="A list describing forecast hours.  If one argument, \
         one fhr will be processed.  If 2 or 3 arguments, a sequence \
         of forecast hours [start, stop, [increment]] will be \
@@ -1614,18 +1605,8 @@ def parse_args(argv):
         required=True,                    
         type=os.path.abspath,
     )
-    parser.add_argument(
-        "--ics_or_lbcs",
-        choices=("ICS", "LBCS"),
-        help="Flag for whether ICS or LBCS.",
-        required=False
-    )
 
     # Optional
-    parser.add_argument(
-        "--version",     # for file patterns that dont conform to cycle_date [TBD]
-        help="Version number of package to download, e.g. x.yy.zz",
-    )
     parser.add_argument(
         "--symlink",
         action="store_true",
@@ -1691,14 +1672,9 @@ def parse_args(argv):
     # Make modifications/checks for given values
 
     # convert range arguments if necessary 
-    args.fcst_hrs = arg_list_to_range(args.fcst_hrs)
+    args.lead_hrs = arg_list_to_range(args.lead_hrs)
     if args.members:
         args.members = arg_list_to_range(args.members)
-
-    # Check required arguments for various conditions
-    if not args.ics_or_lbcs and args.file_set in ["anl", "fcst"]:
-        raise argparse.ArgumentTypeError(f"--ics_or_lbcs is a required " \
-              f"argument when --file_set = {args.file_set}")
 
     # Check valid arguments for various conditions
     valid_data_stores = ["hpss", "nomads", "aws", "http", "disk", "remote"]
@@ -1711,4 +1687,56 @@ def parse_args(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+#    main(sys.argv[1:])
+    # pylint: disable=too-many-branches, too-many-statements
+    """
+    Main function for calling retrieve_files() from command line 
+    """
+
+    cla = parse_args(sys.argv[1:])
+
+    _setup_logging(cla.debug)
+    print("Running script retrieve_data.py with args:", f"\n{('-' * 80)}\n{('-' * 80)}")
+    for name, val in cla.__dict__.items():
+        if name not in ["config"]:
+            print(f"{name:>15s}: {val}")
+    print(f"{('-' * 80)}\n{('-' * 80)}")
+
+    if "disk" in cla.data_stores:
+        # Make sure a path was provided.
+        if not cla.input_file_path:
+            raise argparse.ArgumentTypeError(
+                (
+                    "You must provide an input_file_path when choosing "
+                    " disk as a data store!"
+                )
+            )
+    if "hpss" in cla.data_stores:
+        # Make sure hpss module is loaded
+        try:
+            subprocess.run(
+                "which hsi",
+                check=True,
+                shell=True,
+            )
+        except subprocess.CalledProcessError:
+            logging.error(
+                "You requested the hpss data store, but "
+                "the HPSS module isn't loaded. This data store "
+                "is only available on NOAA compute platforms."
+            )
+            sys.exit(1)
+
+    known_data_info = cla.config.get(cla.data_type, {})
+    if not known_data_info:
+        msg = f"No data stores have been defined for {cla.data_type}!"
+        if cla.input_file_path is None:
+            cla.data_stores = ["disk"]
+            raise KeyError(msg)
+        logging.info(msg)
+        logging.info(f"Checking provided disk location {cla.input_file_path}")
+
+    leadtimes=cla.lead_hrs*3600
+
+    retrieve_files(config=cla.config, cycle_date=cla.cycle_date, data_stores=cla.data_stores,
+                   data_type=cla.data_type, output_path=cla.output_path, leadtimes=leadtimes, debug=cla.debug)
