@@ -24,7 +24,6 @@ import os
 import shutil
 import subprocess
 import sys
-import glob
 from textwrap import dedent
 import time
 import urllib.request
@@ -32,6 +31,9 @@ from copy import deepcopy
 
 import yaml
 from pathlib import Path
+
+
+from uwtools.api.config import get_yaml_config
 
 def clean_up_output_dir(expected_subdir, local_archive, output_path, source_paths):
 
@@ -247,6 +249,77 @@ def arg_list_to_range(args):
     return args
 
 
+def fill_template_dt(template_str, cycle_date, templates_only=False, **kwargs):
+
+    """Fills in the provided template string with date time information, and returns the 
+    resulting string.
+
+    Args:
+      template_str         : A string containing Python templates
+      cycle_date           : A datetime object representing the cycle_date/initial time for filling
+                             the template
+      templates_only (bool): When ``True``, this function will only return the templates 
+                             available.
+
+    Keyword Args:
+      ens_group (int): A number associated with a bin where ensemble members are stored in 
+                       archive files.
+      f_date         : A datetime object representing the forecast time for filling the template
+      mem       (int): A single ensemble member. Should be a positive integer value.
+
+    Returns:
+      Filled template string
+    """
+
+    # Parse keyword args
+    ens_group = kwargs.get("ens_group")
+    f_date = kwargs.get("f_date", cycle_date)
+    mem = kwargs.get("mem", "")
+    # -----
+
+    # One strategy for binning data files at NCEP is to put them into 6
+    # cycle bins. The archive file names include the low and high end of the
+    # range. Set the range as would be indicated in the archive file
+    # here. Integer division is intentional here.
+    low_end = int(cycle_date.strftime("%H")) // 6 * 6
+    bin6 = f"{low_end:02d}-{low_end+5:02d}"
+
+    # Another strategy is to bundle odd cycle hours with their next
+    # lowest even cycle hour. Files are named only with the even hour.
+    # Integer division is intentional here.
+    hh_even = f"{int(cycle_date.strftime('%H')) // 2 * 2:02d}"
+
+    format_values = dict(
+        bin6=bin6,
+        ens_group=ens_group,
+        dd=cycle_date.strftime("%d"),
+        fdd=f_date.strftime("%d"),
+        hh=cycle_date.strftime("%H"),
+        fhh=f_date.strftime("%H"),
+        hh_even=hh_even,
+        jjj=cycle_date.strftime("%j"),
+        fjjj=f_date.strftime("%j"),
+        mem=mem,
+        min=cycle_date.strftime("%M"),
+        mm=cycle_date.strftime("%m"),
+        fmm=cycle_date.strftime("%m"),
+        yy=cycle_date.strftime("%y"),
+        fyy=f_date.strftime("%y"),
+        yyyy=cycle_date.strftime("%Y"),
+        fyyyy=f_date.strftime("%Y"),
+        yyyymm=cycle_date.strftime("%Y%m"),
+        fyyyymm=f_date.strftime("%Y%m"),
+        yyyymmdd=cycle_date.strftime("%Y%m%d"),
+        fyyyymmdd=f_date.strftime("%Y%m%d"),
+        yyyymmddhh=cycle_date.strftime("%Y%m%d%H"),
+        fyyyymmddhh=f_date.strftime("%Y%m%d%H"),
+    )
+
+    if templates_only:
+        return f'{",".join((format_values.keys()))}'
+    return template_str.format(**format_values)
+
+
 def fill_template(template_str, cycle_date, templates_only=False, **kwargs):
 
     """Fills in the provided template string with date time information, and returns the 
@@ -399,7 +472,7 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
 
     Args:
 
-       cla              (str) : Command line arguments (Namespace object)
+       tracker          (FileTracker) : A FileTracker object
        known_data_info  (dict): Dictionary from ``data_locations.yml`` file
        data_store       (str) : String corresponding to a key in the ``known_data_info`` dictionary
        use_cla_tmpl     (bool): Whether to check command line arguments for templates
@@ -410,14 +483,6 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
 
     file_templates = known_data_info.get(data_store, {}).get("file_names")
     file_templates = deepcopy(file_templates)
-
-    # Remove sfc files from fcst in file_names of external models for LBCs
-    # sfc files needed in fcst when time_offset is not zero.
-    if cla.ics_or_lbcs == "LBCS" and isinstance(file_templates, dict):
-        for format in ['netcdf', 'nemsio']:
-            for i, tmpl in enumerate(file_templates.get(format, {}).get('fcst', [])):
-                if "sfc" in tmpl:
-                    del file_templates[format]['fcst'][i]
 
     if use_cla_tmpl:
         file_templates = cla.file_templates if cla.file_templates else file_templates
@@ -431,6 +496,106 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
                 either on the command line or in a config file."
         raise argparse.ArgumentTypeError(msg)
     return file_templates
+
+
+def wget_requested_files(tracker, store, file_templates, input_locs, debug, **kwargs):
+
+    """Downloads files from a URL
+
+    Args:
+      tracker (FileTracker) : A FileTracker object
+      store           (srt) : The name of the data store we are searching
+      file_templates  (list): A list of file templates
+      input_locs      (str) : A string containing a single URL or a list of URLs.
+      debug           (bool): If true, print verbose debugging information
+
+    Keyword Args:
+      members     (list): A list of integers corresponding to the ensemble members
+      check_all   (bool): Flag that indicates whether all URLs should be checked for all files
+
+    Returns:
+      unavailable (list): A list of locations/files that were unretrievable
+    """
+
+    members = kwargs.get("members", "")
+
+    check_all = kwargs.get("check_all", False)
+
+    logging.info(f"Getting files named like {file_templates} from {store}")
+
+    # Make sure we're dealing with lists for input locations and file
+    # templates. Makes it easier to loop and zip.
+    file_templates = (
+        file_templates if isinstance(file_templates, list) else [file_templates]
+    )
+
+    input_locs = input_locs if isinstance(input_locs, list) else [input_locs]
+
+    orig_path = os.getcwd()
+    unavailable = []
+
+    locs_files = pair_locs_with_files(input_locs, file_templates, check_all)
+    for mem in members:
+        target_path = fill_template(tracker.output_path, tracker.cycle_date, mem=mem)
+        target_path = create_target_path(target_path)
+
+        logging.info(f"Retrieved files will be placed here: \n {target_path}")
+        Path(target_path).mkdir(parents=True, exist_ok=True)
+        os.chdir(target_path)
+
+        for ftime in tracker.times:
+            logging.debug(f"Looking for time {ftime=}")
+            for loc, templates in locs_files:
+
+                templates = templates if isinstance(templates, list) else [templates]
+
+                logging.debug(f"Looking for files like {templates}")
+                logging.debug(f"They should be here: {loc}")
+
+                template_loc = loc
+                for tmpl_num, orig_template in enumerate(templates):
+                    if isinstance(loc, list) and len(loc) == len(templates):
+                        template_loc = loc[tmpl_num]
+                    template_loc = fill_template_dt(
+                        template_loc,
+                        tracker.cycle_date,
+                        f_date=ftime,
+                        mem=mem,
+                    )
+                    template = fill_template_dt(
+                        orig_template,
+                        tracker.cycle_date,
+                        f_date=ftime,
+                        mem=mem,
+                    )
+                    input_loc = os.path.join(template_loc, template)
+                    logging.info(f"Getting file: {input_loc}")
+                    logging.debug(f"Target path: {target_path}")
+                    if tracker.check:
+                        retrieved = check_file(input_loc)
+                        if retrieved:
+                            tracker.add(ftime, store, orig_template, os.path.basename(input_loc))
+
+                    else:
+                        retrieved = wget_file(input_loc,debug)
+                        if retrieved:
+                            tracker.add(ftime, store, orig_template, os.path.join(target_path,os.path.basename(input_loc)))
+                    # Wait a bit before trying the next download.
+                    # Seems to reduce the occurrence of timeouts
+                    # when downloading from AWS
+                    time.sleep(2)
+
+                    logging.debug(f"Retrieved status: {retrieved}")
+
+                if not tracker.missing(ftime, store):
+                    # Start on the next fcst hour if all files were
+                    # found from a loc/template combo
+                    break
+                else:
+                    logging.debug(f"Some files were not retrieved: {tracker.missing(ftime,store)}")
+                    logging.debug("Will check other locations for missing files")
+
+    os.chdir(orig_path)
 
 
 def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs):
@@ -938,6 +1103,279 @@ def to_lower(arg):
     """
     return arg.lower()
 
+
+class FileTracker:
+    """
+    Track input arguments, retrieved files for a single data_type, organized by data store and
+    forecast time.
+
+    Parameters
+    ----------
+    config (dict)
+        Mapping loaded from `parm/data_locations.yml` (or a custom dict).
+    data_type (str)
+        The top‑level key (e.g. "MRMS") whose data locations we will explore
+    cycle_date (datetime.datetime)
+        The initial date for data retrieval.
+    lead_times (list)
+        A list of times after cycle_date to retrieve files (in seconds)
+
+    Public attributes
+    -----------------
+    data_type : str
+        The data_type that was loaded.
+    files     : Dict[str, List[str]]
+        Mapping of file‑name pattern → list of paths that were actually retrieved.
+    """
+
+    def __init__(self, config, data_type, cycle_date, output_path='.', lead_times=None, check_files=False):
+        if lead_times is None:
+            lead_times=[0]
+        self.data_type = data_type
+        self.cycle_date = cycle_date
+        self.check = check_files
+        self.output_path = output_path
+        self.times = [cycle_date + dt.timedelta(seconds=lt) for lt in lead_times]
+        # ``self.files`` is a dict:  time → {store: {pattern: [list of Path]}}
+        self.files = {}
+        for t in self.times:
+            self.files[t] = {}
+
+        self._initialize_from_config(config)
+
+    # ------------------------------------------------------------------
+    def _initialize_from_config(self, cfg) -> None:
+        """Create an empty list for every pattern in every store for each time."""
+        dataset_cfg = cfg.get(self.data_type)
+        if dataset_cfg is None or not isinstance(dataset_cfg, dict):
+            raise ValueError(f"data_type '{self.data_type}' not found or malformed")
+
+        for store_cfg in dataset_cfg.values():
+            if not isinstance(store_cfg, dict):
+                continue
+            pats = store_cfg.get("file_names", [])
+            if isinstance(pats, str):
+                pats = [pats]
+
+            for pat in pats:
+                for t in self.times:
+                    # initialise the nested dicts lazily
+                    self.files[t].setdefault(store_cfg.get("store_name", ""), {})
+                    self.files[t][store_cfg.get("store_name", "")].setdefault(pat, [])
+
+    # ------------------------------------------------------------------
+    def add(self, time: dt.datetime, store_name: str,
+            file_name_pattern: str, path: str) -> None:
+        """Record that *path* was retrieved for *file_name_pattern* at
+        a given time, belonging to *store_name*."""
+        if isinstance(path, Path):
+            path = str(path.resolve())
+
+        if time not in self.files:
+            raise KeyError(f"Unknown time {time}")
+
+        store_dict = self.files[time].setdefault(store_name, {})
+        store_dict.setdefault(file_name_pattern, []).append(path)
+
+    # ------------------------------------------------------------------
+    def add_many(self, time: dt.datetime, store_name: str,
+                 file_name_pattern: str,
+                 paths: list) -> None:
+        for p in paths:
+            self.add(time, store_name, file_name_pattern, p)
+
+    # ------------------------------------------------------------------
+    def missing(self, time_offset: int, store_name: str) -> list:
+        """
+        Return a list of filename patterns that have **no files** retrieved
+        for the given time offset and data store.
+
+        Raises
+        ------
+        KeyError
+            If the time offset or store name does not exist in the tracker.
+        """
+        if time_offset not in self.files:
+            raise KeyError(f"Unknown time offset {time_offset}")
+
+        store_dict = self.files[time_offset].get(store_name)
+        if store_dict is None:
+            raise KeyError(f"Unknown store name '{store_name}' for time {time_offset}")
+
+        return [pat for pat, lst in store_dict.items() if not lst]
+
+    # ------------------------------------------------------------------
+    def all_files(self) -> list:
+        """Return a flat list of every retrieved file (across all times and stores)."""
+        return [p for t in self.files.values()
+                for store in t.values()
+                for pat in store.values()
+                for p in pat]
+
+    # ------------------------------------------------------------------
+    def to_dict(self) -> dict:
+        """Return a plain dictionary representation (good for JSON)."""
+        return {t: {store: {pat: list(files)
+                            for pat, files in store_dict.items()}
+                    for store, store_dict in t.items()}
+                for t, t in self.files.items()}
+
+    # ------------------------------------------------------------------
+    def __repr__(self) -> str:
+        # gather all unique store names across all times
+        all_stores = sorted({s for t in self.files.values() for s in t.keys()})
+        return (
+            f"{self.__class__.__name__}(data_type={self.data_type!r}, "
+            f"times={self.times!r}, stores={all_stores})"
+        )
+
+
+def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
+                   debug=False,input_file_path='',leadtimes=None,check_files=False):
+    """This is a new file retrieval function: utilizing a "getfiles_obj" object, we will smartly
+    track all the files expected to be retrieved, and return a list of files that were retrieved.
+
+    Required Args:
+        config (dict): The dictionary defining data locations to search
+        cycle_date (datetime): Datetime object of the initial date
+        data_stores (list): List of strings indicating which data stores to search
+        data_type (str): String indicating type of data to retrieve (top-level key in config)
+        output_path (str): Path to place retrieved files
+    Optional Args:
+        check_files (bool): If true, only check for existence of files, do not retrieve
+        debug (bool): If true, print verbose debugging information
+        input_file_path (str): Location on disk to look for files if "disk" is in data_stores
+        leadtimes (list): A list of times after cycle_date to retrieve files (in seconds)
+        summary_file (str): Filename to write file retrieval summary information
+
+    Returns:
+        retrieved (list): List of files retrieved
+        missing   (list): List of filename templates for which a file could not be retrieved
+        """
+    _setup_logging(debug)
+    cfg=get_yaml_config(config)
+
+    if leadtimes is None:
+        leadtimes=[0]
+    if not isinstance(data_stores, list):
+        data_stores = [data_stores]
+    logging.debug(f"{data_stores=}")
+    if "disk" in data_stores:
+        # Make sure a path was provided.
+        if not os.path.isdir(input_file_path):
+            raise ValueError("'disk' is included in data_store, but {input_file_path=} is invalid")
+
+    if "hpss" in data_stores:
+        # Make sure hpss module is loaded
+        try:
+            subprocess.run(
+                "which hsi",
+                check=True,
+                shell=True,
+            )
+        except subprocess.CalledProcessError:
+            data_stores.remove("hpss")
+            logging.warning("The hsi executable is unavailable; either the HPSS module is not " \
+                            "loaded or HPSS is unavailable on this platform")
+            if data_stores:
+                logging.warning("Removing 'hpss' from list of data stores to search.")
+            else:
+                raise KeyError("No more data_stores to search")
+            errmsg="'hpss' is included in data_store, but the HPSS module isn't loaded."
+            errmsg+="Removing 'hpss' from list of data stores to search"
+            logging.error(
+                "'hpss' is included in data_store, but the HPSS module isn't loaded. This data store "
+                "is only available on NOAA compute platforms."
+            )
+
+    known_data_info = cfg.get(data_type, {})
+    logging.debug(f"{known_data_info=}")
+    if not known_data_info:
+        msg = f"No data stores have been defined for {data_type}!"
+        if input_file_path is None:
+            raise KeyError(msg)
+        data_stores = ["disk"]
+        logging.info(msg)
+        logging.info(f"Will search for data in provided disk location {input_file_path}")
+
+    tracker = FileTracker(cfg, data_type, cycle_date, output_path, leadtimes, check_files)
+    logging.debug(f"{tracker=}")
+    unavailable = []
+    for data_store in data_stores:
+        store_specs = known_data_info.get(data_store, {})
+        logging.info(f"Checking {data_store} for {data_type} using {store_specs.get('protocol')}")
+
+#        if data_store == "disk":
+#            file_templates = get_file_templates(
+#                cla,
+#                known_data_info,
+#                data_store="hpss",
+#                use_cla_tmpl=True,
+#            )
+#
+#            logging.debug(f"User supplied file names are: {file_templates}")
+#            unavailable = get_requested_files(
+#                cla,
+#                check_all=known_data_info.get("check_all", False),
+#                file_templates=file_templates,
+#                input_locs=cla.input_file_path,
+#                method="disk",
+#            )
+#
+#        elif not store_specs:
+#            msg = f"No information is available for {data_store}."
+#            raise KeyError(msg)
+#
+#        else:
+
+        if store_specs.get("protocol") == "wget":
+            logging.debug(f"{tracker.files=}")
+            wget_requested_files(
+                tracker,
+                data_store,
+                check_all=known_data_info.get("check_all", False),
+                file_templates=known_data_info.get(data_store, {}).get("file_names"),
+                input_locs=store_specs["url"],
+                members=[0],
+                debug=debug,
+            )
+            logging.debug(f"{tracker.files=}")
+        elif store_specs.get("protocol") == "awscli":
+            unavailable = get_requested_files(
+                [],
+                check_all=known_data_info.get("check_all", False),
+                file_templates=known_data_info.get(data_store, {}).get("file_names"),
+                input_locs=store_specs["bucket"],
+                method=store_specs.get("protocol"),
+                members=[0],
+
+            )
+
+        elif store_specs.get("protocol") == "htar":
+            ens_groups = get_ens_groups([0])
+            for ens_group, members in ens_groups.items():
+                unavailable = hpss_requested_files(
+                    [],
+                    known_data_info.get(data_store, {}).get("file_names"),
+                    store_specs,
+                    members=members,
+                    ens_group=ens_group,
+                )
+
+
+        for ftime in tracker.times:
+            unavailable.extend(tracker.missing(ftime, data_store))
+
+        if not unavailable:
+            # All files are found. Stop looking!
+            # Write a variable definitions file for the data, if requested
+            retrieved=tracker.all_files()
+            break
+
+        logging.debug(f"Some unavailable files: {unavailable}")
+        logging.warning(f"Requested files are unavailable from {data_store}")
+
+    return retrieved, unavailable
 
 def main(argv):
     # pylint: disable=too-many-branches, too-many-statements

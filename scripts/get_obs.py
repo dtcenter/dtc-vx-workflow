@@ -432,7 +432,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     elif obtype == 'AERONET':
         arcv_intvl_hrs = 24
     elif obtype == 'AIRNOW':
-        if vx_config[f'OBS_DATA_STORE_AIRNOW'] == 'hpss':
+        if vx_config[f'OBS_DATA_STORE_AIRNOW'][0] == 'hpss':
             arcv_intvl_hrs = 24
         else:
             arcv_intvl_hrs = 1
@@ -704,15 +704,16 @@ def get_obs(config, obtype, yyyymmdd_task):
             # these (we will not use the tm00 file).
 
             parmdir = config['user']['PARMdir']
-            args = ['--debug', \
-                    '--file_set', 'obs', \
-                    '--config', os.path.join(parmdir, 'data_locations.yml'), \
-                    '--cycle_date', yyyymmddhh_arcv_str, \
-                    '--data_stores', vx_config[f'OBS_DATA_STORE_{obtype}'], \
-                    '--data_type', obtype, \
-                    '--output_path', arcv_dir_raw, \
-                    '--summary_file', 'retrieve_data.log']
-            retrieve_data.main(args)
+            retrieved, missing = retrieve_data.retrieve_files(
+                    config=os.path.join(parmdir, 'data_locations.yml'),
+                    cycle_date=yyyymmddhh_arcv,
+                    data_stores=vx_config[f'OBS_DATA_STORE_{obtype}'],
+                    data_type=obtype,
+                    output_path=arcv_dir_raw,
+                    debug=True,
+                    )
+            if missing:
+                raise RuntimeError("Could not retrieve some files: {missing}")
 
             # Get the list of times corresponding to the obs files in the current
             # archive.  This is a list of datetime objects.

@@ -20,5 +20,6 @@ verification:
   FCST_FN_TEMPLATE: 'rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
   AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
   AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
-  OBS_DATA_STORE_AERONET: http
+  OBS_DATA_STORE_AIRNOW: aws
+  AIRNOW_INPUT_FORMAT: "airnowhourly"
   VX_TASKS: 4
