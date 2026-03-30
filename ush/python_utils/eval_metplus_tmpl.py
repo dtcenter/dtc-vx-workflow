@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timedelta
 from python_utils import setup_logging
 
-def eval_metplus_timestr_tmpl(fn_template, init_time, lhr=0, time_lag=0, cyclone=0):
+def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=None, cyclone=None,skip_missing_tags=True):
     """
     Calls native METplus routine for evaluating filename templates
 
@@ -31,26 +31,41 @@ def eval_metplus_timestr_tmpl(fn_template, init_time, lhr=0, time_lag=0, cyclone
 
     lgr = logging.getLogger(__name__)
 
-    if len(init_time) == 10:
-        initdate=datetime.strptime(init_time, '%Y%m%d%H')
-    elif len(init_time) == 12:
-        initdate=datetime.strptime(init_time, '%Y%m%d%H%M')
-    elif len(init_time) == 14:
-        initdate=datetime.strptime(init_time, '%Y%m%d%H%M%S')
-    else:
-        raise ValueError(f"Invalid {init_time=}; must be 10, 12, or 14 characters in length")
+    initdate=validdate=leadsec=None
 
-    validdate=initdate + timedelta(hours=lhr)
-    leadsec=lhr*3600
+    if init_time is not None:
+        if len(init_time) == 10:
+            initdate=datetime.strptime(init_time, '%Y%m%d%H')
+        elif len(init_time) == 12:
+            initdate=datetime.strptime(init_time, '%Y%m%d%H%M')
+        elif len(init_time) == 14:
+            initdate=datetime.strptime(init_time, '%Y%m%d%H%M%S')
+        else:
+            raise ValueError(f"Invalid {init_time=}; must be 10, 12, or 14 characters in length")
+    
+        if lhr is not None:
+            validdate=initdate + timedelta(hours=lhr)
+            leadsec=lhr*3600
     # Evaluate the METplus timestring template for the current lead hour
     lgr.debug("Resolving METplus template for:")
     lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{cyclone=}\n")
     # Return the full path with templates resolved
-    return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
-                                   lead=leadsec,time_lag=time_lag,cyclone=str(cyclone))
+    return sts.do_string_sub(
+        tmpl=fn_template,
+        skip_missing_tags=skip_missing_tags,
+        # This logic only includes the keyword arguments if they are not None, preventing errors
+        **{k: v for k, v in {
+                "init": initdate,
+                "valid": validdate,
+                "lead": leadsec,
+                "time_lag": time_lag,
+                "cyclone": str(cyclone) if cyclone is not None else None,
+            }.items()
+            if v is not None}
+    )
 
 
-def eval_metplus_dt_tmpl(fn_template, initdate, validdate=None, time_lag=0, cyclone=0):
+def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=None, cyclone=None, skip_missing_tags=True):
     """
     Calls native METplus routine for evaluating filename templates with Datetime objects as input
 
@@ -74,16 +89,27 @@ def eval_metplus_dt_tmpl(fn_template, initdate, validdate=None, time_lag=0, cycl
 
     lgr = logging.getLogger(__name__)
 
-    if validdate is None:
-        validdate=initdate
-    lead = validdate - initdate
-    leadsec=lead.total_seconds()
+    leadsec=None
+    if validdate is not None and initdate is not None:
+        lead = validdate - initdate
+        leadsec=lead.total_seconds()
     # Evaluate the METplus timestring template for the current lead hour
     lgr.debug("Resolving METplus template for:")
     lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{cyclone=}\n")
     # Return the full path with templates resolved
-    return sts.do_string_sub(tmpl=fn_template,init=initdate,valid=validdate,
-                                   lead=leadsec,time_lag=time_lag,cyclone=cyclone)
+    return sts.do_string_sub(
+        tmpl=fn_template,
+        skip_missing_tags=skip_missing_tags,
+        # This logic only includes the keyword arguments if they are not None, preventing errors
+        **{k: v for k, v in {
+                "init": initdate,
+                "valid": validdate,
+                "lead": leadsec,
+                "time_lag": time_lag,
+                "cyclone": str(cyclone) if cyclone is not None else None,
+            }.items()
+            if v is not None}
+    )
 
 
 if __name__ == "__main__":

@@ -27,9 +27,6 @@ default_task_tc: &default_task_tc
 
 task_tcpairs:
   <<: *default_task_tc
-  attrs:
-    cycledefs: forecast
-    maxtries: '1'
   command: "&JOBSdir;/TCPAIRS.sh"
   envars:
     <<: *default_vars
@@ -43,9 +40,6 @@ task_tcpairs:
 
 task_tcstat:
   <<: *default_task_tc
-  attrs:
-    cycledefs: forecast
-    maxtries: '1'
   command: "&JOBSdir;/TCSTAT.sh"
   envars:
     <<: *default_vars
@@ -60,4 +54,21 @@ task_tcstat:
     taskdep:
       attrs:
         task: tcpairs
+
+task_tcrmw:
+  <<: *default_task_tc
+  command: "&JOBSdir;/TCRMW.sh"
+  envars:
+    <<: *default_vars
+    USHdir: '&USHdir;'
+    CYCLE_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+  memory: '{{  tcrmw.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcrmw.execution.tasks_per_node }}'
+  walltime: "{{ tcrmw.execution.walltime }}"
+  dependency:
+    taskdep:
+      attrs:
+        task: tcstat
 

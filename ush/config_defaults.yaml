@@ -1083,6 +1083,21 @@ tcstat:
   SUMMARY_FILE: 'tc_stat_summary.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
   RI_FILE: 'tc_rirw.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
 
+tcrmw:
+  # Runtime settings for TCRMW jobs
+  execution:
+    # Number of TCRMW instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCRMW job
+    walltime: 00:30:00
+    # Memory to allocate to TCRMW job
+    memory: '2G'
+
+  # OUTPUT_TEMPLATE:
+  # Template for output file(s) from TCRMW. {basin} {cyclone} and {date} are substituted in the
+  # METplus process, not in the workflow.
+  OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
+
 mode:
   # Runtime settings for MODE jobs
   execution:
