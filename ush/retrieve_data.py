@@ -130,17 +130,17 @@ def check_file(url):
     status_code = urllib.request.urlopen(url).getcode()
     return status_code == 200
 
-def awscli_get_file(bucket,fname):
+def awscli_get_files(bucket,fname):
 
     """
-    Download a file from an AWS S3 bucket, and place it in a target location on disk.
+    Download one or more files from an AWS S3 bucket, and place it in a target location on disk.
 
     Args:
       bucket: The bucket and directory where the file(s) are located
       fname: The name of the file(s) to be retrieved. Can include glob wildcards
 
     Returns:
-      Boolean value reflecting whether the copy was successful (True) or unsuccessful (False)
+      List of filenames that were downloaded
     """
 
     # aws flags:
@@ -150,6 +150,9 @@ def awscli_get_file(bucket,fname):
     #   This skips the authentication check; not needed since we only download from public buckets
     cmd = f'aws s3 cp {bucket} . --recursive --exclude "*" --include "{fname}" --no-sign-request'
     logging.debug(f"Running command: \n {cmd}")
+
+    # Get list of files before aws command runs
+    files_before = set(os.listdir('.'))
 
     try:
         result = subprocess.run(
@@ -163,20 +166,32 @@ def awscli_get_file(bucket,fname):
         logging.error(err)
         if err.returncode == 127:
             logging.error("AWS CLI is not is available in your environment!")
-        return False
+        return []
     except:
         logging.error("Command failed!")
         raise
 
-    # Check printed output; return false if no new files were retrieved
+    # Get list of files after aws command runs
+    files_after = set(os.listdir('.'))
+    newly_created = files_after - files_before
+
+    if newly_created:
+        return list(newly_created)
+
+    # Fallback: try to parse aws output for "download:" pattern
+    downloaded_files = []
     if result.stdout.strip():
         for line in result.stdout.splitlines():
-            if "download:" in line: logging.debug(line)
+            if "download:" in line:
+                logging.debug(line)
+                # Extract filename from "download: s3://bucket/path/file to ./file"
+                parts = line.split(" to ./")
+                if len(parts) == 2:
+                    downloaded_files.append(parts[1].strip())
     else:
         logging.info("aws s3 cp command returned no files")
-        return False
 
-    return True
+    return downloaded_files
 
 
 def wget_file(url,debug=False):
@@ -189,7 +204,7 @@ def wget_file(url,debug=False):
       debug: Print additional progress messages
 
     Returns:
-      Boolean value reflecting whether the copy was successful (True) or unsuccessful (False)
+      List of filenames that were downloaded
     """
 
     # wget flags:
@@ -201,20 +216,60 @@ def wget_file(url,debug=False):
     else:
         cmd = f"wget -nv -c -T 15 -t 2 '{url}'"
     logging.debug(f"Running command: \n {cmd}")
+
+    # Get list of files before wget runs
+    files_before = set(os.listdir('.'))
+
     try:
-        subprocess.run(
+        result = subprocess.run(
             cmd,
             check=True,
             shell=True,
+            capture_output=True,
+            text=True
         )
     except subprocess.CalledProcessError as err:
         logging.info(err)
-        return False
+        return []
     except:
         logging.error("Command failed!")
         raise
 
-    return True
+    # Get list of files after wget runs
+    files_after = set(os.listdir('.'))
+    newly_created = files_after - files_before
+
+    if newly_created:
+        return list(newly_created)
+
+    # Parse wget output for saved files
+    full_output = result.stderr + result.stdout
+    downloaded_files = []
+
+    # Look for "saved [size]" pattern which indicates successful downloads
+    for line in full_output.split('\n'):
+        if "saved" in line.lower():
+            # Extract filename between curly quotes ‘ and ’
+            parts = line.split("‘")
+            if len(parts) >= 2:
+                filename_part = parts[1].split("’")[0]
+                if filename_part:
+                    downloaded_files.append(filename_part)
+
+    if downloaded_files:
+        return downloaded_files
+
+    # Fallback: try to parse "Saving to:" pattern
+    for line in full_output.split('\n'):
+        if "Saving to:" in line:
+            # Extract filename between curly quotes ‘ and ’
+            parts = line.split("‘")
+            if len(parts) >= 2:
+                filename_part = parts[1].split("’")[0]
+                if filename_part:
+                    downloaded_files.append(filename_part)
+
+    return downloaded_files
 
 
 def arg_list_to_range(args):
@@ -271,6 +326,7 @@ def fill_template_dt(template_str, cycle_date, templates_only=False, **kwargs):
       Filled template string
     """
 
+    print(template_str)
     # Parse keyword args
     ens_group = kwargs.get("ens_group")
     f_date = kwargs.get("f_date", cycle_date)
@@ -498,14 +554,14 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
     return file_templates
 
 
-def retrieve_requested_files(tracker, store, file_templates, input_locs, debug, **kwargs):
+def retrieve_requested_files(tracker, store, store_specs, input_locs, debug, **kwargs):
 
     """Downloads files from a URL
 
     Args:
       tracker (FileTracker) : A FileTracker object
       store           (srt) : The name of the data store we are searching
-      file_templates  (list): A list of file templates
+      store_specs     (dict): The dictionary containing the data store information
       input_locs      (str) : A string containing a single URL or a list of URLs.
       debug           (bool): If true, print verbose debugging information
 
@@ -520,6 +576,7 @@ def retrieve_requested_files(tracker, store, file_templates, input_locs, debug, 
     members = kwargs.get("members", "")
 
     check_all = kwargs.get("check_all", False)
+    file_templates = store_specs.get("file_names")
 
     logging.info(f"Getting files named like {file_templates} from {store}")
 
@@ -576,16 +633,29 @@ def retrieve_requested_files(tracker, store, file_templates, input_locs, debug, 
                         if retrieved:
                             tracker.add(ftime, store, orig_template, os.path.basename(input_loc))
 
-                    else:
+                    elif store_specs.get('protocol') == "wget":
+                        try:
+                            subprocess.run(
+                                "which wget",
+                                check=True, 
+                                shell=True, 
+                            )           
+                        except subprocess.CalledProcessError:
+                            logging.warning("The wget utility is unavailable, can not retrieve files") 
+                            continue
                         retrieved = wget_file(input_loc,debug)
-                        if retrieved:
-                            tracker.add(ftime, store, orig_template, os.path.join(target_path,os.path.basename(input_loc)))
-                    # Wait a bit before trying the next download.
-                    # Seems to reduce the occurrence of timeouts
-                    # when downloading from AWS
-                    time.sleep(2)
+                        for rf in retrieved:
+                            tracker.add(ftime, store, orig_template, os.path.join(target_path,rf))
+                        # Wait a bit before trying the next download.
+                        # Seems to reduce the occurrence of timeouts
+                        # when downloading from AWS
+                        time.sleep(2)
+                    elif store_specs.get('protocol') == 'awscli':
+                        retrieved = awscli_get_files(template_loc,template)
+                        for rf in retrieved:
+                            tracker.add(ftime, store, orig_template, os.path.join(target_path,rf))
 
-                    logging.debug(f"Retrieved status: {retrieved}")
+                    logging.debug(f"Retrieved files: {retrieved}")
 
                 if not tracker.missing(ftime, store):
                     # Start on the next fcst hour if all files were
@@ -1149,7 +1219,7 @@ class FileTracker:
         if dataset_cfg is None or not isinstance(dataset_cfg, dict):
             raise ValueError(f"data_type '{self.data_type}' not found or malformed")
 
-        for store_cfg in dataset_cfg.values():
+        for store_name, store_cfg in dataset_cfg.items():
             if not isinstance(store_cfg, dict):
                 continue
             pats = store_cfg.get("file_names", [])
@@ -1159,8 +1229,10 @@ class FileTracker:
             for pat in pats:
                 for t in self.times:
                     # initialise the nested dicts lazily
-                    self.files[t].setdefault(store_cfg.get("store_name", ""), {})
-                    self.files[t][store_cfg.get("store_name", "")].setdefault(pat, [])
+                    self.files[t].setdefault(store_name, {})
+                    self.files[t][store_name].setdefault(pat, [])
+#                    self.files[t].setdefault(store_cfg.get("store_name", ""), {})
+#                    self.files[t][store_cfg.get("store_name", "")].setdefault(pat, [])
 
     # ------------------------------------------------------------------
     def add(self, time: dt.datetime, store_name: str,
@@ -1327,28 +1399,18 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
 #
 #        else:
 
-        if store_specs.get("protocol") == "wget":
+        if store_specs.get("protocol") in ["wget","awscli"]:
             logging.debug(f"{tracker.files=}")
             retrieve_requested_files(
                 tracker,
                 data_store,
+                store_specs,
                 check_all=known_data_info.get("check_all", False),
-                file_templates=known_data_info.get(data_store, {}).get("file_names"),
                 input_locs=store_specs["url"],
                 members=[0],
                 debug=debug,
             )
             logging.debug(f"{tracker.files=}")
-        elif store_specs.get("protocol") == "awscli":
-            retrieve_requested_files(
-                tracker,
-                data_store,
-                check_all=known_data_info.get("check_all", False),
-                file_templates=known_data_info.get(data_store, {}).get("file_names"),
-                input_locs=store_specs["bucket"],
-                members=[0],
-                debug=debug,
-            )
 
         elif store_specs.get("protocol") == "htar":
             ens_groups = get_ens_groups([0])
@@ -1365,6 +1427,7 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
         for ftime in tracker.times:
             unavailable.extend(tracker.missing(ftime, data_store))
 
+        logging.debug(f"{unavailable=}")
         if not unavailable:
             # All files are found. Stop looking!
             # Write a variable definitions file for the data, if requested
@@ -1689,9 +1752,6 @@ def parse_args(argv):
 if __name__ == "__main__":
 #    main(sys.argv[1:])
     # pylint: disable=too-many-branches, too-many-statements
-    """
-    Main function for calling retrieve_files() from command line 
-    """
 
     cla = parse_args(sys.argv[1:])
 
@@ -1731,12 +1791,27 @@ if __name__ == "__main__":
     if not known_data_info:
         msg = f"No data stores have been defined for {cla.data_type}!"
         if cla.input_file_path is None:
+            logging.error(msg)
+            s=[i for i in cla.config]
+            logging.error(f"Valid data stores in config file are\n{s}")
             cla.data_stores = ["disk"]
             raise KeyError(msg)
         logging.info(msg)
         logging.info(f"Checking provided disk location {cla.input_file_path}")
 
-    leadtimes=cla.lead_hrs*3600
+    leadtimes=[i * 3600 for i in cla.lead_hrs]
 
-    retrieve_files(config=cla.config, cycle_date=cla.cycle_date, data_stores=cla.data_stores,
+    retrieved, unavailable = retrieve_files(config=cla.config, cycle_date=cla.cycle_date, data_stores=cla.data_stores,
                    data_type=cla.data_type, output_path=cla.output_path, leadtimes=leadtimes, debug=cla.debug)
+
+    if unavailable:
+        if retrieved:
+            logging.info(f"Was able to retrieve some files successfully:\n{retrieved}")
+            logging.warning(f"Some files could not be retrieved:\n{unavailable}")
+        else:
+            logging.error(f"Some files could not be retrieved:\n{unavailable}")
+            sys.exit(1)
+    else:
+        logging.info("Successfully retrieved files!")
+        logging.debug(f"{retrieved=}")
+
