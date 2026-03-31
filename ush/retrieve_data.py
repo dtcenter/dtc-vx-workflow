@@ -554,7 +554,7 @@ def get_file_templates(cla, known_data_info, data_store, use_cla_tmpl=False):
     return file_templates
 
 
-def retrieve_requested_files(tracker, store, store_specs, input_locs, debug, **kwargs):
+def retrieve_requested_files(tracker, store, store_specs, debug, **kwargs):
 
     """Downloads files from a URL
 
@@ -562,7 +562,6 @@ def retrieve_requested_files(tracker, store, store_specs, input_locs, debug, **k
       tracker (FileTracker) : A FileTracker object
       store           (srt) : The name of the data store we are searching
       store_specs     (dict): The dictionary containing the data store information
-      input_locs      (str) : A string containing a single URL or a list of URLs.
       debug           (bool): If true, print verbose debugging information
 
     Keyword Args:
@@ -586,6 +585,10 @@ def retrieve_requested_files(tracker, store, store_specs, input_locs, debug, **k
         file_templates if isinstance(file_templates, list) else [file_templates]
     )
 
+    if store_specs["protocol"] == 'wget':
+        input_locs=store_specs["url"]
+    elif store_specs["protocol"] == 'awscli':
+        input_locs=store_specs["bucket"]
     input_locs = input_locs if isinstance(input_locs, list) else [input_locs]
 
     orig_path = os.getcwd()
@@ -1406,7 +1409,6 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
                 data_store,
                 store_specs,
                 check_all=known_data_info.get("check_all", False),
-                input_locs=store_specs["url"],
                 members=[0],
                 debug=debug,
             )
