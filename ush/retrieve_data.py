@@ -272,6 +272,47 @@ def wget_file(url,debug=False):
     return downloaded_files
 
 
+def extract_files_from_archive(archive_file, extract_patterns, archive_format="tar"):
+    """
+    Extract files from a tar or tar.gz archive based on glob patterns.
+
+    Args:
+        archive_file (str): Path to the archive file to extract from
+        extract_patterns (list): List of glob patterns for files to extract
+        archive_format (str): Archive format - "tar" or "tar.gz"
+
+    Returns:
+        extracted_files (list): List of extracted filenames
+    """
+    import glob
+
+    extracted_files = []
+
+    # Determine extraction command based on archive format
+    if archive_format == "tar":
+        cmd = f"tar -xf {archive_file}"
+    elif archive_format == "tar.gz" or archive_format == "tgz":
+        cmd = f"tar -xzf {archive_file}"
+    else:
+        logging.warning(f"Unknown archive format: {archive_format}")
+        return []
+
+    logging.info(f"Extracting files from {archive_file}")
+    try:
+        subprocess.run(cmd, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to extract {archive_file}: {e}")
+        return []
+
+    # Extract files matching the extract_patterns from the archive
+    for pattern in extract_patterns:
+        pattern = pattern if isinstance(pattern, str) else str(pattern)
+        matched_files = glob.glob(pattern)
+        extracted_files.extend(matched_files)
+
+    return extracted_files
+
+
 def arg_list_to_range(args):
 
     """
@@ -575,9 +616,17 @@ def retrieve_requested_files(tracker, store, store_specs, debug, **kwargs):
     members = kwargs.get("members", "")
 
     check_all = kwargs.get("check_all", False)
-    file_templates = store_specs.get("file_names")
 
-    logging.info(f"Getting files named like {file_templates} from {store}")
+    # Check if we need to download and extract from archives
+    has_archive = "archive_file_names" in store_specs
+    if has_archive:
+        file_templates = store_specs.get("archive_file_names")
+        extract_patterns = store_specs.get("file_names")
+        logging.info(f"Getting archive files named like {file_templates} from {store}")
+        logging.info(f"Will extract files matching {extract_patterns} from archives")
+    else:
+        file_templates = store_specs.get("file_names")
+        logging.info(f"Getting files named like {file_templates} from {store}")
 
     # Make sure we're dealing with lists for input locations and file
     # templates. Makes it easier to loop and zip.
@@ -637,18 +686,68 @@ def retrieve_requested_files(tracker, store, store_specs, debug, **kwargs):
                             tracker.add(ftime, store, orig_template, os.path.basename(input_loc))
 
                     elif store_specs.get('protocol') == "wget":
-                        try:
-                            subprocess.run(
-                                "which wget",
-                                check=True, 
-                                shell=True, 
-                            )           
-                        except subprocess.CalledProcessError:
-                            logging.warning("The wget utility is unavailable, can not retrieve files") 
-                            continue
-                        retrieved = wget_file(input_loc,debug)
-                        for rf in retrieved:
-                            tracker.add(ftime, store, orig_template, os.path.join(target_path,rf))
+                        # Check if we're dealing with archives and if this archive has already been retrieved
+                        retrieved = []
+                        if has_archive:
+                            # Fill the archive template to get the actual filename
+                            filled_archive_template = fill_template_dt(
+                                orig_template,
+                                tracker.cycle_date,
+                                f_date=ftime,
+                                mem=mem,
+                            )
+                            archive_filename = os.path.basename(filled_archive_template)
+
+                            # Check if this archive has already been retrieved
+                            existing_archive_path = tracker.archive_retrieved(store, archive_filename)
+                            if existing_archive_path:
+                                logging.info(f"Archive {archive_filename} already retrieved at {existing_archive_path}, skipping download")
+                                retrieved = [os.path.basename(existing_archive_path)]
+
+                        # Only download if we haven't found an existing archive
+                        if not retrieved:
+                            try:
+                                subprocess.run(
+                                    "which wget",
+                                    check=True,
+                                    shell=True,
+                                )
+                            except subprocess.CalledProcessError:
+                                logging.warning("The wget utility is unavailable, can not retrieve files")
+                                continue
+                            retrieved = wget_file(input_loc,debug)
+
+                        # If dealing with archives, extract files from them
+                        if has_archive and retrieved:
+                            archive_format = store_specs.get("archive_format", "tar")
+                            extracted_all = []
+                            for archive_file in retrieved:
+                                # Record the archive download
+                                tracker.add_archive(ftime, store, orig_template, os.path.join(target_path, archive_file))
+
+                                # Fill extraction patterns with datetime values
+                                filled_patterns = []
+                                for pattern in extract_patterns:
+                                    filled_pattern = fill_template_dt(
+                                        pattern,
+                                        tracker.cycle_date,
+                                        f_date=ftime,
+                                        mem=mem,
+                                    )
+                                    filled_patterns.append(filled_pattern)
+
+                                extracted = extract_files_from_archive(archive_file, filled_patterns, archive_format)
+                                # Track extracted files against the extraction pattern (file_names), not the archive pattern
+                                for extract_pat in extract_patterns:
+                                    for extracted_file in extracted:
+                                        tracker.add(ftime, store, extract_pat, os.path.join(target_path, extracted_file))
+                                extracted_all.extend(extracted)
+                            retrieved = extracted_all
+                        else:
+                            # No archives, just track the downloaded files
+                            for rf in retrieved:
+                                tracker.add(ftime, store, orig_template, os.path.join(target_path,rf))
+
                         # Wait a bit before trying the next download.
                         # Seems to reduce the occurrence of timeouts
                         # when downloading from AWS
@@ -1213,6 +1312,11 @@ class FileTracker:
         for t in self.times:
             self.files[t] = {}
 
+        # ``self.archives`` is a dict:  time → {store: {pattern: [list of Path]}} for archive files only
+        self.archives = {}
+        for t in self.times:
+            self.archives[t] = {}
+
         self._initialize_from_config(config)
 
     # ------------------------------------------------------------------
@@ -1234,6 +1338,16 @@ class FileTracker:
                     # initialise the nested dicts lazily
                     self.files[t].setdefault(store_name, {})
                     self.files[t][store_name].setdefault(pat, [])
+
+            # Initialize archive patterns only for wget stores
+            if store_cfg.get("protocol") == "wget":
+                archive_pats = store_cfg.get("archive_file_names", [])
+                if isinstance(archive_pats, str):
+                    archive_pats = [archive_pats]
+                for pat in archive_pats:
+                    for t in self.times:
+                        self.archives[t].setdefault(store_name, {})
+                        self.archives[t][store_name].setdefault(pat, [])
 #                    self.files[t].setdefault(store_cfg.get("store_name", ""), {})
 #                    self.files[t][store_cfg.get("store_name", "")].setdefault(pat, [])
 
@@ -1259,6 +1373,39 @@ class FileTracker:
             self.add(time, store_name, file_name_pattern, p)
 
     # ------------------------------------------------------------------
+    def add_archive(self, time: dt.datetime, store_name: str,
+                    archive_pattern: str, path: str) -> None:
+        """Record that *path* (an archive file) was downloaded for *archive_pattern*."""
+        if isinstance(path, Path):
+            path = str(path.resolve())
+
+        if time not in self.archives:
+            raise KeyError(f"Unknown time {time}")
+
+        store_dict = self.archives[time].setdefault(store_name, {})
+        store_dict.setdefault(archive_pattern, []).append(path)
+
+    # ------------------------------------------------------------------
+    def archive_retrieved(self, store_name: str, archive_filename: str) -> str:
+        """Check if an archive with the given filename has already been retrieved.
+
+        Args:
+            store_name (str): The data store name
+            archive_filename (str): The actual archive filename (after datetime substitution)
+
+        Returns:
+            str: The full path to the archive if found, empty string if not found
+        """
+        for time_dict in self.archives.values():
+            store_dict = time_dict.get(store_name, {})
+            for archive_list in store_dict.values():
+                # Check if the archive filename exists in any of the retrieved archive lists
+                for archive_path in archive_list:
+                    if os.path.basename(archive_path) == archive_filename:
+                        return archive_path
+        return ""
+
+    # ------------------------------------------------------------------
     def missing(self, time_offset: int, store_name: str) -> list:
         """
         Return a list of filename patterns that have **no files** retrieved
@@ -1282,6 +1429,14 @@ class FileTracker:
     def all_files(self) -> list:
         """Return a flat list of every retrieved file (across all times and stores)."""
         return [p for t in self.files.values()
+                for store in t.values()
+                for pat in store.values()
+                for p in pat]
+
+    # ------------------------------------------------------------------
+    def all_archives(self) -> list:
+        """Return a flat list of every retrieved archive file (across all times and stores)."""
+        return [p for t in self.archives.values()
                 for store in t.values()
                 for pat in store.values()
                 for p in pat]
@@ -1375,6 +1530,7 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
     tracker = FileTracker(cfg, data_type, cycle_date, output_path, leadtimes, check_files)
     logging.debug(f"{tracker=}")
     unavailable = []
+    retrieved = []
     for data_store in data_stores:
         store_specs = known_data_info.get(data_store, {})
         logging.info(f"Checking {data_store} for {data_type} using {store_specs.get('protocol')}")
@@ -1438,6 +1594,15 @@ def retrieve_files(config,cycle_date,data_stores,data_type,output_path,
 
         logging.debug(f"Some unavailable files: {unavailable}")
         logging.warning(f"Requested files are unavailable from {data_store}")
+
+    # Clean up downloaded archive files at the very end
+    archives_to_remove = tracker.all_archives()
+    for archive_path in archives_to_remove:
+        try:
+            os.remove(archive_path)
+            logging.debug(f"Removed archive file: {archive_path}")
+        except OSError as e:
+            logging.warning(f"Could not remove archive file {archive_path}: {e}")
 
     return retrieved, unavailable
 

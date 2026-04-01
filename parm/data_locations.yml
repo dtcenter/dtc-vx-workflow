@@ -111,6 +111,13 @@ NDAS:
       - "com_obsproc_v1.2_nam.{yyyy}{mm}{dd}{hh}.bufr.tar"
     file_names:
       - "./nam.t{hh}z.prepbufr.tm*.nr"
+  http:
+    protocol: wget
+    url: "https://osdf-director.osg-htc.org/ncar/gdex/d337000/tarfiles/{yyyy}/"
+    archive_file_names:
+      - "prepbufr.{yyyymmdd}.nr.tar.gz"
+    file_names:
+      - "prepbufr.gdas.{yyyymmdd}.t{hh}z.nr"
 
 NOHRSC:
   hpss:
