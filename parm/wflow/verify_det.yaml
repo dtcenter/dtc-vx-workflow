@@ -2,7 +2,7 @@ default_task_verify_det: &default_task_verify_det
   account: '&ACCOUNT;'
   attrs: &default_attrs
     cycledefs: forecast
-    maxtries: '1'
+    maxtries: 1
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
@@ -37,7 +37,7 @@ metatask_GridStat_APCP_all_accums_all_mems:
       <<: *default_task_verify_det
       attrs:
         <<: *default_attrs
-        maxtries: '2'
+        maxtries: 2
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars
@@ -71,7 +71,7 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
       <<: *default_task_verify_det
       attrs:
         <<: *default_attrs
-        maxtries: '2'
+        maxtries: 2
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars
