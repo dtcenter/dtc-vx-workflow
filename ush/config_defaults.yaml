@@ -491,9 +491,9 @@ workflow:
 
 
 #----------------------------
-# global config parameters
+# Ensemble config parameters
 #-----------------------------
-global:
+ensemble:
   #
   #-----------------------------------------------------------------------
   #
@@ -524,8 +524,8 @@ global:
   #
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
-  ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+  ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
+  ENS_TIME_LAG_HRS: '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
 tropical:
 #-----------------------------
@@ -962,7 +962,7 @@ verification:
   # METplus template for the name of the subdirectory containing forecast
   # files to use as inputs to the verification tasks.
   #
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd'
+  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'
   #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs

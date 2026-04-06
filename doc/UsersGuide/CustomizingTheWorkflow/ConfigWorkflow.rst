@@ -20,9 +20,9 @@ Mathematical and Jinja logical experssions are also supported:
 
 .. code-block:: console
 
-   global:
+   ensemble:
      NUM_ENS_MEMBERS: 3
-     ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}' # Filled in as 'mem001, mem002, mem003'
+     ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}' # Filled in as 'mem001, mem002, mem003'
    regriddataplane:
      execution:
        tasks_per_node: '{{ regriddataplane.TASKS }}' # Filled in as string '1'
@@ -351,213 +351,28 @@ These variables are flags that indicate whether to print more detailed messages.
 Global Configuration Parameters
 ===================================
 
-Non-default parameters for the miscellaneous tasks are set in the ``global:`` section of the ``config.yaml`` file. 
-
-Community Radiative Transfer Model (CRTM) Parameters
---------------------------------------------------------
-
-These variables set parameters associated with outputting satellite fields in the :term:`UPP` :term:`grib2` files using the Community Radiative Transfer Model (:term:`CRTM`). :numref:`Section %s <SatelliteProducts>` includes further instructions on how to do this. 
-
-``USE_CRTM``: (Default: false)
-   Flag that defines whether external :term:`CRTM` coefficient files have been staged by the user in order to output synthetic satellite products available within the :term:`UPP`. If this is set to true, then the workflow will check for these files in the directory ``CRTM_DIR``. Otherwise, it is assumed that no satellite fields are being requested in the UPP configuration. Valid values: ``True`` | ``False``
-
-``CRTM_DIR``: (Default: "")
-   This is the path to the top CRTM fix file directory. This is only used if ``USE_CRTM`` is set to true.
-
+Non-default parameters for ensemble verification are set in the ``ensemble:`` section of the ``config.yaml`` file. 
 
 Ensemble Model Parameters
 -----------------------------
 
-Set parameters associated with running ensembles. 
+Set parameters associated with verifying ensemble forecast data.
 
 ``DO_ENSEMBLE``: (Default: false)
-   Flag that determines whether to run a set of ensemble forecasts (for each set of specified cycles).  If this is set to true, ``NUM_ENS_MEMBERS`` forecasts are run for each cycle, each with a different set of stochastic seed values. When false, a single forecast is run for each cycle. Valid values: ``True`` | ``False``
+   Flag that determines whether we are verifying an ensemble forecast. Valid values: ``True`` | ``False``
 
 ``NUM_ENS_MEMBERS``: (Default: 0)
-   The number of ensemble members to run if ``DO_ENSEMBLE`` is set to true. This variable also controls the naming of the ensemble member directories. For example, if ``NUM_ENS_MEMBERS`` is set to 8, the member directories will be named *mem1, mem2, ..., mem8*. This variable is not used unless ``DO_ENSEMBLE`` is set to true.
+   The number of ensemble members, if ``DO_ENSEMBLE`` is set to true. This variable also controls the naming of the ensemble member directories. For example, if ``NUM_ENS_MEMBERS`` is set to 8, the member directories will be named *mem1, mem2, ..., mem8*. This variable is not used unless ``DO_ENSEMBLE`` is set to true.
 
-``ENSMEM_NAMES``: (Default: ``'{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'``)
+``ENSMEM_NAMES``: (Default: ``'{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'``)
    A list of names for the ensemble member names following the format mem001, mem002, etc.
 
-``ENS_TIME_LAG_HRS``: (Default: ``'[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'``)
+``ENS_TIME_LAG_HRS``: (Default: ``'[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'``)
    Time lag (in hours) to use for each ensemble member. For a deterministic forecast, this is a one-element array. Default values of array elements are zero.
 
 
-.. _stochastic-physics:
 
-Stochastic Physics Parameters
-----------------------------------
-
-Set default ad-hoc stochastic physics options. For the most updated and detailed documentation of these parameters, see the :doc:`UFS Stochastic Physics Documentation <stochphys:namelist_options>`.
-
-``NEW_LSCALE``: (Default: true) 
-   Use correct formula for converting a spatial length scale into spectral space. 
-
-Specific Humidity (SHUM) Perturbation Parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``DO_SHUM``: (Default: false)
-   Flag to turn Specific Humidity (SHUM) perturbations on or off. SHUM perturbations multiply the low-level specific humidity by a small random number at each time-step. The SHUM scheme attempts to address missing physics phenomena (e.g., cold pools, gust fronts) most active in convective regions. Valid values: ``True`` | ``False``
-
-``ISEED_SHUM``: (Default: 2)
-   Seed for setting the SHUM random number sequence.
-
-``SHUM_MAG``: (Default: 0.006) 
-   Amplitudes of random patterns. Corresponds to the variable ``shum`` in ``input.nml``.
-
-``SHUM_LSCALE``: (Default: 150000)
-   Decorrelation spatial scale in meters.
-
-``SHUM_TSCALE``: (Default: 21600)
-   Decorrelation timescale in seconds. Corresponds to the variable ``shum_tau`` in ``input.nml``.
-
-``SHUM_INT``: (Default: 3600)
-   Interval in seconds to update random pattern (optional). Perturbations still get applied at every time-step. Corresponds to the variable ``shumint`` in ``input.nml``.
-
-.. _SPPT:
-
-Stochastically Perturbed Physics Tendencies (SPPT) Parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SPPT perturbs full physics tendencies *after* the call to the physics suite, unlike :ref:`SPP <SPP>` (below), which perturbs specific tuning parameters within a physics scheme. 
-
-``DO_SPPT``: (Default: false)
-   Flag to turn Stochastically Perturbed Physics Tendencies (SPPT) on or off. SPPT multiplies the physics tendencies by a random number between 0 and 2 before updating the model state. This addresses error in the physics parameterizations (either missing physics or unresolved subgrid processes). It is most active in the boundary layer and convective regions. Valid values: ``True`` | ``False``
-
-``ISEED_SPPT``: (Default: 1) 
-   Seed for setting the SPPT random number sequence.
-
-``SPPT_MAG``: (Default: 0.7)
-   Amplitude of random patterns. Corresponds to the variable ``sppt`` in ``input.nml``.
-
-``SPPT_LOGIT``: (Default: true)
-   Limits the SPPT perturbations to between 0 and 2. Should be "TRUE"; otherwise the model will crash.
-
-``SPPT_LSCALE``: (Default: 150000)
-   Decorrelation spatial scale in meters. 
-
-``SPPT_TSCALE``: (Default: 21600) 
-   Decorrelation timescale in seconds. Corresponds to the variable ``sppt_tau`` in ``input.nml``.
-   
-``SPPT_INT``: (Default: 3600) 
-   Interval in seconds to update random pattern (optional parameter). Perturbations still get applied at every time-step. Corresponds to the variable ``spptint`` in ``input.nml``.
-
-``SPPT_SFCLIMIT``: (Default: true)
-   When true, tapers the SPPT perturbations to zero at the model's lowest level, which reduces model crashes. 
-
-``USE_ZMTNBLCK``: (Default: false)
-   When true, do not apply perturbations below the dividing streamline that is diagnosed by the gravity wave drag, mountain blocking scheme. Valid values: ``True`` | ``False``
-
-
-Stochastic Kinetic Energy Backscatter (SKEB) Parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``DO_SKEB``: (Default: false)
-   Flag to turn Stochastic Kinetic Energy Backscatter (SKEB) on or off. SKEB adds wind perturbations to the model state. Perturbations are random in space/time, but amplitude is determined by a smoothed dissipation estimate provided by the :term:`dynamical core`. SKEB addresses errors in the dynamics more active in the mid-latitudes. Valid values: ``True`` | ``False``
-
-``ISEED_SKEB``: (Default: 3)
-   Seed for setting the SHUM random number sequence.
-
-``SKEB_MAG``: (Default: 0.5) 
-   Amplitude of random patterns. Corresponds to the variable ``skeb`` in ``input.nml``.
-
-``SKEB_LSCALE``: (Default: 150000)
-   Decorrelation spatial scale in meters. 
-
-``SKEB_TSCALE``: (Default: 21600)
-   Decorrelation timescale in seconds. Corresponds to the variable ``skeb_tau`` in ``input.nml``.
-
-``SKEB_INT``: (Default: 3600)
-   Interval in seconds to update random pattern (optional). Perturbations still get applied every time-step. Corresponds to the variable ``skebint`` in ``input.nml``.
-
-``SKEBNORM``: (Default: 1)
-   Patterns:
-      * 0-random pattern is stream function
-      * 1-pattern is K.E. norm
-      * 2-pattern is vorticity
-
-``SKEB_VDOF``: (Default: 10)
-   The number of degrees of freedom in the vertical direction for the SKEB random pattern. 
-
-.. _SPP:
-
-Parameters for Stochastically Perturbed Parameterizations (SPP)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SPP perturbs specific tuning parameters within a physics :term:`parameterization <parameterizations>` (unlike :ref:`SPPT <SPPT>`, which multiplies overall physics tendencies by a random perturbation field *after* the call to the physics suite). Patterns evolve and are applied at each time step. Each SPP option is an array, applicable (in order) to the :term:`RAP`/:term:`HRRR`-based parameterization listed in ``SPP_VAR_LIST``. Enter each value of the array in ``config.yaml`` as shown below without commas or single quotes (e.g., ``SPP_VAR_LIST: [ "pbl" "sfc" "mp" "rad" "gwd" ]`` ). Both commas and single quotes will be added by Jinja when creating the namelist.
-
-.. note::
-   SPP is currently only available for specific physics schemes: MYNN-EDMF (pbl), MYNN SFC (sfc), Thompson Microphysics (mp), RRTMG (rad), GFS gravity wave drag (gwd) and Grell-Freidas cumulus parameterization (cu_deep). Users need to be aware of which physics suite definition file (:term:`SDF`) is chosen when turning this option on. If SPP perturbations for a given parameterization are not possible with the selected suite, that SPP option will be deactivated. Among the supported physics suites, the full set of parameterizations can only be used with the ``FV3_HRRR``, ``FV3_HRRR_gf``, ``FV3_RAP``, and ``RRFS_sas`` options for ``CCPP_PHYS_SUITE``.
-
-``DO_SPP``: (Default: false)
-   Flag to turn SPP on or off. SPP perturbs parameters or variables with unknown or uncertain magnitudes within the physics code based on ranges provided by physics experts. Valid values: ``True`` | ``False``
-
-``SPP_VAR_LIST``: (Default: [ "pbl", "sfc", "mp", "rad", "gwd" ] )
-   The list of parameterizations to perturb: planetary boundary layer (PBL), surface physics (SFC), microphysics (MP), radiation (RAD), gravity wave drag (GWD). Valid values: ``"pbl"`` | ``"sfc"`` | ``"rad"`` | ``"gwd"`` | ``"mp"`` | ``"cu_deep"``
-
-``SPP_MAG_LIST``: (Default: [ 0.2, 0.2, 0.75, 0.2, 0.2 ] ) 
-   SPP perturbation magnitudes used in each parameterization. Corresponds to the variable ``spp_prt_list`` in ``input.nml``
-
-``SPP_LSCALE``: (Default: [ 150000.0, 150000.0, 150000.0, 150000.0, 150000.0 ] )
-   Decorrelation spatial scales in meters.
-   
-``SPP_TSCALE``: (Default: [ 21600.0, 21600.0, 21600.0, 21600.0, 21600.0 ] ) 
-   Decorrelation timescales in seconds. Corresponds to the variable ``spp_tau`` in ``input.nml``.
-
-``SPP_SIGTOP1``: (Default: [ 0.1, 0.1, 0.1, 0.1, 0.1 ] )
-   Controls vertical tapering of perturbations at the tropopause and corresponds to the lower sigma level at which to taper perturbations to zero. 
-
-``SPP_SIGTOP2``: (Default: [ 0.025, 0.025, 0.025, 0.025, 0.025 ] )
-   Controls vertical tapering of perturbations at the tropopause and corresponds to the upper sigma level at which to taper perturbations to zero.
-
-``SPP_STDDEV_CUTOFF``: (Default: [ 1.5, 1.5, 2.5, 1.5, 1.5 ] )
-   Limit for possible perturbation values in standard deviations from the mean.
-
-``ISEED_SPP``: (Default: [ 4, 5, 6, 7, 8 ] )
-   Seed for setting the random number sequence for the perturbation pattern. 
-
-Land Surface Model (LSM) SPP
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Land surface perturbations can be applied to land model parameters and land model prognostic variables. The LSM scheme is intended to address errors in the land model and land-atmosphere interactions. LSM perturbations include soil moisture content (SMC) (volume fraction), vegetation fraction (VGF), albedo (ALB), salinity (SAL), emissivity (EMI), surface roughness (ZOL) (in cm), and soil temperature (STC). Perturbations to soil moisture content (SMC) are only applied at the first time step. Only five perturbations at a time can be applied currently, but all seven are shown below. In addition, only one unique *iseed* value is allowed at the moment, and it is used for each pattern.
-
-The parameters below turn on SPP in Noah or RUC LSM (support for Noah MP is in progress). Please be aware of the :term:`SDF` that you choose if you wish to turn on Land Surface Model (LSM) SPP. SPP in LSM schemes is handled in the ``&nam_sfcperts`` namelist block instead of in ``&nam_sppperts``, where all other SPP is implemented. 
-
-``DO_LSM_SPP``: (Default: false) 
-   Turns on Land Surface Model (LSM) Stochastic Physics Parameterizations (SPP). When true, sets ``lndp_type=2``, which applies land perturbations to the selected parameters using a newer scheme designed for data assimilation (DA) ensemble spread. LSM SPP perturbs uncertain land surface fields ("smc" "vgf" "alb" "sal" "emi" "zol" "stc") based on recommendations from physics experts. Valid values: ``True`` | ``False``
-
-.. attention::
-   
-   Only five perturbations at a time can be applied currently, but all seven are shown in the ``LSM_SPP_*`` variables below. 
-
-``LSM_SPP_TSCALE``: (Default: [ 21600, 21600, 21600, 21600, 21600, 21600, 21600 ] )
-   Decorrelation timescales in seconds. 
-
-``LSM_SPP_LSCALE``: (Default: [ 150000, 150000, 150000, 150000, 150000, 150000, 150000 ] )
-   Decorrelation spatial scales in meters.
-
-``ISEED_LSM_SPP``: (Default: [ 9 ] )
-   Seed to initialize the random perturbation pattern.
-
-``LSM_SPP_VAR_LIST``: (Default: [ "smc", "vgf", "alb", "sal", "emi", "zol", "stc" ] )
-   Indicates which LSM variables to perturb. 
-
-``LSM_SPP_MAG_LIST``: (Default: [ 0.017, 0.001, 0.001, 0.001, 0.001, 0.001, 0.2 ] )
-   Sets the maximum random pattern amplitude for each of the LSM perturbations. 
-
-.. _HaloBlend:
-
-Halo Blend Parameter
-------------------------
-``HALO_BLEND``: (Default: 10)
-   Number of cells to use for "blending" the external solution (obtained from the :term:`LBCs`) with the internal solution from the FV3LAM :term:`dycore`. Specifically, it refers to the number of rows into the computational domain that should be blended with the LBCs. Cells at which blending occurs are all within the boundary of the native grid; they don't involve the 4 cells outside the boundary where the LBCs are specified (which is a different :term:`halo`). Blending is necessary to smooth out waves generated due to mismatch between the external and internal solutions. To shut :term:`halo` blending off, set this variable to zero. 
-
-Pressure Tendency Diagnostic
-------------------------------
-``PRINT_DIFF_PGR``: (Default: false)
-   Option to turn on/off the pressure tendency diagnostic. 
-
-.. _VXParams:
+-.. _VXParams:
 
 Verification (VX) Parameters
 =================================
@@ -907,7 +722,7 @@ VX Parameters for Forecasts
 
    .. code-block:: console
  
-      {% if user.RUN_ENVIR == "nco" %}{{ nco.NET_default }}.{init?fmt=%Y%m%d?shift=-${time_lag}}/{init?fmt=%H?shift=-${time_lag}}{% else %}{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd{% endif %}
+      {% if user.RUN_ENVIR == "nco" %}{{ nco.NET_default }}.{init?fmt=%Y%m%d?shift=-${time_lag}}/{init?fmt=%H?shift=-${time_lag}}{% else %}{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd{% endif %}
 
    METplus template for the name of the subdirectory containing forecast
    files to use as inputs to the verification tasks.
@@ -917,7 +732,7 @@ VX Parameters for Forecasts
 
    .. code-block:: console
  
-      {{ nco.NET_default }}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}.grib2
+      {{ nco.NET_default }}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and ensemble.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}.grib2
 
    METplus template for the names of the forecast files to use as inputs
    to the verification tasks.
@@ -927,7 +742,7 @@ VX Parameters for Forecasts
 
    .. code-block:: console
  
-      {{ nco.NET_default }}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc
+      {{ nco.NET_default }}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and ensemble.DO_ENSEMBLE }}.prslev.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc
 
    METplus template for the names of the NetCDF files generated by the
    workflow verification tasks that call METplus's PcpCombine tool on

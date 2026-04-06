@@ -21,7 +21,7 @@
 #  workflow:
 #    FCST_LEN_HRS
 #
-#  global:
+#  ensemble:
 #    DO_ENSEMBLE
 #    ENS_TIME_LAG_HRS
 #
@@ -46,7 +46,7 @@
 sections=(
   user
   workflow
-  global
+  ensemble
   verification
 )
 for sect in ${sections[*]} ; do

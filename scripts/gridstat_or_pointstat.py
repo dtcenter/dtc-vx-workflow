@@ -77,7 +77,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
     # Set some aliases
     vxcfg = cfg["verification"]
-    do_ens = cfg["global"]["DO_ENSEMBLE"]
+    do_ens = cfg["ensemble"]["DO_ENSEMBLE"]
 
     # Check that basic input directories exist:
     if not Path(obs_dir).is_dir():
@@ -90,12 +90,12 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     ensmem=f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
 
     # Set ensemble time lag settings
-    lgr.debug(f"{cfg['global']['ENS_TIME_LAG_HRS']=}")
+    lgr.debug(f"{cfg['ensemble']['ENS_TIME_LAG_HRS']=}")
     lgr.debug(f"{ensmem_index=}")
     lgr.debug(f"{vxcfg['VX_NDIGITS_ENSMEM_NAMES']=}")
     time_lag = 0
     if do_ens:
-        time_lag_hrs = ast.literal_eval(cfg['global']['ENS_TIME_LAG_HRS'])[ensmem_index-1]
+        time_lag_hrs = ast.literal_eval(cfg['ensemble']['ENS_TIME_LAG_HRS'])[ensmem_index-1]
         time_lag = time_lag_hrs*3600
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
