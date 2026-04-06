@@ -86,14 +86,6 @@ platform:
   # The number of active cycles to run simultaneously. For linux/mac setting this
   # to 1 makes sense
   #
-  # BUILD_VER_FN:
-  # File name containing the version of the modules used for building the App.
-  # Currently, only WCOSS2 uses this file.
-  #
-  # RUN_VER_FN:
-  # File name containing the version of the modules used for running the App.
-  # Currently, only WCOSS2 uses this file.
-  #
   # SCHED:
   # The job scheduler to use (e.g., Slurm). Set this to an empty string in
   # order for the experiment generation script to set it depending on the
@@ -103,7 +95,7 @@ platform:
   # If using the slurm job scheduler (i.e. if SCHED is set to "slurm"), 
   # the default partition to which to submit workflow tasks.  If a task 
   # does not have a specific variable that specifies the partition to which 
-  # it will be submitted (e.g. PARTITION_HPSS, PARTITION_FCST; see below), 
+  # it will be submitted (e.g. PARTITION_HPSS; see below), 
   # it will be submitted to the partition specified by this variable.  If 
   # this is not set or is set to an empty string, it will be (re)set to a 
   # machine-dependent value.  This is not used if SCHED is not set to 
@@ -113,7 +105,7 @@ platform:
   # The default queue or QOS (if using the slurm job scheduler, where QOS
   # is Quality of Service) to which workflow tasks are submitted.  If a 
   # task does not have a specific variable that specifies the queue to which 
-  # it will be submitted (e.g. QUEUE_HPSS, QUEUE_FCST; see below), it will 
+  # it will be submitted (e.g. QUEUE_HPSS; see below), it will
   # be submitted to the queue specified by this variable.  If this is not 
   # set or is set to an empty string, it will be (re)set to a machine-
   # dependent value.
@@ -143,8 +135,6 @@ platform:
   NCORES_PER_NODE: ""
   TASKTHROTTLE: 1000
   CYCLETHROTTLE: 200
-  BUILD_VER_FN: 'build.ver.{{ user.MACHINE|lower() }}'
-  RUN_VER_FN: 'run.ver.{{ user.MACHINE|lower() }}'
   SCHED: ""
   PARTITION_DEFAULT: ""
   QUEUE_DEFAULT: ""
@@ -182,7 +172,10 @@ platform:
   PRE_TASK_CMDS: ""
   #
   #-----------------------------------------------------------------------
-  # MET and METplus directories
+  # MET and METplus directories. MET_INSTALL_DIR is the directory containing
+  # a bin/ subdirectory that contains the MET binary executable files.
+  # METPLUS_ROOT is the directory containing metplus/wrappers/ subdirectories
+  # where the python wrapper scripts can be found.
   #-----------------------------------------------------------------------
   MET_INSTALL_DIR: ''
   METPLUS_ROOT: ''
@@ -353,13 +346,6 @@ workflow:
   # ROCOTO_YAML_FN:
   # Name of the YAML file containing the YAML workflow definition from
   # which the Rocoto XML file is created.
-  #
-  # EXTRN_MDL_VAR_DEFNS_FN:
-  # Name of file (a shell script) containing the defintions of variables
-  # associated with the external model from which ICs or LBCs are generated.  This
-  # file is created by the get_extrn_* task because the values of the variables
-  # it contains are not known before this task runs.  The file is then sourced by
-  # the make_ics and make_lbcs tasks.
   #
   # WFLOW_LAUNCH_SCRIPT_FN:
   # Name of the script that can be used to (re)launch the experiment's rocoto
