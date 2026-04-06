@@ -4,7 +4,7 @@
 Testing the DTC VX Workflow
 ===========================
 
-Introduction to Workflow End-to-End (WE2E) Tests
+Workflow End-to-End (WE2E) Tests
 ==================================================
 
 The verification workflow contains a set of end-to-end tests that exercise various workflow configurations for verification tests with different sets of input observations, model data, METplus tools, verification metrics, ensemble members, and other settings. These are referred to as workflow end-to-end (WE2E) tests because they all use the Rocoto workflow manager to run their individual workflows from start to finish. The purpose of these tests is to ensure that new changes to the workflow do not break existing functionality and capabilities. However, these WE2E tests also provide users with example cases to help configure the workflow, including staged data.
@@ -55,16 +55,16 @@ For convenience, the WE2E tests are currently grouped into the following categor
 .. _RunWE2E:
 
 Running the WE2E Tests
-================================
+----------------------
 
 About the Test Script (``run_we2e_tests.py``)
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The script to run the WE2E tests is named ``run_we2e_tests.py`` and is located in the directory ``dtc-vx-workflow/tests/WE2E``. Each WE2E test has an associated configuration file named ``config.${test_name}.yaml`` in the ``test_configs`` directory, where ``${test_name}`` is the name of the corresponding test. These configuration files are subsets of the full range of ``config.yaml`` experiment configuration options. (See :numref:`Section %s <ConfigWorkflow>` for all configurable options and :numref:`Section %s <UserSpecificConfig>` for information on configuring ``config.yaml`` or any test configuration ``.yaml`` file.) For each test, the ``run_we2e_tests.py`` script reads in the test configuration file and generates from it a complete ``config.yaml`` file. It then calls the ``generate_wflow()`` function from ``dtc-vx-workflow/ush/generate_wflow.py``, which in turn reads in ``config.yaml`` and generates a new experiment for the test. The name of each experiment directory is set to that of the corresponding test, and a copy of ``config.yaml`` for each test is placed in its experiment directory.
 
 
 Using the Test Script 
-----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 First, load the appropriate python environment (as described in :numref:`Section %s <SetUpPythonEnv>`).
 
@@ -319,14 +319,9 @@ The "Status" as specified by the above summary is explained below:
 * ``COMPLETE``
    All jobs are status SUCCEEDED, and we have monitored this job for an additional cycle to ensure there are no unsubmitted jobs. We will no longer monitor this experiment.
 
-Modifying the WE2E System
-============================
-
-Users may wish to modify the WE2E testing system to suit specific testing needs.
-
 .. _ModExistingTest:
 
-Modifying an Existing Test
+Modifying an Existing WE2E Test
 -----------------------------
 To modify an existing test, simply edit the configuration file for that test by changing
 existing variable values and/or adding new variables to suit the requirements of the
@@ -336,7 +331,7 @@ in the header of the file.
 
 .. _AddNewTest:
 
-Adding a New Test
+Adding a New WE2E Test
 ---------------------
 To add a new test named, e.g., ``new_test01``, to one of the existing test categories, such as ``tc``:
 
@@ -347,3 +342,8 @@ To add a new test named, e.g., ``new_test01``, to one of the existing test categ
 #. Edit the header comments in ``config.new_test01.yaml`` so that they properly describe the new test.
 
 #. Edit the contents of ``config.new_test01.yaml`` by modifying existing experiment variable values and/or adding new variables such that the test runs with the intended configuration.
+
+.. _UnitTests:
+Unit Tests
+========================
+More info coming soon!

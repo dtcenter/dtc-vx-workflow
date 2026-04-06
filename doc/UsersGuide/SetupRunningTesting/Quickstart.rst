@@ -67,6 +67,13 @@ Setting up the verification workflow
          module use /glade/work/epicufsrt/contrib/derecho/modulefiles
          module load rocoto
 
+      On Orion and Hercules, Rocoto is loaded from the "contrib" module
+
+      .. code-block:: console
+
+         module load contrib rocoto
+
+
    #. Load the python environment for the workflow. Sourcing this script will attempt to download and install a new ``conda`` installation in a subdirectory; users who wish to use an existing conda installation should build the environment found in ``environment.yml``
 
       .. include:: ../../doc-snippets/load-env.rst

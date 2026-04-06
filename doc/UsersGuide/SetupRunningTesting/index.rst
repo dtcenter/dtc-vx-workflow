@@ -1,5 +1,5 @@
-Building, Running, and Testing the SRW App
-============================================
+Running and Testing the Verification Workflow
+==============================================
    
 .. toctree::
    :maxdepth: 3
