@@ -1,13 +1,13 @@
 .. _Testing:
 
-=======================
-Testing the SRW App
-=======================
+===========================
+Testing the DTC VX Workflow
+===========================
 
 Introduction to Workflow End-to-End (WE2E) Tests
 ==================================================
 
-The SRW App contains a set of end-to-end tests that exercise various workflow configurations of the SRW App. These are referred to as workflow end-to-end (WE2E) tests because they all use the Rocoto workflow manager to run their individual workflows from start to finish. The purpose of these tests is to ensure that new changes to the App do not break existing functionality and capabilities. However, these WE2E tests also provide users with additional sample cases and data beyond the basic ``config.community.yaml`` case. 
+The verification workflow contains a set of end-to-end tests that exercise various workflow configurations for verification tests with different sets of input observations, model data, METplus tools, verification metrics, ensemble members, and other settings. These are referred to as workflow end-to-end (WE2E) tests because they all use the Rocoto workflow manager to run their individual workflows from start to finish. The purpose of these tests is to ensure that new changes to the workflow do not break existing functionality and capabilities. However, these WE2E tests also provide users with example cases to help configure the workflow, including staged data.
 
 .. attention::
 
@@ -20,145 +20,37 @@ What is a WE2E test?
 WE2E tests are, in essence, tests of the workflow generation, task execution (:term:`J-jobs`, 
 :term:`ex-scripts`), and other auxiliary scripts to ensure that these scripts function correctly. Tested functions
 include creating and correctly arranging and naming directories and files, ensuring 
-that all input files are available and readable, calling executables with correct namelists and/or options, etc. 
+that all input files are available and readable, running tasks with correct configuration options, etc. 
 
 Note that the WE2E tests are **not** regression tests---they do not check whether 
 current results are identical to previously established baselines. They also do
 not test the scientific integrity of the results (e.g., they do not check that values 
-of output fields are reasonable). These tests only check that the tasks within each test's workflow complete successfully. Currently, it is up to the external repositories that the App clones (see :numref:`Section %s <SRWStructure>`) to check that changes to those repositories do not change results, or, if they do, to ensure that the new results are acceptable. (At least two of these external repositories---``UFS_UTILS`` and ``ufs-weather-model``---do have such regression tests.) 
+of output fields are reasonable). These tests only check that the tasks within each test's workflow complete successfully.
+However, we do have plans to implement true regression testing in the future.
 
 .. _we2e-categories:
 
 WE2E Test Categories
 ----------------------
 
-WE2E tests are grouped into two categories that are of interest to code developers: ``fundamental`` and ``comprehensive`` tests. "Fundamental" tests are a lightweight but wide-reaching set of tests designed to function as a cheap "`smoke test <https://en.wikipedia.org/wiki/Smoke_testing_(software)>`__" for changes to the UFS SRW App. The fundamental suite of tests runs common combinations of workflow tasks, physical domains, input data, physics suites, etc.
-The comprehensive suite of tests covers a broader range of combinations of capabilities, configurations, and components, ideally including all capabilities that *can* be run on a given platform. Because some capabilities are not available on all platforms (e.g., retrieving data directly from NOAA HPSS), the suite of comprehensive tests varies from machine to machine.
-The list of fundamental and comprehensive tests can be viewed in the ``ufs-srweather-app/tests/WE2E/machine_suites/`` directory, and the tests are described in more detail in :doc:`this table <../../tables/Tests>`.
+For convenience, the WE2E tests are currently grouped into the following categories (under ``dtc-vx-workflow/tests/WE2E/test_configs/``):
+
+* ``deterministic``
+   This category contains the most basic tests, for deterministic verification with various forecast and observation types.
+
+* ``ensemble``
+   This category tests configurations of ensemble forecast verification, including a time-lagged ensemble case.
+
+* ``MODE``
+   This category for object-based verification using MODE.
+
+* ``tc``
+   This category tests various tropical-cyclone specific verification tasks.
 
 .. note::
 
-   There are two additional test suites, ``coverage`` (designed for automated testing) and ``all`` (includes *all* tests, including those known to fail). Running these suites is **not recommended**.
-
-For convenience, the WE2E tests are currently grouped into the following categories (under ``ufs-srweather-app/tests/WE2E/test_configs/``):
-
-* ``aqm``
-   This category tests the :term:`AQM` configuration of the SRW App. 
-
-* ``custom_grids``
-   This category tests custom grids aside from those specified in ``ufs-srweather-app/ush/predef_grid_params.yaml``. These tests help ensure a wide range of domain sizes, resolutions, and locations will work as expected. These test files can also serve as examples for how to set your own custom domain.
-
-* ``default_configs``
-   This category tests example configuration files provided for user reference. They are symbolically linked from the ``ufs-srweather-app/ush/`` directory.
-
-* ``grids_extrn_mdls_suites_community``
-   This category of tests ensures that the SRW App workflow running in **community mode** (i.e., with ``RUN_ENVIR`` set to ``"community"``) completes successfully for various combinations of predefined grids, physics suites, and input data from different external models. Note that in community mode, all output from the Application is placed under a single experiment directory.
-
-* ``grids_extrn_mdls_suites_nco``
-   This category of tests ensures that the workflow running in **NCO mode** (i.e., with ``RUN_ENVIR`` set to ``"nco"``) completes successfully for various combinations of predefined grids, physics suites, and input data from different external models. Note that in NCO mode, an operational run environment is used. This involves a specific directory structure and variable names (see :numref:`Section %s <NCOModeParms>`).
-
-* ``ufs_case_studies``
-   This category tests that the workflow running in community mode completes successfully when running cases derived from the `ufs-case-studies repository <https://github.com/dtcenter/ufs-case-studies>`__. 
-
-* ``verification``
-   This category specifically tests the various combinations of verification capabilities using METPlus. 
-
-* ``wflow_features``
-   This category of tests ensures that the workflow completes successfully with particular features/capabilities activated.
-
-.. note::
-
-   Users should be aware that some tests assume :term:`HPSS` access. 
+   Users should be aware that some tests assume :term:`HPSS` access. We are working on removing this requirement using alternative data sources. 
    
-      * ``custom_ESGgrid_Great_Lakes_snow_8km`` and ``MET_verification_only_vx_time_lag`` require HPSS access, as well as ``rstprod`` access on both :term:`RDHPCS` and HPSS. 
-      * On certain machines, the *community* test assumes HPSS access. If the ``ush/machine/*.yaml`` file contains the following lines, and these paths are different from what is provided in ``TEST_EXTRN_MDL_SOURCE_BASEDIR``, users will need to have HPSS access or modify the tests to point to another data source:
-
-      .. code-block:: console
-
-         data:
-           ics_lbcs:
-             FV3GFS:
-             RAP:
-             HRRR:
-             RRFS:
-
-Some tests are duplicated among the above categories via symbolic links, both for legacy reasons (when tests for different capabilities were consolidated) and for convenience when a user would like to run all tests for a specific category (e.g., verification tests).
-
-.. _WE2ETestInfoFile:
-
-WE2E Test Information File
------------------------------
-
-If users want to see consolidated test information, they can generate a file that can be imported into a spreadsheet program (Google Sheets, Microsoft Excel, etc.) that summarizes each test. This file, named ``WE2E_test_info.txt`` by default, is delimited by the ``|`` character and can be created either by running the ``./print_test_info.py`` script, or by generating an experiment using ``./run_we2e_tests.py`` with the ``--print_test_info`` flag.
-
-The rows of the file/sheet represent the full set of available tests (not just the ones to be run). The columns contain the following information (column titles are included in the CSV file):
-
-| **Column 1**
-| The primary test name followed (in parentheses) by the category subdirectory where it is
-  located.
-
-| **Column 2**
-| Any alternate names for the test followed by their category subdirectories
-  (in parentheses).
-
-| **Column 3**
-| The test description.
-
-| **Column 4**
-| The relative cost of running the dynamics in the test. This gives an 
-  idea of how expensive the test is relative to a reference test that runs 
-  a single 6-hour forecast on the ``RRFS_CONUS_25km`` predefined grid using 
-  its default time step (``DT_ATMOS: 40``). To calculate the relative cost, the absolute cost (``abs_cost``) is first calculated as follows:
-
-.. code-block::
-
-     abs_cost = nx*ny*num_time_steps*num_fcsts
-
-| Here, ``nx`` and ``ny`` are the number of grid points in the horizontal 
-  (``x`` and ``y``) directions, ``num_time_steps`` is the number of time 
-  steps in one forecast, and ``num_fcsts`` is the number of forecasts the 
-  test runs (see Column 5 below). (Note that this cost calculation does 
-  not (yet) differentiate between different physics suites.)  The relative 
-  cost ``rel_cost`` is then calculated using:
-
-.. code-block::
-
-    rel_cost = abs_cost/abs_cost_ref
-
-| where ``abs_cost_ref`` is the absolute cost of running the reference forecast 
-  described above, i.e., a single (``num_fcsts = 1``) 6-hour forecast 
-  (``FCST_LEN_HRS = 6``) on the ``RRFS_CONUS_25km grid`` (which currently has 
-  ``nx = 219``, ``ny = 131``, and ``DT_ATMOS = 40 sec`` (so that ``num_time_steps 
-  = FCST_LEN_HRS*3600/DT_ATMOS = 6*3600/40 = 540``). Therefore, the absolute cost reference is calculated as:
-
-.. code-block::
-
-    abs_cost_ref = 219*131*540*1 = 15,492,060
-
-| **Column 5**
-| The number of times the forecast model will be run by the test. This 
-  is calculated using quantities such as the number of :term:`cycle` dates (i.e., 
-  forecast model start dates) and the number of ensemble members (which 
-  is greater than 1 if running ensemble forecasts and 1 otherwise). The 
-  number of cycle dates and/or ensemble members is derived from the quantities listed
-  in Columns 6, 7, ....
-
-| **Columns 6, 7, ...**
-| The values of various experiment variables (if defined) in each test's 
-  configuration file. Currently, the following experiment variables are 
-  included:
-
-  |  ``PREDEF_GRID_NAME``
-  |  ``CCPP_PHYS_SUITE``
-  |  ``EXTRN_MDL_NAME_ICS``
-  |  ``EXTRN_MDL_NAME_LBCS``
-  |  ``DATE_FIRST_CYCL``
-  |  ``DATE_LAST_CYCL``
-  |  ``INCR_CYCL_FREQ``
-  |  ``FCST_LEN_HRS``
-  |  ``DT_ATMOS``
-  |  ``LBC_SPEC_INTVL_HRS``
-  |  ``NUM_ENS_MEMBERS``
 
 .. _RunWE2E:
 
@@ -168,18 +60,11 @@ Running the WE2E Tests
 About the Test Script (``run_we2e_tests.py``)
 -----------------------------------------------
 
-The script to run the WE2E tests is named ``run_we2e_tests.py`` and is located in the directory ``ufs-srweather-app/tests/WE2E``. Each WE2E test has an associated configuration file named ``config.${test_name}.yaml``, where ``${test_name}`` is the name of the corresponding test. These configuration files are subsets of the full range of ``config.yaml`` experiment configuration options. (See :numref:`Section %s <ConfigWorkflow>` for all configurable options and :numref:`Section %s <UserSpecificConfig>` for information on configuring ``config.yaml`` or any test configuration ``.yaml`` file.) For each test, the ``run_we2e_tests.py`` script reads in the test configuration file and generates from it a complete ``config.yaml`` file. It then calls the ``generate_FV3LAM_wflow()`` function, which in turn reads in ``config.yaml`` and generates a new experiment for the test. The name of each experiment directory is set to that of the corresponding test, and a copy of ``config.yaml`` for each test is placed in its experiment directory.
+The script to run the WE2E tests is named ``run_we2e_tests.py`` and is located in the directory ``dtc-vx-workflow/tests/WE2E``. Each WE2E test has an associated configuration file named ``config.${test_name}.yaml`` in the ``test_configs`` directory, where ``${test_name}`` is the name of the corresponding test. These configuration files are subsets of the full range of ``config.yaml`` experiment configuration options. (See :numref:`Section %s <ConfigWorkflow>` for all configurable options and :numref:`Section %s <UserSpecificConfig>` for information on configuring ``config.yaml`` or any test configuration ``.yaml`` file.) For each test, the ``run_we2e_tests.py`` script reads in the test configuration file and generates from it a complete ``config.yaml`` file. It then calls the ``generate_wflow()`` function from ``dtc-vx-workflow/ush/generate_wflow.py``, which in turn reads in ``config.yaml`` and generates a new experiment for the test. The name of each experiment directory is set to that of the corresponding test, and a copy of ``config.yaml`` for each test is placed in its experiment directory.
 
-.. note::
-
-   The full list of WE2E tests is extensive, and some larger, high-resolution tests are computationally expensive. Estimates of walltime and core-hour cost for each test are provided in :doc:`this table <../../tables/Tests>`. 
 
 Using the Test Script 
 ----------------------
-
-.. attention::
-
-   These instructions assume that the user has already built the SRW App (as described in :numref:`Section %s <BuildExecutables>`).
 
 First, load the appropriate python environment (as described in :numref:`Section %s <SetUpPythonEnv>`).
 
@@ -190,9 +75,9 @@ The test script has three required arguments: machine, account, and tests.
    * Users must specify the set of tests to run using the ``--tests`` or ``-t`` option. Users may pass (in order of priority): 
 
       #. The name of a single test or list of tests to the test script. 
-      #. A test suite name (e.g., "fundamental", "comprehensive", "coverage", or "all").
-      #. The name of a subdirectory under ``ufs-srweather-app/tests/WE2E/test_configs/`` 
-      #. The name of a text file (full or relative path), such as ``my_tests.txt``, which contains a list of the WE2E tests to run (one per line). 
+      #. The name of a subdirectory under ``dtc-vx-workflow/tests/WE2E/test_configs/`` 
+      #. The name of a text file (full or relative path), such as ``my_tests.txt``, which contains a list of the WE2E tests to run (one per line).
+      #. "all" to run all tests 
 
 Users may run ``./run_we2e_tests.py -h`` for additional (optional) usage instructions. 
 
@@ -202,38 +87,30 @@ Examples
 .. attention::
 
    * Users will need to adjust the machine name and account in these examples to run tests successfully. 
-   * These commands assume that the user is working from the ``WE2E`` directory (``ufs-srweather-app/tests/WE2E/``). 
+   * These commands assume that the user is working from the ``WE2E`` directory (``dtc-vx-workflow/tests/WE2E/``). 
 
-To run the ``custom_ESGgrid`` and ``pregen_grid_orog_sfc_climo`` tests on Jet, users could run: 
-
-.. code-block:: console
-
-   ./run_we2e_tests.py -t custom_ESGgrid pregen_grid_orog_sfc_climo -m jet -a hfv3gfs
-
-Alternatively, to run the entire suite of fundamental tests on Hera, users might run: 
+To run the ``MET_verification`` and ``MODE_AOD`` tests on Hercules, users could run: 
 
 .. code-block:: console
 
-   ./run_we2e_tests.py -t fundamental -m hera -a nems
+   ./run_we2e_tests.py -m hercules --account gsd-fv3-test -t MET_verification MODE_AOD
 
-To add ``custom_ESGgrid`` and ``grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16`` to a text file and run the tests in that file on NOAA Cloud, users would enter the following commands:
+Alternatively, to run the entire set of ensemble tests on Hera, users might run: 
 
 .. code-block:: console
 
-   echo "custom_ESGgrid" > my_tests.txt
-   echo "grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16" > my_tests.txt
-   ./run_we2e_tests.py -t my_tests.txt -m noaacloud -a none
+   ./run_we2e_tests.py -t ensemble -m hera -a nems
 
-By default, the experiment directory for a WE2E test has the same name as the test itself, and it is created in ``${HOMEdir}/../expt_dirs``, where ``HOMEdir`` is the top-level directory for the ``ufs-srweather-app`` repository (usually set to something like ``/path/to/ufs-srweather-app``). Thus, the ``custom_ESGgrid`` experiment directory would be located in ``${HOMEdir}/../expt_dirs/custom_ESGgrid``.
+By default, the experiment directory for a WE2E test has the same name as the test itself, and it is created in ``${HOMEdir}/../expt_dirs``, where ``HOMEdir`` is the top-level directory for the ``dtc-vx-workflow`` repository (usually set to something like ``/path/to/dtc-vx-workflow``). Thus, the ``MET_verification_smoke_only_vx`` experiment directory would be located in ``${HOMEdir}/../expt_dirs/MET_verification_smoke_only_vx``.
 
 **A More Complex Example:** To run the fundamental suite of tests on Orion in parallel, charging computational resources to the "gsd-fv3" account, and placing all the experiment directories into a directory named ``test_set_01``, run:
 
    .. code-block::
 
-      ./run_we2e_tests.py -t fundamental -m orion -a gsd-fv3 --expt_basedir "test_set_01" -q -p 2
+      ./run_we2e_tests.py -t deterministic -m orion -a gsd-fv3 --expt_basedir "test_set_01" -q -p 2
 
    * ``--expt_basedir``: Useful for grouping sets of tests. If set to a relative path, the provided path will be appended to the default path. In this case, all of the fundamental tests will reside in ``${HOMEdir}/../expt_dirs/test_set_01/``. It can also take a full (absolute) path as an argument, which will place experiments in the given location.
-   * ``-q``: Suppresses the output from ``generate_FV3LAM_wflow()`` and prints only important messages (warnings and errors) to the screen. The suppressed output will still be available in the ``log.run_WE2E_tests`` file.
+   * ``-q``: Suppresses the output from ``generate_wflow()`` and prints only important messages (warnings and errors) to the screen. The suppressed output will still be available in the ``log.run_WE2E_tests`` file.
    * ``-p 2``: Indicates the number of parallel proceeses to run. By default, job monitoring and submission is serial, using a single task. Therefore, the script may take a long time to return to a given experiment and submit the next job when running large test suites. Depending on the machine settings, running in parallel can substantially reduce the time it takes to run all experiments. However, it should be used with caution on shared resources (such as HPC login nodes) due to the potential to overwhelm machine resources. 
 
 Workflow Information
@@ -246,108 +123,134 @@ For each specified test, ``run_we2e_tests.py`` will generate a new experiment di
    $ ./run_we2e_tests.py -t my_tests.txt -m hera -a gsd-fv3 -q
    Checking that all tests are valid
    Will run 2 tests:
-   /user/home/ufs-srweather-app/tests/WE2E/test_configs/wflow_features/config.custom_ESGgrid.yaml
-   /user/home/ufs-srweather-app/tests/WE2E/test_configs/grids_extrn_mdls_suites_community/config.grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16.yaml
-   Calling workflow generation function for test custom_ESGgrid
+   /user/home/dtc-vx-workflow/tests/WE2E/test_configs/ensemble/config.MET_ensemble_verification.yaml
+   /user/home/dtc-vx-workflow/tests/WE2E/test_configs/tc/config.HAFS-A.yaml
+   Calling workflow generation function for test MET_ensemble_verification
    ...
-   Workflow for test custom_ESGgrid successfully generated in
-   /user/home/expt_dirs/custom_ESGgrid
+   Workflow for test MET_ensemble_verification successfully generated in
+   /user/home/expt_dirs/MET_ensemble_verification
    
-   Calling workflow generation function for test grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
+   Calling workflow generation function for test HAFS-A
    ...
-   Workflow for test grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16 successfully generated in
-   /user/home/expt_dirs/grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
+   Workflow for test HAFS-A successfully generated in
+   /user/home/expt_dirs/HAFS-A
    
-   calling function that monitors jobs, prints summary
-   Writing information for all experiments to WE2E_tests_20230418174042.yaml
+   All experiments have been generated;
+   Experiment file WE2E_tests_20260403181012.yaml created
+   Writing information for all experiments to WE2E_tests_20260403181012.yaml
    Checking tests available for monitoring...
-   Starting experiment custom_ESGgrid running
-   Updating database for experiment custom_ESGgrid
-   Starting experiment grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16 running
-   Updating database for experiment grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
+   Starting experiment MET_ensemble_verification_20260403181001 running
+   Starting experiment HAFS-A_20260403181012 running
    Setup complete; monitoring 2 experiments
    Use ctrl-c to pause job submission/monitoring
-   Experiment custom_ESGgrid is COMPLETE
-   Took 0:19:29.877497; will no longer monitor.
-   Experiment grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16 is COMPLETE
-   Took 0:29:38.951777; will no longer monitor.
+   Experiment HAFS-A_20260403181012 is COMPLETE
+   Took 0:04:10.599122; will no longer monitor.
+   Experiment MET_ensemble_verification_20260403181001 is COMPLETE
+   Took 0:09:18.945497; will no longer monitor.
    All 2 experiments finished
    Calculating core-hour usage and printing final summary
    ----------------------------------------------------------------------------------------------------
-   Experiment name                                                  | Status    | Core hours used 
+   Experiment name                                                  | Status    | Estimated core hours used 
    ----------------------------------------------------------------------------------------------------
-   custom_ESGgrid                                                     COMPLETE              18.02
-   grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16   COMPLETE              15.52
+   MET_ensemble_verification_20260403181001                           COMPLETE               0.66
+   HAFS-A_20260403181012                                              COMPLETE               0.05
    ----------------------------------------------------------------------------------------------------
-   Total                                                              COMPLETE              33.54
+   Total                                                              COMPLETE               0.71
    
-   Detailed summary written to /user/home/expt_dirs/WE2E_summary_20230418181025.txt
-   
-   All experiments are complete
-   Summary of results available in WE2E_tests_20230418174042.yaml
+   Detailed summary written to /user/home/expt_dirs/WE2E_summary_20260403181920.txt
 
-As the script runs, detailed debug output is written to the file ``log.run_WE2E_tests``. This can be useful for debugging if something goes wrong. Adding the ``-d`` flag will print all this output to the screen during the run, but this can get quite cluttered.
+
+
+As the script runs, detailed debug output is written to the file ``log.run_WE2E_tests``. This can be useful for debugging if something goes wrong. Adding the ``-d`` flag will print all this output to the screen while the tests run, but this can get quite cluttered on the command line.
 
 The progress of ``monitor_jobs()`` is tracked in a file ``WE2E_tests_{datetime}.yaml``, where {datetime} is the date and time (in ``YYYYMMDDHHmmSS`` format) that the file was created. The final job summary is written by the ``print_WE2E_summary()``; this prints a short summary of experiments to the screen and prints a more detailed summary of all jobs for all experiments in the indicated ``.txt`` file.
 
 .. code-block:: console
 
-   $ cat /user/home/expt_dirs/WE2E_summary_20230418181025.txt
+   $ cat /user/home/expt_dirs/WE2E_summary_20260403181920.txt
    ----------------------------------------------------------------------------------------------------
    Experiment name                                                  | Status    | Core hours used 
    ----------------------------------------------------------------------------------------------------
-   custom_ESGgrid                                                     COMPLETE              18.02
-   grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16   COMPLETE              15.52
+   MET_ensemble_verification_20260403181001                           COMPLETE               0.66
+   HAFS-A_20260403181012                                              COMPLETE               0.05
    ----------------------------------------------------------------------------------------------------
-   Total                                                              COMPLETE              33.54
-
+   Total                                                              COMPLETE               0.71
+   
    Detailed summary of each experiment:
-
-   ----------------------------------------------------------------------------------------------------
-   Detailed summary of experiment custom_ESGgrid
-   in directory /user/home/expt_dirs/custom_ESGgrid
-                                           | Status    | Walltime   | Core hours used
-   ----------------------------------------------------------------------------------------------------
-   make_grid_201907010000                    SUCCEEDED          13.0           0.09
-   get_extrn_ics_201907010000                SUCCEEDED          10.0           0.00
-   get_extrn_lbcs_201907010000               SUCCEEDED           6.0           0.00
-   make_orog_201907010000                    SUCCEEDED          65.0           0.43
-   make_sfc_climo_201907010000               SUCCEEDED          39.0           0.52
-   make_ics_mem000_201907010000              SUCCEEDED         120.0           1.60
-   make_lbcs_mem000_201907010000             SUCCEEDED         201.0           2.68
-   run_fcst_mem000_201907010000              SUCCEEDED         340.0          11.33
-   run_post_mem000_f000_201907010000         SUCCEEDED          11.0           0.15
-   run_post_mem000_f001_201907010000         SUCCEEDED          13.0           0.17
-   run_post_mem000_f002_201907010000         SUCCEEDED          16.0           0.21
-   run_post_mem000_f003_201907010000         SUCCEEDED          16.0           0.21
-   run_post_mem000_f004_201907010000         SUCCEEDED          16.0           0.21
-   run_post_mem000_f005_201907010000         SUCCEEDED          16.0           0.21
-   run_post_mem000_f006_201907010000         SUCCEEDED          16.0           0.21
-   ----------------------------------------------------------------------------------------------------
-   Total                                     COMPLETE                         18.02
    
    ----------------------------------------------------------------------------------------------------
-   Detailed summary of experiment grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
-   in directory /user/home/expt_dirs/grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
-                                           | Status    | Walltime   | Core hours used
+   Detailed summary of experiment MET_ensemble_verification_20260403181001
+   in directory /user/home/expt_dirs/MET_ensemble_verification
+                                           | Status    | Walltime   | Estimated core hours used
    ----------------------------------------------------------------------------------------------------
-   make_grid_201907010000                    SUCCEEDED           8.0           0.05
-   get_extrn_ics_201907010000                SUCCEEDED           5.0           0.00
-   get_extrn_lbcs_201907010000               SUCCEEDED          11.0           0.00
-   make_orog_201907010000                    SUCCEEDED          49.0           0.33
-   make_sfc_climo_201907010000               SUCCEEDED          41.0           0.55
-   make_ics_mem000_201907010000              SUCCEEDED          83.0           1.11
-   make_lbcs_mem000_201907010000             SUCCEEDED         199.0           2.65
-   run_fcst_mem000_201907010000              SUCCEEDED         883.0           9.81
-   run_post_mem000_f000_201907010000         SUCCEEDED          10.0           0.13
-   run_post_mem000_f001_201907010000         SUCCEEDED          11.0           0.15
-   run_post_mem000_f002_201907010000         SUCCEEDED          10.0           0.13
-   run_post_mem000_f003_201907010000         SUCCEEDED          11.0           0.15
-   run_post_mem000_f004_201907010000         SUCCEEDED          11.0           0.15
-   run_post_mem000_f005_201907010000         SUCCEEDED          11.0           0.15
-   run_post_mem000_f006_201907010000         SUCCEEDED          12.0           0.16
+   get_obs_ccpa_202105120000                 SUCCEEDED          21.0           0.01
+   get_obs_mrms_202105120000                 SUCCEEDED          20.0           0.01
+   get_obs_ndas_202105120000                 SUCCEEDED          20.0           0.01
+   check_post_output_mem001_202105121200     SUCCEEDED          23.0           0.01
+   check_post_output_mem002_202105121200     SUCCEEDED          23.0           0.01
+   run_MET_Pb2nc_obs_NDAS_202105120000       SUCCEEDED          32.0           0.01
+   run_MET_PcpCombine_APCP01h_obs_CCPA_2021  SUCCEEDED          15.0           0.00
+   run_MET_PcpCombine_APCP03h_obs_CCPA_2021  SUCCEEDED          11.0           0.00
+   run_MET_PcpCombine_APCP06h_obs_CCPA_2021  SUCCEEDED          12.0           0.00
+   run_MET_GenEnsProd_vx_REFC_202105121200   SUCCEEDED          23.0           0.01
+   run_MET_GenEnsProd_vx_RETOP_202105121200  SUCCEEDED          23.0           0.01
+   run_MET_GenEnsProd_vx_SFC_202105121200    SUCCEEDED          56.0           0.02
+   run_MET_GenEnsProd_vx_UPA_202105121200    SUCCEEDED          88.0           0.02
+   run_MET_EnsembleStat_vx_REFC_20210512120  SUCCEEDED          66.0           0.02
+   run_MET_EnsembleStat_vx_RETOP_2021051212  SUCCEEDED          73.0           0.02
+   run_MET_GridStat_vx_REFC_ensprob_2021051  SUCCEEDED         415.0           0.12
+   run_MET_GridStat_vx_RETOP_ensprob_202105  SUCCEEDED         482.0           0.13
+   run_MET_PcpCombine_APCP01h_fcst_mem001_2  SUCCEEDED          15.0           0.00
+   run_MET_PcpCombine_APCP01h_fcst_mem002_2  SUCCEEDED          14.0           0.00
+   run_MET_PcpCombine_APCP03h_fcst_mem001_2  SUCCEEDED          12.0           0.00
+   run_MET_PcpCombine_APCP03h_fcst_mem002_2  SUCCEEDED          12.0           0.00
+   run_MET_PcpCombine_APCP06h_fcst_mem001_2  SUCCEEDED          11.0           0.00
+   run_MET_PcpCombine_APCP06h_fcst_mem002_2  SUCCEEDED          10.0           0.00
+   run_MET_GridStat_vx_REFC_mem001_20210512  SUCCEEDED          90.0           0.03
+   run_MET_GridStat_vx_RETOP_mem001_2021051  SUCCEEDED          98.0           0.03
+   run_MET_GridStat_vx_REFC_mem002_20210512  SUCCEEDED          90.0           0.03
+   run_MET_GridStat_vx_RETOP_mem002_2021051  SUCCEEDED          97.0           0.03
+   run_MET_PointStat_vx_SFC_mem001_20210512  SUCCEEDED          35.0           0.01
+   run_MET_PointStat_vx_SFC_mem002_20210512  SUCCEEDED          34.0           0.01
+   run_MET_PointStat_vx_UPA_mem001_20210512  SUCCEEDED          48.0           0.01
+   run_MET_PointStat_vx_UPA_mem002_20210512  SUCCEEDED          47.0           0.01
+   run_MET_GridStat_vx_APCP01h_mem001_20210  SUCCEEDED          10.0           0.00
+   run_MET_GridStat_vx_APCP01h_mem002_20210  SUCCEEDED           9.0           0.00
+   run_MET_GridStat_vx_APCP03h_mem001_20210  SUCCEEDED           8.0           0.00
+   run_MET_GridStat_vx_APCP03h_mem002_20210  SUCCEEDED           7.0           0.00
+   run_MET_GridStat_vx_APCP06h_mem001_20210  SUCCEEDED           6.0           0.00
+   run_MET_GridStat_vx_APCP06h_mem002_20210  SUCCEEDED           6.0           0.00
+   run_MET_GenEnsProd_vx_APCP01h_2021051212  SUCCEEDED          18.0           0.01
+   run_MET_GenEnsProd_vx_APCP03h_2021051212  SUCCEEDED          13.0           0.00
+   run_MET_GenEnsProd_vx_APCP06h_2021051212  SUCCEEDED          11.0           0.00
+   run_MET_EnsembleStat_vx_SFC_202105121200  SUCCEEDED          52.0           0.01
+   run_MET_PointStat_vx_SFC_ensmean_2021051  SUCCEEDED          31.0           0.01
+   run_MET_PointStat_vx_SFC_ensprob_2021051  SUCCEEDED          46.0           0.01
+   run_MET_EnsembleStat_vx_APCP03h_20210512  SUCCEEDED          16.0           0.00
+   run_MET_EnsembleStat_vx_APCP06h_20210512  SUCCEEDED          13.0           0.00
+   run_MET_GridStat_vx_APCP03h_ensmean_2021  SUCCEEDED          11.0           0.00
+   run_MET_GridStat_vx_APCP06h_ensmean_2021  SUCCEEDED          10.0           0.00
+   run_MET_GridStat_vx_APCP03h_ensprob_2021  SUCCEEDED          13.0           0.00
+   run_MET_GridStat_vx_APCP06h_ensprob_2021  SUCCEEDED          11.0           0.00
+   run_MET_EnsembleStat_vx_APCP01h_20210512  SUCCEEDED          31.0           0.01
+   run_MET_GridStat_vx_APCP01h_ensmean_2021  SUCCEEDED          15.0           0.00
+   run_MET_GridStat_vx_APCP01h_ensprob_2021  SUCCEEDED          20.0           0.01
+   run_MET_EnsembleStat_vx_UPA_202105121200  SUCCEEDED          35.0           0.01
+   run_MET_PointStat_vx_UPA_ensmean_2021051  SUCCEEDED          31.0           0.01
+   run_MET_PointStat_vx_UPA_ensprob_2021051  SUCCEEDED          38.0           0.01
    ----------------------------------------------------------------------------------------------------
-   Total                                     COMPLETE                         15.52
+   Total                                     COMPLETE                          0.66
+   
+   ----------------------------------------------------------------------------------------------------
+   Detailed summary of experiment HAFS-A_20260403181012
+   in directory /user/home/expt_dirs/HAFS-A
+                                           | Status    | Walltime   | Estimated core hours used
+   ----------------------------------------------------------------------------------------------------
+   tcpairs_202309051200                      SUCCEEDED          12.0           0.00
+   tcstat_202309051200                       SUCCEEDED           6.0           0.00
+   tcrmw_202309051200                        SUCCEEDED         183.0           0.05
+   ----------------------------------------------------------------------------------------------------
+   Total                                     COMPLETE                          0.05
 
 
 One might have noticed the line during the experiment run that reads "Use ctrl-c to pause job submission/monitoring". The ``monitor_jobs()`` function (called automatically after all experiments are generated) is designed to be easily paused and re-started if necessary. To stop actively submitting jobs, simply quit the script using ``ctrl-c`` to stop the function, and a short message will appear explaining how to continue the experiment:
@@ -360,7 +263,7 @@ One might have noticed the line during the experiment run that reads "Use ctrl-c
 
    User interrupted monitor script; to resume monitoring jobs run:
 
-   ./monitor_jobs.py -y=WE2E_tests_20230418174042.yaml -p=1
+   ./monitor_jobs.py -y=WE2E_tests_20260331125827.yaml
 
 Checking Test Status and Summary
 ----------------------------------
@@ -370,44 +273,22 @@ However, if the user is using the legacy crontab option (by submitting ``./run_w
 In this example, an experiment was generated using the crontab option and has not yet finished running.
 We use the ``-e`` option to point to the experiment directory and get the current status of the experiment:
 
-   .. code-block::
+.. code-block:: console
 
-      ./WE2E_summary.py -e /user/home/PR_466/expt_dirs/
-    Updating database for experiment grid_RRFS_CONUScompact_25km_ics_HRRR_lbcs_HRRR_suite_RRFS_v1beta
-    Updating database for experiment grid_RRFS_CONUS_25km_ics_GSMGFS_lbcs_GSMGFS_suite_GFS_v16
-    Updating database for experiment grid_RRFS_CONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_HRRR
-    Updating database for experiment specify_template_filenames
-    Updating database for experiment grid_RRFS_CONUScompact_25km_ics_HRRR_lbcs_RAP_suite_HRRR
-    Updating database for experiment grid_RRFS_CONUScompact_3km_ics_HRRR_lbcs_RAP_suite_RRFS_v1beta
-    Updating database for experiment grid_RRFS_CONUS_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_2017_gfdlmp_regional
-    Updating database for experiment grid_SUBCONUS_Ind_3km_ics_HRRR_lbcs_RAP_suite_HRRR
-    Updating database for experiment grid_RRFS_CONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
-    Updating database for experiment grid_RRFS_SUBCONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
-    Updating database for experiment specify_DOT_OR_USCORE
-    Updating database for experiment custom_GFDLgrid__GFDLgrid_USE_NUM_CELLS_IN_FILENAMES_eq_FALSE
-    Updating database for experiment grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16
-    ----------------------------------------------------------------------------------------------------
-    Experiment name                                             | Status    | Core hours used 
-    ----------------------------------------------------------------------------------------------------
-    grid_RRFS_CONUScompact_25km_ics_HRRR_lbcs_HRRR_suite_RRFS_v1  COMPLETE              49.72
-    grid_RRFS_CONUS_25km_ics_GSMGFS_lbcs_GSMGFS_suite_GFS_v16     DYING                  6.51
-    grid_RRFS_CONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_HRRR         COMPLETE             411.84
-    specify_template_filenames                                    COMPLETE              17.36
-    grid_RRFS_CONUScompact_25km_ics_HRRR_lbcs_RAP_suite_HRRR      COMPLETE              16.03
-    grid_RRFS_CONUScompact_3km_ics_HRRR_lbcs_RAP_suite_RRFS_v1be  COMPLETE             318.55
-    grid_RRFS_CONUS_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_2017_g  COMPLETE              17.79
-    grid_SUBCONUS_Ind_3km_ics_HRRR_lbcs_RAP_suite_HRRR            COMPLETE              17.76
-    grid_RRFS_CONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16      RUNNING                0.00
-    grid_RRFS_SUBCONUS_3km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS_v16   RUNNING                0.00
-    specify_DOT_OR_USCORE                                         QUEUED                 0.00
-    custom_GFDLgrid__GFDLgrid_USE_NUM_CELLS_IN_FILENAMES_eq_FALS  QUEUED                 0.00
-    grid_RRFS_CONUScompact_25km_ics_FV3GFS_lbcs_FV3GFS_suite_GFS  QUEUED                 0.00
-    ----------------------------------------------------------------------------------------------------
-    Total                                                         RUNNING              855.56
+   ./WE2E_summary.py -e /user/home/expt_dirs/test1
+   ----------------------------------------------------------------------------------------------------
+   Experiment name                                              | Status    | Estimated core hours used 
+   ----------------------------------------------------------------------------------------------------
+   MET_verification                                               RUNNING                0.08
+   MET_verification_only_vx                                       COMPLETE               0.09
+   MET_verification_smoke_only_vx                                 DYING                  0.05
+   MET_verification_winter_wx                                     DEAD                   0.00
+   ----------------------------------------------------------------------------------------------------
+   Total                                                          DEAD                   0.22
+   
+   Detailed summary written to /user/home/expt_dirs/test1/WE2E_summary_20260404200815.txt
 
-    Detailed summary written to WE2E_summary_20230306173013.txt
-
-As with all python scripts in the SRW App, additional options for this script can be viewed by calling with the ``-h`` argument.
+As with all python scripts in the verification workflow, additional options for this script can be viewed by calling with the ``-h`` argument.
 
 The "Status" as specified by the above summary is explained below:
 
@@ -457,11 +338,11 @@ in the header of the file.
 
 Adding a New Test
 ---------------------
-To add a new test named, e.g., ``new_test01``, to one of the existing test categories, such as ``wflow_features``:
+To add a new test named, e.g., ``new_test01``, to one of the existing test categories, such as ``tc``:
 
 #. Choose an existing test configuration file that most closely matches the new test to be added. It could come from any one of the category directories. 
 
-#. Copy that file to ``config.new_test01.yaml`` and, if necessary, move it to the ``wflow_features`` category directory. 
+#. Copy that file to ``config.new_test01.yaml`` and, if necessary, move it to the ``tc`` category directory. 
 
 #. Edit the header comments in ``config.new_test01.yaml`` so that they properly describe the new test.
 
