@@ -13,7 +13,7 @@ workflow:
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
 
-global:
+ensemble:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 2
   ENS_TIME_LAG_HRS: '[ 0, 12 ]'

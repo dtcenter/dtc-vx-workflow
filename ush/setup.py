@@ -646,7 +646,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
 
     # Check to make sure that mandatory forecast variables are set.
-    global_sect = expt_config["global"]
+    ensemble_sect = expt_config["ensemble"]
 
     # create experiment dir
     Path(exptdir).mkdir(parents=True)
@@ -664,7 +664,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # Get the value of the configuration flag for ensemble mode (DO_ENSEMBLE)
     # and ensure that it is set to True if ensemble vx tasks are included in
     # the workflow (or vice-versa).
-    do_ensemble = global_sect["DO_ENSEMBLE"]
+    do_ensemble = ensemble_sect["DO_ENSEMBLE"]
     if (not do_ensemble) and ens_vx_tasks:
         msg = dedent(
             f"""
@@ -742,13 +742,18 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError(msg)
 
 
-    #
     # -----------------------------------------------------------------------
-    #
+    # Check that TC settings are correct and consistent
+    # -----------------------------------------------------------------------
+    # Ensure that STORM_IDS is a list of 2-digit strings
+    stormids = expt_config["tropical"]["STORM_IDS"]
+    if not isinstance(stormids, list):
+        stormids=[stormids]
+    stormids = [str(x).zfill(2) for x in stormids]
+
+    # -----------------------------------------------------------------------
     # Check validity of parameters in one place, here in the end.
-    #
     # -----------------------------------------------------------------------
-    #
     # Validate experiment config against schema
     schema = Path(ushdir) / "experiment.jsonschema"
     valid = validate(schema_file=schema, config_data=var_defns_cfg)

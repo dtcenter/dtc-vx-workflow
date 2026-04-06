@@ -537,15 +537,17 @@ tropical:
   # BASIN:
   # Two-character indicator of the tropical cyclone basin: "AL", "EP", or "CP"
   #
-  # STORM_ID:
-  # AKA "storm number", the numerical ID for the storm being forecast. This must be specified in
-  # config_vx.yaml; the default value '00' is invalid.
+  # STORM_IDS:
+  # AKA "storm numbers", a list of the numerical ID for each storm for which TC verification tasks
+  # should be run. Each entry can be specified as a two-digit numerical string or an integer. 
+  # This must be specified in each experiment's config_vx.yaml; the default value '00' is invalid.
   #
 
   BASIN: "AL"
-  STORM_ID: 00
+  STORM_IDS:
+    - 00
 
-  # The directory where the "a-deck" forecast track file can be found.
+  # The directory where "a-deck" forecast track files can be found.
   # https://hurricanes.ral.ucar.edu/realtime/index.php#about_adecks
   ADECK_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
   # Format for A-deck forecast track file name
