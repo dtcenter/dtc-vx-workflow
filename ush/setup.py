@@ -190,6 +190,15 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             }
         )
 
+    # -----------------------------------------------------------------------
+    # Check that obsolete settings are not specified
+    # -----------------------------------------------------------------------
+
+    if bad:=expt_config.get("global"):
+        logger.error(f"Config file contains invalid key `global`:\n{bad}\n")
+        msg="The `global` section has been renamed to `ensemble`; update your config accordingly"
+        raise KeyError(msg)
+
     #
     # -----------------------------------------------------------------------
     #
@@ -740,7 +749,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         {unrendered_lines}
         """
         raise ValueError(msg)
-
 
     # -----------------------------------------------------------------------
     # Check that TC settings are correct and consistent
