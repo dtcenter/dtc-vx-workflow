@@ -1,0 +1,157 @@
+default_task_mode: &default_task_mode
+  account: '&ACCOUNT;'
+  attrs: &default_attrs
+    cycledefs: forecast
+    maxtries: '1'
+  envars: &default_vars
+    GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    YYMMDD:
+      cyclestr:
+        value: '@Y@m@d'
+    HH:
+      cyclestr:
+        value: '@H'
+    LOGDIR:
+      cyclestr:
+        value: '&LOGDIR;'
+    MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
+    METPLUS_ROOT: '&METPLUS_ROOT;'
+    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.regriddataplane.tasks_per_node }}'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  memory: '{{  verification_resources.execution.regriddataplane.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  native: '{{ platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
+  queue: '&QUEUE_DEFAULT;'
+
+    entities:
+      ACCOUNT: '{{ user.ACCOUNT }}'
+      VAR_DEFNS_FP: '{{ workflow.VAR_DEFNS_FP }}'
+      HOMEdir: '{{ user.HOMEdir }}'
+      LOAD_MODULES_RUN_TASK: '{{ workflow.LOAD_MODULES_RUN_TASK_FP }} {{ user.MACHINE }}'
+      MODULESdir: '{{ user.MODULESdir }}'
+      PARTITION_DEFAULT: '{{ platform.get("PARTITION_DEFAULT") }}'
+      QUEUE_DEFAULT: '{{ platform.get("QUEUE_DEFAULT") }}'
+      SCRIPTSdir: '{{ user.SCRIPTSdir }}'
+      USHdir: '{{ user.USHdir }}'
+      WORKFLOW_ID: '{{ workflow.WORKFLOW_ID }}'
+      LOGDIR: '{{ workflow.EXPTDIR }}/logs'
+      LOGEXT: ".log"
+    log: "&LOGDIR;/hafs_vx_wflow.log"
+task_tcpairs:
+  account: '&ACCOUNT;'
+  attrs:
+    cycledefs: forecast
+    maxtries: '1'
+  command: "&JOBSdir;/TCPAIRS.sh"
+  envars:
+    USHdir: '&USHdir;'
+    START_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+    LOGDIR:
+      cyclestr:
+        value: "&LOGDIR;"
+    METPLUSTOOLNAME: 'TCPAIRS'
+    BEST_TRACK: '{{ platform.BEST_TRACK }}'
+    MODULESdir: '&MODULESdir;'
+  join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  memory: '{% if user.MACHINE not in ["NOAACLOUD"] %}{{ "2G" }}{% endif %}'
+  nodes: '1:ppn=1'
+  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+  queue: '&QUEUE_DEFAULT;'
+  walltime: 00:10:00
+task_tcstat:
+  account: '&ACCOUNT;'
+  attrs:
+    cycledefs: forecast
+    maxtries: '1'
+  command: '&LOAD_MODULES_RUN_TASK; &SCRIPTSdir;/run_metplus.sh'
+  envars:
+    VAR_DEFNS_FP: '&VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    START_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+    LOGDIR:
+      cyclestr:
+        value: "&LOGDIR;"
+    METPLUSTOOLNAME: 'TCSTAT'
+    BEST_TRACK: '{{ platform.BEST_TRACK }}'
+    MODULESdir: '&MODULESdir;'
+  join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  nodes: '1:ppn=1'
+  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+  queue: '&QUEUE_DEFAULT;'
+  walltime: 00:10:00
+  dependency:
+    taskdep:
+      attrs:
+        task: tcpairs
+task_tcrmw:
+  account: '&ACCOUNT;'
+  attrs:
+    cycledefs: forecast
+    maxtries: '1'
+  command: '&LOAD_MODULES_RUN_TASK; &SCRIPTSdir;/run_metplus.sh'
+  envars:
+    VAR_DEFNS_FP: '&VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    START_DATE:
+      cyclestr:
+        value: '@Y@m@d@H'
+    LOGDIR:
+      cyclestr:
+        value: "&LOGDIR;"
+    METPLUSTOOLNAME: 'TCRMW'
+    BEST_TRACK: '{{ platform.BEST_TRACK }}'
+    MODULESdir: '&MODULESdir;'
+  join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  nodes: '1:ppn=1'
+  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+  queue: '&QUEUE_DEFAULT;'
+  walltime: 00:10:00
+task_run_RegridDataPlane_GOESAOD:
+
+  <<: *default_task_mode
+  attrs:
+    <<: *default_attrs
+  command: "&JOBSdir;/REGRIDDATAPLANE.sh"
+  envars:
+    <<: *default_vars
+    FIELD_GROUP: 'GOESAOD'
+    OBTYPE: 'GOESAOD'
+  walltime: "{{ verification_resources.execution.regriddataplane.walltime }}"
+  dependency:
+    taskdep:
+      attrs:
+        task: 'run_MET_Point2Grid_GOESAOD'
+
+task_run_MODE_GOESAOD:
+
+  <<: *default_task_mode
+  attrs:
+    <<: *default_attrs
+  command: "&JOBSdir;/MODE.sh"
+  envars:
+    <<: *default_vars
+    FIELD_GROUP: 'GOESAOD'
+    OBTYPE: 'GOESAOD'
+    OMP_NUM_THREADS: 4
+  memory: '{{  verification_resources.execution.mode.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.mode.tasks_per_node }}'
+  walltime: "{{ verification_resources.execution.mode.walltime }}"
+  dependency:
+    taskdep:
+      attrs:
+        task: 'run_RegridDataPlane_GOESAOD'
+

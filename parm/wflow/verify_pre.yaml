@@ -185,8 +185,8 @@ task_run_MET_Point2Grid_GOESAOD:
     cycledefs: forecast
     maxtries: 2
   command: "&JOBSdir;/POINT2GRID.sh"
-  memory: '{{  verification_resources.execution.point2grid.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  walltime: "{{ verification_resources.execution.point2grid.walltime }}"
+  memory: '{{  point2grid.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  walltime: "{{ point2grid.execution.walltime }}"
   envars:
     <<: *default_vars
     OBS_DIR: '&GOESAOD_OBS_DIR;'

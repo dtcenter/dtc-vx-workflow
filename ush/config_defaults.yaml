@@ -561,7 +561,7 @@ tropical:
 #
 #-----------------------------------------------------------------------
 #
-# Resources for tasks that run verification
+# Resources for tasks that do not yet have their own dedicated config section
 #
 #-----------------------------------------------------------------------
 #
@@ -606,10 +606,6 @@ verification_resources:
         walltime: 02:00:00
     pb2nc:
       walltime: 00:30:00
-    point2grid:
-      tasks_per_node: '{{ verification.VX_TASKS }}'
-      walltime: 01:00:00
-      memory: '{{ 2 * verification.VX_TASKS }}G'
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -696,6 +692,8 @@ verification:
   #   * NDAS (NAM Data Assimilation System)
   #   * AERONET (Aerosol Robotic Network)
   #   * AIRNOW (AirNow air quality reports)
+  #   * GOESAOD (GOES satellite Aerosol Optical Depth)
+  #   * GOESADP (GOES satellite Aerosol Detection Product)
   #
   # The script ush/get_obs.py contains further details on the files and
   # directory structure of each obs type.
@@ -706,9 +704,8 @@ verification:
   # Time interval (in hours) at which various types of obs are available
   #
   # Note that MRMS, GOESAOD and GOESADP files are in fact available every few minutes, but here
-  # we set the obs availability interval to 1 hour because currently that
-  # is the shortest output interval for forecasts, i.e. the forecasts cannot
-  # (yet) support sub-hourly output.
+  # we set the obs availability interval to 1 hour because verification of sub-hourly forecast
+  # output is not yet supported.
   #
   CCPA_OBS_AVAIL_INTVL_HRS: 1
   NOHRSC_OBS_AVAIL_INTVL_HRS: 6
@@ -1007,6 +1004,10 @@ verification:
   VX_TASKS: 1
 
 point2grid:
+  execution:
+    tasks_per_node: '{{ point2grid.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * point2grid.TASKS }}G'
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
   # 0: high quality
@@ -1014,6 +1015,8 @@ point2grid:
   # 2: low quality
   # 3: no retrieval quality flag
   GOES_QC_FLAGS: '0,1'
+  # Number of POINT2GRID instances to run in parallel
+  TASKS: '{{ verification.VX_TASKS }}'
 
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
@@ -1030,6 +1033,55 @@ regriddataplane:
   # Overrides default settings for Gaussian smoothing. Only used if REGRID_METHOD=MAXGAUSS
   GAUSSIAN_DX: 81.271
   GAUSSIAN_RADIUS: 120
+
+mode:
+  # Runtime settings for MODE jobs
+  execution:
+    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    tasks_per_node: '{{ mode.TASKS }}'
+    # Wallclock time to allocate to submitted MODE job
+    walltime: 01:00:00
+    # Memory to allocate to MODE job
+    memory: '{{ 10 * mode.TASKS }}G'
+  # Number of MODE instances to run in parallel
+  TASKS: 1
+
+  # For more information on MODE variables see the MODE documentation:
+  # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html
+  #
+  # CONV_RADIUS:
+  # The radius of a circular convolution applied to the raw fields for defining MODE objects
+  #
+  # CONV_THRESH:
+  # The value threshold defining what consitutes an object. Multiple values may be specified for
+  # multiple output convolutions. The threshold used should depend on the observation type; for
+  # example, 20, 30, or 40 are typically used for radar reflectivity.
+  #
+  # MERGE_THRESH:
+  # The threshold value(s) to be applied to the convolved field to define objects. Larger values
+  # will result in larger/more-merged objects. Should be the same length as CONV_THRESH. No effect
+  # unless MERGE_FLAG=THRESH or BOTH
+  #
+  # MERGE_FLAG:
+  # The merging techinque to use for MODE objects. Valid values are NONE, THRESH, ENGINE, or BOTH
+
+  CONV_RADIUS: [5]
+  CONV_THRESH: ['>=0']
+  MERGE_THRESH: ['>=5']
+  MERGE_FLAG: NONE
+
+  # GRID_RES:
+  # Nominal grid resolution in kilometers
+  GRID_RES: 0
+
+  # TOTAL_INTEREST_THRESH:
+  # A value between 0 and 1 that controls how MODE objects are matched. Higher values will increase
+  # the strictness of the comparison (decreasing the number of matches), and vice versa
+  TOTAL_INTEREST_THRESH: 0.7
+
+  # OUTPUT_TEMPLATE:
+  # Template for MODE output filenames
+  OUTPUT_TEMPLATE: 'MODE_GOESAOD_{init?fmt=%Y%m%d%H}'
 
 tcpairs:
   # Runtime settings for TCPAIRS jobs
@@ -1082,55 +1134,7 @@ tcrmw:
     memory: '2G'
 
   # OUTPUT_TEMPLATE:
-  # Template for output file(s) from TCRMW. {basin} {cyclone} and {date} are substituted in the
+  # Template for output file(s) from TCRMW. {cyclone} and {date} are substituted in the
   # METplus process, not in the workflow.
   OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
 
-mode:
-  # Runtime settings for MODE jobs
-  execution:
-    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
-    tasks_per_node: '{{ mode.TASKS }}'
-    # Wallclock time to allocate to submitted MODE job
-    walltime: 01:00:00
-    # Memory to allocate to MODE job
-    memory: '{{ 10 * mode.TASKS }}G'
-  # Number of MODE instances to run in parallel
-  TASKS: 1
-
-  # For more information on MODE variables see the MODE documentation:
-  # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html
-  #
-  # CONV_RADIUS:
-  # The radius of a circular convolution applied to the raw fields for defining MODE objects
-  #
-  # CONV_THRESH:
-  # The value threshold defining what consitutes an object. Multiple values may be specified for
-  # multiple output convolutions. The threshold used should depend on the observation type; for
-  # example, 20, 30, or 40 are typically used for radar reflectivity.
-  #
-  # MERGE_THRESH:
-  # The threshold value(s) to be applied to the convolved field to define objects. Larger values
-  # will result in larger/more-merged objects. Should be the same length as CONV_THRESH. No effect
-  # unless MERGE_FLAG=THRESH or BOTH
-  #
-  # MERGE_FLAG:
-  # The merging techinque to use for MODE objects. Valid values are NONE, THRESH, ENGINE, or BOTH
-
-  CONV_RADIUS: [5]
-  CONV_THRESH: ['>=0']
-  MERGE_THRESH: ['>=5']
-  MERGE_FLAG: NONE
-
-  # GRID_RES:
-  # Nominal grid resolution in kilometers
-  GRID_RES: 0
-
-  # TOTAL_INTEREST_THRESH:
-  # A value between 0 and 1 that controls how MODE objects are matched. Higher values will increase
-  # the strictness of the comparison (decreasing the number of matches), and vice versa
-  TOTAL_INTEREST_THRESH: 0.7
-
-  # OUTPUT_TEMPLATE:
-  # Template for MODE output filenames
-  OUTPUT_TEMPLATE: 'MODE_GOESAOD_{init?fmt=%Y%m%d%H}'

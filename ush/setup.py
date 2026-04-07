@@ -131,6 +131,35 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
 
     return default_config
 
+def check_bad_settings(cfg):
+    """Checks initial config for deprecated or incorrect settings"""
+    logger = logging.getLogger(__name__)
+
+    msg=''
+    if bad:=cfg.get("global"):
+        msg+=f"Config file contains invalid key `global`:\n{bad}\n"
+        msg+="The `global` section has been renamed to `ensemble`; update your config accordingly\n\n"
+        raise KeyError(msg)
+    if ex:=cfg.get("verification_resources").get("execution"):
+        if bad:=ex.get("point2grid"):
+            msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
+            msg+="execution variables for this task have been moved to top-level `point2grid` section; "
+            msg+="update your config accordingly\n\n"
+        if bad:=ex.get("regriddataplane"):
+            msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}\n"
+            msg+="execution variables for this task have been moved to top-level `regriddataplane` section; "
+            msg+="update your config accordingly\n\n"
+        if bad:=ex.get("mode"):
+            msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
+            msg+="execution variables for this task have been moved to top-level `mode` section; "
+            msg+="update your config accordingly\n\n"
+    if msg:
+        logger.critical("The following problems with your config must be fixed:")
+        logger.critical(msg)
+        raise KeyError("Invalid keys found in config; see above messages for details")
+
+    return cfg
+
 
 def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # pylint: disable=too-many-statements
@@ -190,14 +219,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             }
         )
 
-    # -----------------------------------------------------------------------
-    # Check that obsolete settings are not specified
-    # -----------------------------------------------------------------------
-
-    if bad:=expt_config.get("global"):
-        logger.error(f"Config file contains invalid key `global`:\n{bad}\n")
-        msg="The `global` section has been renamed to `ensemble`; update your config accordingly"
-        raise KeyError(msg)
+    # Check for invalid or deprecated settings
+    expt_config=check_bad_settings(expt_config)
 
     #
     # -----------------------------------------------------------------------
