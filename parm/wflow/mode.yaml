@@ -1,4 +1,5 @@
 default_task_mode: &default_task_mode
+  account: '&ACCOUNT;'
   attrs: &default_attrs
     cycledefs: forecast
     maxtries: 1
