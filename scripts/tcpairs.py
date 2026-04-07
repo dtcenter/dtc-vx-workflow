@@ -18,7 +18,21 @@ import uwtools.api.config as uwconfig
 
 from python_utils import setup_logging, render_metplus_confs, run_metplus
 
-def tcpairs(config_file,cdate):
+def tcpairs(config_file, cdate):
+    """
+    Set up and execute the METplus TCPAIRS verification task for cyclone track forecasts.
+
+    This function reads experiment configuration, prepares METplus TCPAIRS configuration files
+    for each storm ID, and runs the METplus TCPAIRS tool to verify tropical cyclone track forecasts
+    against best track observations.
+
+    Args:
+        config_file (str): Path to the experiment configuration file in YAML format
+        cdate (str): Cycle date in YYYYMMDDHH format
+
+    Returns:
+        None
+    """
     # pylint: disable=too-many-locals
     lgr = logging.getLogger(__name__)
 

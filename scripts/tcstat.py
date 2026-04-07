@@ -18,7 +18,21 @@ import uwtools.api.config as uwconfig
 
 from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
 
-def tcstat(config_file,cdate):
+def tcstat(config_file, cdate):
+    """
+    Set up and execute the METplus TCSTAT verification task for cyclone track statistics.
+
+    This function reads experiment configuration, prepares METplus TCSTAT configuration files
+    for each storm ID, and runs the METplus TCSTAT tool to generate track statistics and
+    rapid intensification (RI) statistics from TCPAIRS output.
+
+    Args:
+        config_file (str): Path to the experiment configuration file in YAML format
+        cdate (str): Cycle date in YYYYMMDDHH format
+
+    Returns:
+        None
+    """
     # pylint: disable=too-many-locals
     lgr = logging.getLogger(__name__)
 

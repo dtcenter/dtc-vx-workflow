@@ -19,7 +19,24 @@ import uwtools.api.config as uwconfig
 from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
 from set_leadhrs import set_leadhrs
 
-def tcrmw(config_file,cdate):
+def tcrmw(config_file, cdate):
+    """
+    Set up and execute the METplus TCRMW verification task for cyclone structural properties.
+
+    This function reads experiment configuration, prepares METplus TCRMW configuration files
+    for each storm ID, and runs the METplus TCRMW tool to verify tropical cyclone radius of
+    maximum winds (RMW) against forecast data.
+
+    Args:
+        config_file (str): Path to the experiment configuration file in YAML format
+        cdate (str): Cycle date in YYYYMMDDHH format
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: If the lead hour list is empty or cannot be determined from available forecast files
+    """
     # pylint: disable=too-many-locals
     lgr = logging.getLogger(__name__)
 
