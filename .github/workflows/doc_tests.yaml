@@ -24,7 +24,7 @@ jobs:
           pip install Sphinx==7.4.7
           pip install sphinx-rtd-theme
           pip install sphinxcontrib-bibtex
-#          pip install sphinxcontrib-plantuml
+          pip install sphinxcontrib-plantuml
 
 #      - name: Check tech docs
 #        run: .github/scripts/check_tech_doc.sh
