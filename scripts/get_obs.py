@@ -103,6 +103,7 @@ def get_obs_arcv_hr(obtype, arcv_intvl_hrs, hod):
 
 
 def get_obs(config, obtype, yyyymmdd_task):
+    # pylint: disable=too-many-branches,too-many-statements
     """
     This script checks for the existence of obs files of the specified type.
     If one or more of these files do not exist, it retrieves them from a data
@@ -155,7 +156,7 @@ def get_obs(config, obtype, yyyymmdd_task):
 
        \\begin{align*}
              \\qquad \\text{obs_avail_intvl_hrs}
-         & = (\\text{24 hrs})/[(\\text{4 archives}) \\times (\\text{6 files/archive})] \\hspace{50in} \\\\
+         & = (\\text{24 hrs})/[(\\text{4 archives}) \\times (\\text{6 files/archive})]  \\\\
          & = \\text{1 hr/file}
        \\end{align*}
 
@@ -193,7 +194,7 @@ def get_obs(config, obtype, yyyymmdd_task):
 
        \\begin{align*}
              \\qquad \\text{obs_avail_intvl_hrs}
-         & = (\\text{24 hrs})/[(\\text{1 archive}) \\times (\\text{4 files/archive})] \\hspace{50in} \\\\
+         & = (\\text{24 hrs})/[(\\text{1 archive}) \\times (\\text{4 files/archive})]  \\\\
          & = \\text{6 hr/file}
        \\end{align*}
 
@@ -281,7 +282,7 @@ def get_obs(config, obtype, yyyymmdd_task):
 
        \\begin{align*}
              \\qquad \\text{obs_avail_intvl_hrs}
-         & = (\\text{24 hrs})/[(\\text{4 archives}) \\times (\\text{6 files/archive})] \\hspace{50in} \\\\
+         & = (\\text{24 hrs})/[(\\text{4 archives}) \\times (\\text{6 files/archive})]  \\\\
          & = \\text{1 hr/file}
        \\end{align*}
 
@@ -404,8 +405,8 @@ def get_obs(config, obtype, yyyymmdd_task):
     #
     yyyymmdd_task_str = dt.datetime.strftime(yyyymmdd_task, '%Y%m%d')
     obs_retrieve_times_crnt_day_str = vx_config[f'OBS_RETRIEVE_TIMES_{obtype}_{yyyymmdd_task_str}']
-    obs_retrieve_times_crnt_day \
-    = [dt.datetime.strptime(yyyymmddhh_str, '%Y%m%d%H') for yyyymmddhh_str in obs_retrieve_times_crnt_day_str]
+    obs_retrieve_times_crnt_day     = [ dt.datetime.strptime(yyyymmddhh_str, '%Y%m%d%H')
+                                        for yyyymmddhh_str in obs_retrieve_times_crnt_day_str ]
     #
     #-----------------------------------------------------------------------
     #
@@ -451,10 +452,6 @@ def get_obs(config, obtype, yyyymmdd_task):
     # Ending archive hour.  This is set to the archive hour containing obs at
     # the last obs retrieval time of the day.
     arcv_hr_end = get_obs_arcv_hr(obtype, arcv_intvl_hrs, obs_retrieve_times_crnt_day[-1].hour)
-
-    # Set other variables needed below when evaluating the METplus template for
-    # the full path to the processed observation files.
-    ushdir = config['user']['USHdir']
 
     # Create dictionary containing the paths to all the processed obs files
     # that should exist once this script successfully completes.  In this
@@ -717,11 +714,14 @@ def get_obs(config, obtype, yyyymmdd_task):
             # Get the list of times corresponding to the obs files in the current
             # archive.  This is a list of datetime objects.
             if obtype == 'CCPA':
-                obs_times_in_arcv = [yyyymmddhh_arcv - i*obs_avail_intvl for i in range(0,num_obs_times_per_arcv)]
+                obs_times_in_arcv = [yyyymmddhh_arcv - i*obs_avail_intvl
+                                     for i in range(0,num_obs_times_per_arcv)]
             elif obtype == 'NDAS':
-                obs_times_in_arcv = [yyyymmddhh_arcv - (i+1)*obs_avail_intvl for i in range(0,num_obs_times_per_arcv)]
+                obs_times_in_arcv = [yyyymmddhh_arcv - (i+1)*obs_avail_intvl
+                                     for i in range(0,num_obs_times_per_arcv)]
             elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC']:
-                obs_times_in_arcv = [yyyymmddhh_arcv + i*obs_avail_intvl for i in range(0,num_obs_times_per_arcv)]
+                obs_times_in_arcv = [yyyymmddhh_arcv + i*obs_avail_intvl
+                                     for i in range(0,num_obs_times_per_arcv)]
             obs_times_in_arcv.sort()
 
             # Construct the set of obs times over which to loop below when creating
@@ -730,7 +730,8 @@ def get_obs(config, obtype, yyyymmdd_task):
             # intersection is necessary because some files that contain observations for
             # more than one hour may not be retrieved correctly otherwise.
             obs_retrieve_times_crnt_day_in_arcv = [
-                yyyymmddhh for yyyymmddhh in obs_retrieve_times_crnt_day if yyyymmddhh in obs_times_in_arcv
+                yyyymmddhh for yyyymmddhh in obs_retrieve_times_crnt_day
+                if yyyymmddhh in obs_times_in_arcv
             ]
 
             # Loop over the set of times in the current archive that are also required
@@ -783,6 +784,7 @@ def get_obs(config, obtype, yyyymmdd_task):
             # below.
             proc_files_created = []
 
+            #NOTE: NEED TO BREAK THIS OUT INTO A FUNCTION IN THE FUTURE, THE INDENT IS TOO DEEP
             for yyyymmddhh in obs_retrieve_times_crnt_day_in_arcv:
 
                 for i, fg in enumerate(field_groups_in_obs):
@@ -817,14 +819,14 @@ def get_obs(config, obtype, yyyymmdd_task):
                         # retrieving.  The list of possible templates for these names is given
                         # in parm/data_locations.yml, but which of those is actually used is not
                         # known until retrieve_data.py completes.  Thus, that information needs
-                        # to be passed back by retrieve_data.py and then passed to select_validtime_obs.
-                        # For now, we hard-code the file name here.
+                        # to be passed back by retrieve_data.py and then passed to
+                        # select_validtime_obs. For now, we hard-code the file name here.
                         if obtype in ['MRMS', 'GOESAOD', 'GOESADP']:
                             # For MRMS obs, set field-dependent parameters needed in forming grib2
                             # file names.
                             yyyymmddhh_str = dt.datetime.strftime(yyyymmddhh, '%Y%m%d%H')
                             if fg == 'REFC':
-                                file_template='MergedReflectivityQCComposite_00.50_[%Y%m%d-%H%M%S].grib2.gz'
+                                file_template='MergedReflectivityQCComposite_00.50_[%Y%m%d-%H%M%S].grib2.gz' # pylint: disable=line-too-long
                                 valid_file_name = select_validtime_obs(valid_time=yyyymmddhh_str,
                                                 source=arcv_dir_raw,
                                                 outdir=os.path.join(basedir_raw, 'topofhour'),
@@ -861,11 +863,11 @@ def get_obs(config, obtype, yyyymmdd_task):
                         yyyymmddhh_str = dt.datetime.strftime(yyyymmddhh, '%Y%m%d%H')
                         hr = yyyymmddhh.hour
                         if obtype == 'CCPA':
-                            fn_raw = 'ccpa.t' + f'{hr:02d}' + 'z.' + accum_obs_formatted + 'h.hrap.conus.gb2'
+                            fn_raw = f'ccpa.t{hr:02d}z.{accum_obs_formatted}h.hrap.conus.gb2'
                         elif obtype == 'NOHRSC':
-                            fn_raw = 'sfav2_CONUS_' + accum_obs_formatted + 'h_' + yyyymmddhh_str + '_grid184.grb2'
+                            fn_raw = 'sfav2_CONUS_{accum_obs_formatted}h_{yyyymmddhh_str}_grid184.grb2' # pylint: disable=line-too-long
                         elif obtype == 'MRMS':
-                            #MRMS files are retrieved from HPSS archives as gzip files; need to unzip them
+                            #MRMS files are retrieved from HPSS archives as gzip; need to unzip
                             with gzip.open(valid_file_name, 'rb') as f_in:
                                 with open(fn_raw:=valid_file_name.replace(".gz",""), 'wb') as f_out:
                                     shutil.copyfileobj(f_in, f_out)
@@ -883,7 +885,7 @@ def get_obs(config, obtype, yyyymmdd_task):
                             yr = f'{yyyymmddhh_str[:4]}'
                             mn = f'{yyyymmddhh_str[4:6]}'
                             dy = f'{yyyymmddhh_str[6:8]}'
-                            badfile = os.path.join(arcv_dir_raw, f'print_web_data_v3?year={yr}&month={mn}&day={dy}&year2={yr}&month2={mn}&day2={dy}&AOD15=1&AVG=10')
+                            badfile = os.path.join(arcv_dir_raw, f'print_web_data_v3?year={yr}&month={mn}&day={dy}&year2={yr}&month2={mn}&day2={dy}&AOD15=1&AVG=10') # pylint: disable=line-too-long
                             print(f"{badfile=}")
                             if os.path.isfile(badfile):
                                 goodfile=os.path.join(arcv_dir_raw, fn_raw)
@@ -922,7 +924,6 @@ def get_obs(config, obtype, yyyymmdd_task):
 
                         fp_raw = os.path.join(arcv_dir_raw, fn_raw)
 
-                        # Make sure the directory in which the processed file will be created exists.
                         dir_proc = os.path.dirname(fp_proc)
                         Path(dir_proc).mkdir(parents=True, exist_ok=True)
 
@@ -940,10 +941,12 @@ def get_obs(config, obtype, yyyymmdd_task):
                         # under the "00" directory from 20180718 to 20210504.  After the data is
                         # pulled, reorganize into correct yyyymmdd structure.
                         if (obtype == 'CCPA') and \
-                           ((yyyymmdd >= ccpa_bad_metadata_start) and (yyyymmdd <= ccpa_bad_metadata_end)) and \
+                           ((yyyymmdd >= ccpa_bad_metadata_start) and \
+                           (yyyymmdd <= ccpa_bad_metadata_end)) and \
                            (((hr >= 19) and (hr <= 23)) or (hr == 0)):
-                            cmd = ' '.join(['wgrib2', fp_raw, '-set_date -24hr -grib', fp_proc, '-s'])
-                            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                            cmd = ' '.join(['wgrib2', fp_raw, '-set_date -24hr -grib', fp_proc, '-s']) # pylint: disable=line-too-long
+                            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=False) # pylint: disable=line-too-long
+                            logging.debug(f"{result=}")
                         elif remove_raw_obs:
                             shutil.move(fp_raw, fp_proc)
                         else:
@@ -953,12 +956,8 @@ def get_obs(config, obtype, yyyymmdd_task):
                         # created above.
                         proc_files_created.append(fp_proc)
 
-                        msg = dedent(f"""
-                            Processed obs file (fp_proc) successfully created from raw obs file (fp_raw):
-                                {fp_raw = }
-                                {fp_proc = }
-                            """)
-                        logging.info(msg)
+                        logging.info(f"Processed obs file ({fp_proc=})")
+                        logging.info(f"successfully createdfrom raw obs file ({fp_raw=})")
     #
     #-----------------------------------------------------------------------
     #
@@ -1013,7 +1012,7 @@ def parse_args(argv):
         type=str,
         required=False,
         default='',
-        help=dedent(f"""
+        help=dedent("""
             Name of or path (absolute or relative) to log file.  If not specified,
             the output goes to screen.
             """))
@@ -1037,14 +1036,14 @@ if __name__ == "__main__":
     # If the name/path of a log file has been specified in the command line
     # arguments, place the logging output in it (existing log files of the
     # same name are overwritten).  Otherwise, direct the output to the screen.
-    log_level = "INFO"
+    LOG_LEVEL = "INFO"
     if args.verbose:
-        log_level = "DEBUG"
-    msg_format = "[%(levelname)s:%(name)s:  %(filename)s, line %(lineno)s: %(funcName)s()] %(message)s"
+        LOG_LEVEL = "DEBUG"
+    MSG_FMT = "[%(levelname)s:%(name)s:  %(filename)s, line %(lineno)s: %(funcName)s()] %(message)s"
     if args.log_fp:
-        logging.basicConfig(level=log_level, format=msg_format, filename=args.log_fp, filemode='w')
+        logging.basicConfig(level=LOG_LEVEL, format=MSG_FMT, filename=args.log_fp, filemode='w')
     else:
-        logging.basicConfig(level=log_level, format=msg_format)
+        logging.basicConfig(level=LOG_LEVEL, format=MSG_FMT)
 
     cfg = get_yaml_config(args.var_defns_path)
     get_obs(cfg, args.obtype, args.obs_day)
