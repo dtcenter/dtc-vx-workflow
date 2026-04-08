@@ -8,7 +8,6 @@ The script is intended to be called from jobs/MODE.sh.
 import argparse
 import logging
 import os
-import subprocess
 
 from multiprocessing import Pool
 from pathlib import Path

@@ -1037,7 +1037,7 @@ if __name__ == "__main__":
         print("\nERROR ERROR ERROR\n")
         print("Environment variable METPLUS_ROOT must be set to use this script\n")
         raise
-    from metplus.util import string_template_substitution as sts
+    from metplus.util import string_template_substitution as sts # pylint: disable=import-error
 
     # Set up logging.
     # If the name/path of a log file has been specified in the command line
