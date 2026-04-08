@@ -54,4 +54,4 @@ jobs:
           micromamba activate vx_workflow
           export CI=true
           export PYTHONPATH=${PWD}/ush
-          python3 -m unittest tests/test_python/test_retrieve_data.py
+          python3 -m unittest tests.test_python.test_retrieve_data
