@@ -138,20 +138,21 @@ def check_bad_settings(cfg):
     msg=''
     if bad:=cfg.get("global"):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
-        msg+="The `global` section has been renamed to `ensemble`; update your config accordingly\n\n"
+        msg+="The `global` section has been renamed to `ensemble`; "
+        msg+="update your config accordingly\n\n"
         raise KeyError(msg)
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
-            msg+="execution variables for this task have been moved to top-level `point2grid` section; "
+            msg+="these variables for this task have moved to top-level `point2grid` section;"
             msg+="update your config accordingly\n\n"
         if bad:=ex.get("regriddataplane"):
-            msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}\n"
-            msg+="execution variables for this task have been moved to top-level `regriddataplane` section; "
+            msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}"
+            msg+="these variables for this task moved to top-level `regriddataplane` section; "
             msg+="update your config accordingly\n\n"
         if bad:=ex.get("mode"):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
-            msg+="execution variables for this task have been moved to top-level `mode` section; "
+            msg+="these variables for this task have been moved to top-level `mode` section; "
             msg+="update your config accordingly\n\n"
     if msg:
         logger.critical("The following problems with your config must be fixed:")
