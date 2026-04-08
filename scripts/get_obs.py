@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# pylint: disable=too-many-lines,logging-fstring-interpolation,too-many-locals,too-many-nested-blocks
+"""
+Script to retrieve observation data files from archives and process them.
+
+This module handles retrieving observation data files from HPSS, AWS, or other
+archives (as specified in parm/data_locations). extracting them, and organizing
+them into processed directories for use in the verification workflow.
+"""
 
 import re
 import os
@@ -10,7 +18,6 @@ from pathlib import Path
 import datetime as dt
 import gzip
 from textwrap import dedent
-from pprint import pprint
 from math import ceil, floor
 import subprocess
 import retrieve_data
@@ -80,15 +87,12 @@ def get_obs_arcv_hr(obtype, arcv_intvl_hrs, hod):
     # through 6 of the day in the archive labeled with hour 6 while an
     # instantaneous obs type may put the obs files for hours 0 through 5 of
     # the day in the archive labeled with hour 6.
+    arcv_hr = 24
     if obtype in ['CCPA']:
-        if hod == 0:
-            arcv_hr = 24
-        else:
+        if hod != 0:
             arcv_hr = ceil(hod/arcv_intvl_hrs)*arcv_intvl_hrs
     elif obtype in ['NOHRSC']:
-        if hod == 0:
-            arcv_hr = 24
-        else:
+        if hod != 0:
             arcv_hr = floor(hod/arcv_intvl_hrs)*arcv_intvl_hrs
     elif obtype in ['MRMS', 'GOESAOD', 'GOESADP']:
         arcv_hr = (floor(hod/arcv_intvl_hrs))*arcv_intvl_hrs
@@ -322,7 +326,7 @@ def get_obs(config, obtype, yyyymmdd_task):
 
     # For convenience, get the verification portion of the configuration
     # dictionary.
-    vx_config = cfg['verification']
+    vx_config = config['verification']
 
     # Get the time interval (in hours) at which the obs are available.
     obs_avail_intvl_hrs = vx_config[f'{obtype}_OBS_AVAIL_INTVL_HRS']
@@ -365,7 +369,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     # obs file name template(s) (from which the variable obs_fn_templates
     # was obtained above) can be converted to python dictionaries.  Then the
     # list-to-dictionary conversion step here will no longer be needed.
-    obs_fn_templates_by_fg = dict()
+    obs_fn_templates_by_fg = {}
     for i in range(0, len(obs_fn_templates), 2):
         obs_fn_templates_by_fg[obs_fn_templates[i]] = obs_fn_templates[i+1]
 
@@ -422,6 +426,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     #
     #-----------------------------------------------------------------------
     #
+    arcv_intvl_hrs = 1
     if obtype == 'CCPA':
         arcv_intvl_hrs = 6
     elif obtype == 'NOHRSC':
@@ -433,7 +438,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     elif obtype == 'AERONET':
         arcv_intvl_hrs = 24
     elif obtype == 'AIRNOW':
-        if vx_config[f'OBS_DATA_STORE_AIRNOW'] == 'hpss':
+        if vx_config['OBS_DATA_STORE_AIRNOW'] == 'hpss':
             arcv_intvl_hrs = 24
         else:
             arcv_intvl_hrs = 1
@@ -470,7 +475,7 @@ def get_obs(config, obtype, yyyymmdd_task):
             leadtime = yyyymmddhh - yyyymmdd_task
             # Call METplus subroutine to evaluate the template for the full path to
             # the file containing METplus timestrings at the current time.
-            fn = sts.do_string_sub(tmpl=fp_proc_tmpl,init=yyyymmdd_task,valid=yyyymmddhh,
+            fn = sts.do_string_sub(tmpl=fp_proc_tmpl,init=yyyymmdd_task,valid=yyyymmddhh, # pylint: disable=possibly-used-before-assignment
                                    lead=leadtime.total_seconds())
             all_fp_proc_dict[fg].append(fn)
 
@@ -502,7 +507,8 @@ def get_obs(config, obtype, yyyymmdd_task):
                 logging.info(msg)
                 do_break = True
                 break
-        if do_break: break
+        if do_break:
+            break
 
     # If the number of obs files that already exist on disk is equal to the
     # number of obs files needed, then there is no need to retrieve any files.
@@ -525,7 +531,7 @@ def get_obs(config, obtype, yyyymmdd_task):
     # the number of obs files needed, then we will need to retrieve files.
     # In this case, set the sequence of hours corresponding to the archives
     # from which files will be retrieved.
-    arcv_hrs = [hr for hr in range(arcv_hr_start, arcv_hr_end+arcv_intvl_hrs, arcv_intvl_hrs)]
+    arcv_hrs = list(range(arcv_hr_start, arcv_hr_end+arcv_intvl_hrs, arcv_intvl_hrs))
     msg = dedent(f"""
         At least some obs files needed for the current day (yyyymmdd_task)
         do not exist on disk:
@@ -566,7 +572,7 @@ def get_obs(config, obtype, yyyymmdd_task):
 
     # Whether to remove raw observations after processed directories have
     # been created from them.
-    remove_raw_obs = vx_config[f'REMOVE_RAW_OBS_DIRS']
+    remove_raw_obs = vx_config['REMOVE_RAW_OBS_DIRS']
 
     # Base directory that will contain the archive subdirectories in which
     # the files extracted from each archive (tar) file will be placed.  We
@@ -628,12 +634,11 @@ def get_obs(config, obtype, yyyymmdd_task):
         # Same as for MRMS
         #
 
+        arcv_subdir_raw = ''
         if obtype in ['CCPA', 'NDAS', 'GOESAOD', 'GOESADP']:
             arcv_subdir_raw = yyyymmddhh_arcv_str
         elif obtype == 'NOHRSC':
             arcv_subdir_raw = yyyymmdd_arcv_str
-        elif obtype in ['MRMS', 'AERONET', 'AIRNOW']:
-            arcv_subdir_raw = ''
 
         # Combine the raw archive base directory with the raw archive subdirectory
         # name to obtain the full path to the raw archive directory.
@@ -643,20 +648,18 @@ def get_obs(config, obtype, yyyymmdd_task):
         # this task fall in the time interval spanned by the current archive.  If
         # so, set the flag (do_retrieve) to retrieve the files in the current
         # archive.
+        arcv_contents_start = arcv_contents_end = yyyymmddhh_arcv
         if obtype == 'CCPA':
             arcv_contents_start = yyyymmddhh_arcv - (num_obs_times_per_arcv - 1)*obs_avail_intvl
-            arcv_contents_end = yyyymmddhh_arcv
         elif obtype == 'NDAS':
             arcv_contents_start = yyyymmddhh_arcv - num_obs_times_per_arcv*obs_avail_intvl
             arcv_contents_end = yyyymmddhh_arcv - obs_avail_intvl
         elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC']:
-            arcv_contents_start = yyyymmddhh_arcv
             arcv_contents_end = yyyymmddhh_arcv + (num_obs_times_per_arcv - 1)*obs_avail_intvl
 
         do_retrieve = False
         for obs_retrieve_time in obs_retrieve_times_crnt_day:
-            if (obs_retrieve_time >= arcv_contents_start) and \
-               (obs_retrieve_time <= arcv_contents_end):
+            if arcv_contents_start <= obs_retrieve_time <= arcv_contents_end:
                 do_retrieve = True
                 break
 
@@ -701,7 +704,7 @@ def get_obs(config, obtype, yyyymmdd_task):
             # these (we will not use the tm00 file).
 
             parmdir = config['user']['PARMdir']
-            args = ['--debug', \
+            dataargs = ['--debug', \
                     '--file_set', 'obs', \
                     '--config', os.path.join(parmdir, 'data_locations.yml'), \
                     '--cycle_date', yyyymmddhh_arcv_str, \
@@ -709,10 +712,11 @@ def get_obs(config, obtype, yyyymmdd_task):
                     '--data_type', obtype, \
                     '--output_path', arcv_dir_raw, \
                     '--summary_file', 'retrieve_data.log']
-            retrieve_data.main(args)
+            retrieve_data.main(dataargs)
 
             # Get the list of times corresponding to the obs files in the current
             # archive.  This is a list of datetime objects.
+            obs_times_in_arcv = []
             if obtype == 'CCPA':
                 obs_times_in_arcv = [yyyymmddhh_arcv - i*obs_avail_intvl
                                      for i in range(0,num_obs_times_per_arcv)]
@@ -821,6 +825,7 @@ def get_obs(config, obtype, yyyymmdd_task):
                         # known until retrieve_data.py completes.  Thus, that information needs
                         # to be passed back by retrieve_data.py and then passed to
                         # select_validtime_obs. For now, we hard-code the file name here.
+                        valid_file_name = ''
                         if obtype in ['MRMS', 'GOESAOD', 'GOESADP']:
                             # For MRMS obs, set field-dependent parameters needed in forming grib2
                             # file names.
@@ -940,10 +945,12 @@ def get_obs(config, obtype, yyyymmdd_task):
                         # CCPA files for 1-hour accumulation have incorrect metadata in the files
                         # under the "00" directory from 20180718 to 20210504.  After the data is
                         # pulled, reorganize into correct yyyymmdd structure.
-                        if (obtype == 'CCPA') and \
-                           ((yyyymmdd >= ccpa_bad_metadata_start) and \
-                           (yyyymmdd <= ccpa_bad_metadata_end)) and \
-                           (((hr >= 19) and (hr <= 23)) or (hr == 0)):
+                        is_ccpa_bad_metadata = (
+                            obtype == 'CCPA' and
+                            ccpa_bad_metadata_start <= yyyymmdd <= ccpa_bad_metadata_end and
+                            (19 <= hr <= 23 or hr == 0)
+                        )
+                        if is_ccpa_bad_metadata:
                             cmd = ' '.join(['wgrib2', fp_raw, '-set_date -24hr -grib', fp_proc, '-s']) # pylint: disable=line-too-long
                             result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=False) # pylint: disable=line-too-long
                             logging.debug(f"{result=}")
@@ -1047,5 +1054,3 @@ if __name__ == "__main__":
 
     cfg = get_yaml_config(args.var_defns_path)
     get_obs(cfg, args.obtype, args.obs_day)
-
-
