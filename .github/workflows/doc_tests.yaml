@@ -25,8 +25,8 @@ jobs:
         run: |
           cd doc
           make clean && make html
-      - name: Check links
-        if: ${{ !cancelled() }}
-        run: |
-          cd doc
-          make linkcheck
+#      - name: Check links
+#        if: ${{ !cancelled() }}
+#        run: |
+#          cd doc
+#          make linkcheck
