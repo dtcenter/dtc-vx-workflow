@@ -8,11 +8,9 @@ The script is intended to be called from jobs/TCPAIRS.sh.
 import argparse
 import logging
 import os
-import subprocess
 
 from multiprocessing import Pool
 from pathlib import Path
-from string import Template
 
 import uwtools.api.config as uwconfig
 
@@ -56,16 +54,12 @@ def tcpairs(config_file, cdate):
 
     conf_files=[]
     for storm_id in tccfg['STORM_IDS']:
-        # Set the names of the template METplus configuration file, the resulting rendered conf file,
-        # and the METplus log file
+        # Set the names of the template METplus configuration file, the resulting rendered conf
+        # file, and the METplus log file
         metplus_config_tmpl_fn="TCPAIRS.conf"
         metplus_config_fn=f"{metplus_tool_camel_case}_{storm_id}.conf.0"
         metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
-    
-        # Load YAML file containing configuration for deterministic verification
-        vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                         f"{vxcfg['VX_CONFIG_DET_FN']}")
-    
+
         # Define variables that appear in the jinja template, add to existing settings dict.
         settings = {
                    'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
@@ -86,9 +80,9 @@ def tcpairs(config_file, cdate):
                    'fcst_track_file': tccfg['ADECK_TEMPLATE'],
                    'best_track_dir': cfg["platform"]["BEST_TRACK"]
                    }
-    
+
         numprocs=1
-        # This function will only output one conf file 
+        # This function will only output one conf file
         conf_files.extend(render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,[0],numprocs))
     lgr.debug(f"{conf_files=}")
 

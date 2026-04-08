@@ -8,11 +8,9 @@ The script is intended to be called from jobs/TCSTAT.sh.
 import argparse
 import logging
 import os
-import subprocess
 
 from multiprocessing import Pool
 from pathlib import Path
-from string import Template
 
 import uwtools.api.config as uwconfig
 
@@ -61,18 +59,15 @@ def tcstat(config_file, cdate):
         summary_file = tcstcfg["SUMMARY_FILE"]
         # File for Rapid Intensification statistics
         ri_file = tcstcfg["RI_FILE"]
-        # Set the names of the template METplus configuration file, the resulting rendered conf file,
-        # and the METplus log file
+        # Set the names of the template METplus configuration file, the resulting rendere
+        # conf file, and the METplus log file
         metplus_config_tmpl_fn="TCSTAT.conf"
         metplus_config_fn=f"{metplus_tool_camel_case}_{storm_id}.conf.0"
         metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
-    
-        # Load YAML file containing configuration for deterministic verification
-        vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                         f"{vxcfg['VX_CONFIG_DET_FN']}")
-    
+
         # Need to substitute keywords manually since TCSTAT does not accept the "cyclone" keyword
-        tcpairs_template = eval_metplus_timestr_tmpl(cfg["tcpairs"]["OUTPUT_TEMPLATE"], cdate, cyclone=storm_id)
+        tcpairs_template = eval_metplus_timestr_tmpl(cfg["tcpairs"]["OUTPUT_TEMPLATE"],
+                                                     cdate, cyclone=storm_id)
         print(f"{tcpairs_template=}")
         tcpairs_output = Path(exptdir, cdate, "metprd", "TCPairs", tcpairs_template + '.tcst')
 
@@ -95,9 +90,9 @@ def tcstat(config_file, cdate):
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
                    }
-    
+
         numprocs=1
-        # This function will only output one conf file 
+        # This function will only output one conf file
         conf_files.extend(render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,[0],numprocs))
     lgr.debug(f"{conf_files=}")
 

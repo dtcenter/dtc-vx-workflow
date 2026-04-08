@@ -8,7 +8,6 @@ The script is intended to be called from jobs/TCRMW.sh.
 import argparse
 import logging
 import os
-import subprocess
 
 from multiprocessing import Pool
 from pathlib import Path
@@ -35,7 +34,8 @@ def tcrmw(config_file, cdate):
         None
 
     Raises:
-        RuntimeError: If the lead hour list is empty or cannot be determined from available forecast files
+        RuntimeError: If the lead hour list is empty or cannot be determined from available
+                      forecast files
     """
     # pylint: disable=too-many-locals
     lgr = logging.getLogger(__name__)
@@ -64,9 +64,9 @@ def tcrmw(config_file, cdate):
 
     conf_files=[]
     for storm_id in tccfg['STORM_IDS']:
-        # Make a dictionary of variables that may need to be substituted; these will be used to replace
-        # bash-like variables in some strings. This is needed to maintain some functionality while we
-        # still have a mix of bash and python exscripts.
+        # Make a dictionary of variables that may need to be substituted; these will be used to
+        # replace bash-like variables in some strings. This is needed to maintain some
+        # functionality while we still have a mix of bash and python exscripts.
         subvars = {
                 "time_lag": 0,
                   }
@@ -82,29 +82,21 @@ def tcrmw(config_file, cdate):
         lgr.debug(f"{adeck_fn_template=}")
         lgr.debug(f"{output_fn_template=}")
         # Set the lead hours for which to run the MET/METplus tool.
-        lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},{cfg['workflow']['FCST_LEN_HRS']},"\
-                     f"{vx_intvl},{vxcfg['VX_FCST_INPUT_BASEDIR']},0,"\
-                     f"{fcst_fn_template},{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
+        lgr.debug(slh_string:=f"set_leadhrs({cdate},{vx_hr_start},"\
+                     f"{cfg['workflow']['FCST_LEN_HRS']},{vx_intvl},"\
+                     f"{vxcfg['VX_FCST_INPUT_BASEDIR']},0,{fcst_fn_template},"\
+                     f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})")
         vx_leadhr_list = set_leadhrs(cdate,vx_hr_start,cfg['workflow']['FCST_LEN_HRS'],vx_intvl,
                                      vxcfg["VX_FCST_INPUT_BASEDIR"],0,str(fcst_fn_template),
                                      vxcfg['NUM_MISSING_OBS_FILES_MAX'],verbose=True)
-    
+
         if not vx_leadhr_list:
             raise RuntimeError(f"Call to {slh_string}\nreturned an empty list.")
-        # Set the names of the template METplus configuration file, the resulting rendered conf file,
-        # and the METplus log file
+        # Set the names of the template METplus configuration file, the resulting rendered
+        # conf file, and the METplus log file
         metplus_config_tmpl_fn="TCRMW.conf"
         metplus_config_fn=f"{metplus_tool_camel_case}_{storm_id}.conf.0"
         metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
-    
-        # Load YAML file containing configuration for deterministic verification
-        vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                         f"{vxcfg['VX_CONFIG_DET_FN']}")
-    
-#        # Need to substitute keywords manually since TCSTAT does not accept the "cyclone" keyword
-#        tcpairs_template = eval_metplus_timestr_tmpl(cfg["tcpairs"]["OUTPUT_TEMPLATE"], cdate, cyclone=storm_id)
-#        print(f"{tcpairs_template=}")
-#        tcpairs_output = Path(exptdir, cdate, "metprd", "TCPairs", tcpairs_template + '.tcst')
 
         # Define variables that appear in the jinja template, add to existing settings dict.
         settings = {
@@ -127,10 +119,14 @@ def tcrmw(config_file, cdate):
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
                    }
-    
+
         numprocs=1
-        # This function will only output one conf file 
-        conf_files.extend(render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs))
+        # This function will only output one conf file
+        conf_files.extend(
+             render_metplus_confs(
+                  cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs
+                                 )
+                         )
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
