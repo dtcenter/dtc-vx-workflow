@@ -59,14 +59,15 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-cmd="\
-python3 ${SCRIPTSdir}/get_obs.py ${VERBOSE_FLAG} \
---var_defns_path "${GLOBAL_VAR_DEFNS_FP}" \
---obtype ${OBTYPE} \
---obs_day ${YYMMDD}"
-print_info_msg "
-CALLING: ${cmd}"
-${cmd} || print_err_msg_exit "Error calling get_obs.py"
+cmd=(
+  python3 "${SCRIPTSdir}/get_obs.py"
+     ${VERBOSE_FLAG}
+      --var_defns_path "${GLOBAL_VAR_DEFNS_FP}"
+      --obtype "${OBTYPE}"
+      --obs_day "${YYMMDD}"
+)
+echo "CALLING: ${cmd[*]}"
+"${cmd[@]}" || print_err_msg_exit "Error calling get_obs.py"
 #
 #-----------------------------------------------------------------------
 #
