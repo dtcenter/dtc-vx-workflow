@@ -713,14 +713,9 @@ VX Parameters for Forecasts
    containing the forecast files to use as inputs to the verification
    tasks.
 
-``FCST_SUBDIR_TEMPLATE``: (Default: ``'{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'``)
-
-   METplus template for the name of the subdirectory containing forecast
-   files to use as inputs to the verification tasks.
-
 ``FCST_FN_TEMPLATE``: (Default: ``'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'``)
    METplus template for the names of the forecast files to use as inputs
-   to the verification tasks.
+   to the verification tasks. Can include subdirectories if needed.
 
 ``FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT``:
    **Default:**

@@ -41,8 +41,7 @@ verification:
   VX_FCST_MODEL_NAME: 'gfs'
   VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.obs_gdas.model_gfs.yaml'
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}'
-  FCST_SUBDIR_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/atmos'
-  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.pgrb2.0p25.f{lead?fmt=%HHH}'
+  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/atmos/{{ verification.VX_FCST_MODEL_NAME }}.t00z.pgrb2.0p25.f{lead?fmt=%HHH}'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.pgrb2.0p25.f{lead?fmt=%HHH}_a${ACCUM_HH}h.nc'
   #
   VX_FCST_OUTPUT_INTVL_HRS: 6

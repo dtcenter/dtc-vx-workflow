@@ -173,7 +173,7 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
   if [ "${FIELD_GROUP}" = "APCP" ] || [ "${FIELD_GROUP}" = "ASNOW" ]; then
     template="${cdate_ensmem_subdir_or_null:+${cdate_ensmem_subdir_or_null}/}metprd/PcpCombine_fcst/${FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT}"
   else
-    template="${FCST_SUBDIR_TEMPLATE}/${FCST_FN_TEMPLATE}"
+    template="${FCST_FN_TEMPLATE}"
   fi
 
   if [ -z "${FCST_INPUT_FN_TEMPLATE}" ]; then

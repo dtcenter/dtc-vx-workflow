@@ -95,7 +95,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
     #Point2Grid does not honor "time lag" shifts, so remove from template
     fcst_fn_template=Path(
                      vxcfg["VX_FCST_INPUT_BASEDIR"],
-                     Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
                      Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars)
                      )
     output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)

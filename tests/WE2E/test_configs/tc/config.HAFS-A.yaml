@@ -22,7 +22,6 @@ tropical:
 verification:
   VX_FCST_MODEL_NAME: 'hfsa'
   VX_FCST_INPUT_BASEDIR: "/work2/noaa/dtc-hwrf/scrub/mbiswas/hfsa-01/com/2023090512/13L/"
-  FCST_SUBDIR_TEMPLATE: ""
   FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
   VX_FCST_OUTPUT_INTVL_HRS: 3
   # LOG_LEVEL

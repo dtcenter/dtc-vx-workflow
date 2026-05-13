@@ -173,7 +173,7 @@ PCP_COMBINE_COMMAND=""
 if [ "${FCST_OR_OBS}" = "FCST" ]; then
 
   FCST_INPUT_DIR="${vx_fcst_input_basedir}"
-  FCST_INPUT_FN_TEMPLATE=$( eval echo ${FCST_SUBDIR_TEMPLATE:+${FCST_SUBDIR_TEMPLATE}/}${FCST_FN_TEMPLATE} )
+  FCST_INPUT_FN_TEMPLATE=${FCST_FN_TEMPLATE}
 
   OUTPUT_BASE="${vx_output_basedir}/${CDATE}${slash_ensmem_subdir_or_null}"
   OUTPUT_DIR="${OUTPUT_BASE}/metprd/${MetplusToolName}_fcst"

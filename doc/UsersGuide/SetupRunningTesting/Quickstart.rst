@@ -115,7 +115,6 @@ Setting up the verification workflow
            VX_FCST_MODEL_NAME: 'rrfs'
            VX_FCST_INPUT_BASEDIR: /scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/VX_workflow/quickstart_test/data
            FCST_FN_TEMPLATE: rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2
-           FCST_SUBDIR_TEMPLATE: ''
            CCPA_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ccpa/proc'
            MRMS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/mrms/proc'
            NDAS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ndas/proc'

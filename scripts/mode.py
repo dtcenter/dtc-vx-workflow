@@ -83,8 +83,7 @@ def mode(config_file,cdate,field_group,obtype):
         obs_in_dir = Path(exptdir, cdate, "metprd", "RegridDataPlane")
         obs_in_fn_template = f'regrid_{vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]}'
         fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
-        fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                   Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
+        fcst_in_fn_template = Path(Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
         # Get the list of all the times in the current day at which to retrieve obs.
     else:
         raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case}: {obtype}")

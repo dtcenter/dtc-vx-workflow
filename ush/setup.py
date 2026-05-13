@@ -154,6 +154,11 @@ def check_bad_settings(cfg):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
             msg+="these variables for this task have been moved to top-level `mode` section; "
             msg+="update your config accordingly\n\n"
+    if vx:=cfg.get("verification"):
+        if bad:=vx.get("FCST_SUBDIR_TEMPLATE"):
+            msg+="Config file 'verification' section contains invalid key FCST_SUBDIR_TEMPLATE:"
+            msg+=f"\n{bad}\nThis variable has been deprecated; to reference this data path, set\n"
+            msg+=f"""FCST_FN_TEMPLATE: '{bad}/{vx["FCST_FN_TEMPLATE"]}'\n\n"""
     if msg:
         logger.critical("The following problems with your config must be fixed:")
         logger.critical(msg)
