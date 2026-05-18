@@ -173,7 +173,6 @@ def plot_ellipses(cov_and_mean, plot_hours, colors):
     center_x = []
     center_y = []
     fig = plt.figure(figsize=(9,6), dpi=168)
-    #plt.gca().set_projection(ccrs.PlateCarree())
     ax = fig.add_subplot(1,1,1, projection=ccrs.PlateCarree())
     legend_contents = []
     for lead_time_hour, cov_meanlon_meanlat_lon_lat in cov_and_mean.items():
@@ -212,12 +211,11 @@ def plot_ellipses(cov_and_mean, plot_hours, colors):
 
         color = colors[i % len(colors)]
 
-        stdfac = 2 # *(5.995)**0.5
+        stdfac = 2 # one standard deviation
 
-        plt.scatter(lon, lat, 2, color=color, transform=ccrs.PlateCarree()) # , label=f'{lead_time_hour} hrs')
-        #print(f'Ellipse at lon={meanlon} lat={meanlat} width={stdev0*2} height={stdev1*2} angle={angle} from {anglefrom} color={color}')
+        plt.scatter(lon, lat, 2, color=color, transform=ccrs.PlateCarree())
         ellipse = matplotlib.patches.Ellipse([meanlon, meanlat], width=stdev0*stdfac, height=stdev1*stdfac, angle=angle, edgecolor=color, fill=False, transform=ccrs.PlateCarree(), linewidth=1.5)
-        ax.add_patch(ellipse) # , label=f'{lead_time_hour} hrs')
+        ax.add_patch(ellipse)
 
         legend_contents.append(matplotlib.patches.Patch(facecolor=color, alpha=0.7, edgecolor=color, label=f'{lead_time_hour} hrs'))
 
@@ -243,7 +241,6 @@ def main():
     fixes = fixes_by_lead_time(by_id)
     cov_and_mean = covariance_and_mean_by_lead_time(fixes)
 
-    # colors = [ color for color in matplotlib.colors.TABLEAU_COLORS.keys() ]
     colors = [ 'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:cyan', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:brown' ]
     hours = [ 0, 24, 48, 72, 96, 120 ]
     plot_ellipses(cov_and_mean, hours, colors)
