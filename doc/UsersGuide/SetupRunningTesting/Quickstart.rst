@@ -192,6 +192,7 @@ For this tutorial case, we will download data from a HAFS-A forecast to run veri
 In addition to model forecast output, we will also need to download the storm's forecast track file ("A-Deck") and best track ("B-Deck") files for verifying the forecast statistics.
 
   .. code-block:: console
+
      cd path/to/datadir
      wget https://noaa-nws-hafs-pds.s3.amazonaws.com/hfsa/20251026/00/13l.2025102600.hfsa.trak.atcfunix
      wget https://ftp.nhc.noaa.gov/atcf/archive/2025/bal132025.dat.gz
