@@ -8,47 +8,10 @@ This chapter provides a brief summary of how to build and run the verification w
 
 **NOTE: The steps should run smoothly on** :srw-wiki:`Tier-1 <Supported-Platforms-and-Compilers>` **supported systems. Instructions for other platforms will be coming in the future.**
 
-
-Install the Prerequisite Software Stack
-=========================================
-On Tier-1 supported systems such as Derecho and Hera, all prerequisites have already been installed.
-
-
-Download data for tutorial case
-===============================
-
-For this tutorial case, we will download some RRFS prototype output to run verification tasks with. This tutorial will run on forecast hours 0 through 6:
-
-  .. code-block:: console
-
-     mkdir path/to/forecast/datadir
-     cd path/to/datadir
-     for i in $(seq 1 6); do
-     wget https://noaa-ufs-srw-pds.s3.amazonaws.com/develop-20250321/output_data/fcst_det/RRFS_CONUS_25km/2019061500/postprd/rrfs.t00z.prslev.f00${i}.rrfs_conus_25km.grib2
-     done
-
-When finished, you should see seven grib files in your data directory:
-
-  .. code-block:: console
-
-     $ ls -al
-     total 273064
-     drwxr-sr-x 2 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 21:03 .
-     drwxr-sr-x 5 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 20:59 ..
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20553322 Mar 22  2025 rrfs.t00z.prslev.f000.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20199677 Mar 22  2025 rrfs.t00z.prslev.f001.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20049464 Mar 22  2025 rrfs.t00z.prslev.f002.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20009343 Mar 22  2025 rrfs.t00z.prslev.f003.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19813959 Mar 22  2025 rrfs.t00z.prslev.f004.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19643685 Mar 22  2025 rrfs.t00z.prslev.f005.rrfs_conus_25km.grib2
-     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19521654 Mar 22  2025 rrfs.t00z.prslev.f006.rrfs_conus_25km.grib2
-
-
-
 .. _QuickSetup:
 
 Setting up the verification workflow
-===============================================
+------------------------------------
 
    #. Clone the workflow from GitHub:
 
@@ -79,6 +42,44 @@ Setting up the verification workflow
       .. include:: ../../doc-snippets/load-env.rst
       
       After sourcing this bash script, the appropriate environment should be loaded, and the user should see ``(vx_workflow)`` on their terminal prompt.
+
+
+Deterministic verification
+--------------------------
+
+Download data for tutorial case
+===============================
+
+For this tutorial case, we will download some RRFS prototype output to run verification tasks with. This tutorial will run on forecast hours 0 through 6:
+
+  .. code-block:: console
+
+     mkdir path/to/datadir
+     cd path/to/datadir
+     for i in $(seq 1 6); do
+     wget https://noaa-ufs-srw-pds.s3.amazonaws.com/develop-20250321/output_data/fcst_det/RRFS_CONUS_25km/2019061500/postprd/rrfs.t00z.prslev.f00${i}.rrfs_conus_25km.grib2
+     done
+
+When finished, you should see seven grib files in your data directory:
+
+  .. code-block:: console
+
+     $ ls -al
+     total 273064
+     drwxr-sr-x 2 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 21:03 .
+     drwxr-sr-x 5 Michael.Kavulich gsd-fv3-dev     4096 Jan  8 20:59 ..
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20553322 Mar 22  2025 rrfs.t00z.prslev.f000.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20199677 Mar 22  2025 rrfs.t00z.prslev.f001.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20049464 Mar 22  2025 rrfs.t00z.prslev.f002.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 20009343 Mar 22  2025 rrfs.t00z.prslev.f003.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19813959 Mar 22  2025 rrfs.t00z.prslev.f004.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19643685 Mar 22  2025 rrfs.t00z.prslev.f005.rrfs_conus_25km.grib2
+     -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19521654 Mar 22  2025 rrfs.t00z.prslev.f006.rrfs_conus_25km.grib2
+
+
+
+Setting up the experiment
+==========================
 
    #. Configure the experiment: 
 
@@ -124,7 +125,7 @@ Setting up the verification workflow
       Users on a different system would update the machine, account, and data paths accordingly.
 
 Description of basic options
-----------------------------
+============================
 
 The verification workflow is highly configurable with a number of different options and tasks. This basic quick-start guide covers a simple deterministic verification using conventional observations. Additional examples can be found in :numref:`Section %s <Testing>` 
 
@@ -168,4 +169,89 @@ The verification workflow is highly configurable with a number of different opti
          rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10
 
    **Instructions on automatic submission and monitoring of jobs will be coming**   
+
+TC verification
+---------------
+
+This second tutorial case covers verification for tropical cyclones, including the TCPAIRS, TCSTAT, and TCRMW tools. The data will be forecasts for Hurricane Mellissa (2025) during a period of rapid intensification.
+
+Download data for tutorial case
+===============================
+
+For this tutorial case, we will download data from a HAFS-A forecast to run verification tasks with. This tutorial will run on forecast hours 0 through 126 (HAFS output files are every 6 hours, but we only have best-track verification points every 6 hours):
+
+  .. code-block:: console
+   
+     mkdir path/to/datadir
+     cd path/to/datadir
+     for i in $(seq 0 6 126); do
+       printf -v formatted "%03d" $i
+       wget "https://noaa-nws-hafs-pds.s3.amazonaws.com/hfsa/20251026/00/13l.2025102600.hfsa.storm.atm.f${formatted}.grb2"
+     done
+
+In addition to model forecast output, we will also need to download the storm's forecast track file ("A-Deck") and best track ("B-Deck") files for verifying the forecast statistics.
+
+  .. code-block:: console
+     cd path/to/datadir
+     wget https://noaa-nws-hafs-pds.s3.amazonaws.com/hfsa/20251026/00/13l.2025102600.hfsa.trak.atcfunix
+     wget https://ftp.nhc.noaa.gov/atcf/archive/2025/bal132025.dat.gz
+     gunzip *gz
+
+
+When finished, you should see 22 grib files and two ".dat" files in your data directory:
+
+  .. code-block:: console
+
+     $ ls -al
+     total 10766268
+     drwxr-s--- 2 mkavulic gsd-fv3-dev      4096 May 20 15:33 .
+     drwxr-s--- 5 mkavulic gsd-fv3-dev      4096 May 13 11:13 ..
+     -rw-r----- 1 mkavulic gsd-fv3-dev 230219762 Oct 25  2025 13l.2025102600.hfsa.storm.atm.f000.grb2
+     -rw-r----- 1 mkavulic gsd-fv3-dev 242067077 Oct 25  2025 13l.2025102600.hfsa.storm.atm.f006.grb2
+     ...
+     ...
+     -rw-r----- 1 mkavulic gsd-fv3-dev 265906668 Oct 26  2025 13l.2025102600.hfsa.storm.atm.f120.grb2
+     -rw-r----- 1 mkavulic gsd-fv3-dev 259661211 Oct 26  2025 13l.2025102600.hfsa.storm.atm.f126.grb2
+     -rw-r----- 1 mkavulic gsd-fv3-dev     38958 Oct 26  2025 13l.2025102600.hfsa.trak.atcfunix
+     -rw-r----- 1 mkavulic gsd-fv3-dev     24480 Mar  6 12:58 bal132025.dat
+
+
+Setting up the experiment
+=========================
+
+Create an experiment config file ``config.yaml``:
+
+  .. code-block:: console
+
+user:
+  MACHINE: HERCULES
+  ACCOUNT: gsd-fv3-test
+  workflow_blocks:
+    - verify_tc.yaml
+
+workflow:
+  DATE_FIRST_CYCL: "2025102600"
+  DATE_LAST_CYCL: "2025102600"
+  FCST_LEN_HRS: 126
+  EXPT_SUBDIR: HAFS_tutorial
+  PREEXISTING_DIR_METHOD: delete
+  taskgroups:
+    - parm/wflow/verify_tc.yaml
+tropical:
+  STORM_IDS:
+    - 13
+verification:
+  VX_FCST_MODEL_NAME: 'hfsa'
+  VX_FCST_INPUT_BASEDIR: path/to/datadir
+  FCST_SUBDIR_TEMPLATE: ""
+  FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
+  VX_FCST_OUTPUT_INTVL_HRS: 6
+  METPLUS_VERBOSITY_LEVEL: 2
+  LOG_MET_VERBOSITY: 2
+  LOG_LEVEL: INFO
+tcpairs:
+  TECH_ID: 'OFCL'
+  MODEL: 'HFSA'
+ 
+Users on a different system would update the machine, account, and data paths accordingly.
 
