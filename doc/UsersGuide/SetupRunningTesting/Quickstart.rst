@@ -160,7 +160,7 @@ The verification workflow is highly configurable with a number of different opti
          ========================================================================
 
 
-   #. The workflow generation script helpfully provides instructions on how to run the workflow using Rocoto, including instructions on how to automate from a crontab.
+   The workflow generation script helpfully provides instructions on how to run the workflow using Rocoto, including instructions on how to automate from a crontab.
 
       .. code-block:: console
          
@@ -223,35 +223,76 @@ Create an experiment config file ``config.yaml``:
 
   .. code-block:: console
 
-user:
-  MACHINE: HERCULES
-  ACCOUNT: gsd-fv3-test
-  workflow_blocks:
-    - verify_tc.yaml
-
-workflow:
-  DATE_FIRST_CYCL: "2025102600"
-  DATE_LAST_CYCL: "2025102600"
-  FCST_LEN_HRS: 126
-  EXPT_SUBDIR: HAFS_tutorial
-  PREEXISTING_DIR_METHOD: delete
-  taskgroups:
-    - parm/wflow/verify_tc.yaml
-tropical:
-  STORM_IDS:
-    - 13
-verification:
-  VX_FCST_MODEL_NAME: 'hfsa'
-  VX_FCST_INPUT_BASEDIR: path/to/datadir
-  FCST_SUBDIR_TEMPLATE: ""
-  FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
-  VX_FCST_OUTPUT_INTVL_HRS: 6
-  METPLUS_VERBOSITY_LEVEL: 2
-  LOG_MET_VERBOSITY: 2
-  LOG_LEVEL: INFO
-tcpairs:
-  TECH_ID: 'OFCL'
-  MODEL: 'HFSA'
+     user:
+       MACHINE: hercules
+       ACCOUNT: gsd-fv3-test
+       workflow_blocks:
+         - verify_tc.yaml
+     
+     workflow:
+       DATE_FIRST_CYCL: "2025102600"
+       DATE_LAST_CYCL: "2025102600"
+       FCST_LEN_HRS: 126
+       EXPT_SUBDIR: HAFS_tutorial
+       taskgroups:
+         - parm/wflow/verify_tc.yaml
+     tropical:
+       STORM_IDS:
+         - 13
+     verification:
+       VX_FCST_MODEL_NAME: 'hfsa'
+       VX_FCST_INPUT_BASEDIR: path/to/datadir
+       FCST_SUBDIR_TEMPLATE: ""
+       FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
+       VX_FCST_OUTPUT_INTVL_HRS: 6
+       METPLUS_VERBOSITY_LEVEL: 2
+       LOG_MET_VERBOSITY: 2
+       LOG_LEVEL: INFO
+     tcpairs:
+       TECH_ID: 'OFCL'
+       MODEL: 'HFSA'
  
 Users on a different system would update the machine, account, and data paths accordingly.
+
+All valid options can be found in the file ``ush/config_defaults.yaml``. More detailed guidance is available in :numref:`Section %s <UserSpecificConfig>` and :numref:`Section %s <ConfigWorkflow>`; particularly the variables in the ``verification:`` and ``tropical:`` sections.
+
+Now, generate the experiment workflow using the workflow generation script
+
+      .. code-block:: console
+
+         ./generate_FV3LAM_wflow.py
+
+         ========================================================================
+         Starting experiment generation...
+         ========================================================================
+
+         ======================================================================== 
+         Starting function setup() in "setup.py"...
+         ========================================================================
+
+         ...
+         ...
+         ...
+
+         ========================================================================
+
+         Experiment generation completed.  The experiment directory is:
+
+           EXPTDIR='/work2/noaa/gsd-fv3-dev/kavulich/vx_workflow/add_HAFS_tasks/HAFS_quickstart/expt_dirs/HAFS_tutorial'
+
+         ========================================================================
+
+
+The workflow generation script helpfully provides instructions on how to run the workflow using Rocoto, including instructions on how to automate from a crontab.
+
+      .. code-block:: console
+         
+         cd $EXPTDIR
+         rocotorun -w vx_wflow.xml -d vx_wflow.db -v 10
+         rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10
+
+The ``rocotorun`` command must be run after each task completes to kick off the next one.
+
+
+   **Instructions on automatic submission and monitoring of jobs will be coming**   
 
