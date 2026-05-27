@@ -140,7 +140,6 @@ def generate_wflow(
             machine=expt_config["user"]["MACHINE"],
             crontab_line=workflow_config["CRONTAB_LINE"],
             exptdir=exptdir,
-            debug=debug,
         )
 
     #
