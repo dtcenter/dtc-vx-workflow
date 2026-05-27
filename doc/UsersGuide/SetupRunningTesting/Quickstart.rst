@@ -83,6 +83,8 @@ Setting up the experiment
 
    #. Configure the experiment: 
 
+      The experiment generation script ``generate_wflow.py`` can be found in the ``ush`` directory. Regardless of where you would like to run your experiment, the generation script should always be run in that location.
+
       Copy the contents of the sample experiment from ``config.community.yaml`` to ``config.yaml``:
 
       .. code-block:: console
@@ -137,7 +139,7 @@ The verification workflow is highly configurable with a number of different opti
 
       .. code-block:: console
 
-         ./generate_FV3LAM_wflow.py
+         ./generate_wflow.py
 
          ========================================================================
          Starting experiment generation...
@@ -166,7 +168,7 @@ The verification workflow is highly configurable with a number of different opti
          
          cd $EXPTDIR
          rocotorun -w vx_wflow.xml -d vx_wflow.db -v 10
-         rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10
+         rocotostat -w vx_wflow.xml -d vx_wflow.db -v 10
 
    **Instructions on automatic submission and monitoring of jobs will be coming**   
 
@@ -178,7 +180,7 @@ This second tutorial case covers verification for tropical cyclones, including t
 Download data for tutorial case
 ===============================
 
-For this tutorial case, we will download data from a HAFS-A forecast to run verification tasks with. This tutorial will run on forecast hours 0 through 126 (HAFS output files are every 6 hours, but we only have best-track verification points every 6 hours):
+For this tutorial case, we will download data from a HAFS-A forecast to run verification tasks with. This tutorial will run on forecast hours 0 through 126 (HAFS output files are every 3 hours, but we only have best-track verification points every 6 hours):
 
   .. code-block:: console
    
@@ -219,6 +221,13 @@ When finished, you should see 22 grib files and two ".dat" files in your data di
 
 Setting up the experiment
 =========================
+
+Next we will enter the ``ush/`` directory, which contains the experiment generation script ``generate_wflow.py``.
+
+  .. code-block:: console
+     $ cd path/to/dtc-vx-workflow
+     $ cd ush
+
 
 Create an experiment config file ``config.yaml``:
 
@@ -261,7 +270,7 @@ Now, generate the experiment workflow using the workflow generation script
 
       .. code-block:: console
 
-         ./generate_FV3LAM_wflow.py
+         ./generate_wflow.py
 
          ========================================================================
          Starting experiment generation...
@@ -290,7 +299,7 @@ The workflow generation script helpfully provides instructions on how to run the
          
          cd $EXPTDIR
          rocotorun -w vx_wflow.xml -d vx_wflow.db -v 10
-         rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10
+         rocotostat -w vx_wflow.xml -d vx_wflow.db -v 10
 
 The ``rocotorun`` command must be run after each task completes to kick off the next one.
 
