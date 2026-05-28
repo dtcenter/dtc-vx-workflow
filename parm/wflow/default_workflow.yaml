@@ -50,5 +50,6 @@ rocoto:
         group: at_end
       spec: '{{ workflow.DATE_LAST_CYCL }}00 {{ workflow.DATE_LAST_CYCL }}00 {{ workflow.INCR_CYCL_FREQ }}:00:00'
   log:
-    cyclestr:
-      value: '&LOGDIR;/vx_wflow.log'
+    value:
+      cyclestr:
+        value: '&LOGDIR;/vx_wflow.log'
