@@ -111,10 +111,11 @@ def generate_wflow(
     # Stage an experiment-specific launch file in the experiment directory
     template = Template(launch_script_content)
 
-    # The script needs several variables from the workflow and user sections
+    # The script needs variables from the workflow, user, and platform sections
     template_variables = {
         **expt_config["user"],
         **expt_config["workflow"],
+        **expt_config["platform"],
     }
     launch_content = template.safe_substitute(template_variables)
 

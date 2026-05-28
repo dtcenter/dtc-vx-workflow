@@ -34,3 +34,5 @@ platform:
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-nvr5muk'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-nfqs7n3'
   STAGED_DATA: '/scratch3/BMC/hmtb/Michael.Kavulich/VX/vx_test_data'
+  ROCOTO_PATH: '/apps/rocoto/1.3.7/bin'
+

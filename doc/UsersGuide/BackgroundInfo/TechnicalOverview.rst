@@ -145,7 +145,6 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
        ├── get_metplus_tool_name.sh
        ├── get_obs.py
        ├── launch_vx_wflow.sh
-       ├── load_modules_wflow.sh*
        ├── machine/
        ├── python_utils/
        ├── retrieve_data.py*
