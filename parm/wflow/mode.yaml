@@ -2,7 +2,7 @@ default_task_mode: &default_task_mode
   account: '&ACCOUNT;'
   attrs: &default_attrs
     cycledefs: forecast
-    maxtries: '1'
+    maxtries: 1
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'

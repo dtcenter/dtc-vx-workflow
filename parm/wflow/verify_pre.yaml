@@ -2,7 +2,7 @@ default_task_verify_pre: &default_task_verify_pre
   account: '&ACCOUNT;'
   attrs:
     cycledefs: cycledefs_obs_days_inst
-    maxtries: '1'
+    maxtries: 1
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
@@ -80,7 +80,7 @@ task_get_obs_ccpa:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: cycledefs_obs_days_cumul
-    maxtries: '1'
+    maxtries: 1
   command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
@@ -94,7 +94,7 @@ task_get_obs_nohrsc:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: cycledefs_obs_days_cumul
-    maxtries: '1'
+    maxtries: 1
   command: "&JOBSdir;/GET_VERIF_OBS.sh"
   envars:
     <<: *default_vars
@@ -130,7 +130,7 @@ task_run_MET_Pb2nc_obs_NDAS:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: cycledefs_obs_days_inst
-    maxtries: '2'
+    maxtries: 2
   command: "&JOBSdir;/PB2NC_OBS.sh"
   envars:
     <<: *default_vars
@@ -158,7 +158,7 @@ metatask_ASCII2nc_obs:
     <<: *default_task_verify_pre
     attrs:
       cycledefs: cycledefs_obs_days_inst
-      maxtries: '2'
+      maxtries: 2
     command: "&JOBSdir;/ASCII2NC_OBS.sh"
     walltime: "{{ verification_resources.execution.ascii2nc.walltime }}"
     envars:
@@ -183,7 +183,7 @@ task_run_MET_Point2Grid_GOESAOD:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: forecast
-    maxtries: '2'
+    maxtries: 2
   command: "&JOBSdir;/POINT2GRID.sh"
   memory: '{{  verification_resources.execution.point2grid.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   walltime: "{{ verification_resources.execution.point2grid.walltime }}"
@@ -222,7 +222,7 @@ metatask_PcpCombine_APCP_all_accums_obs_CCPA:
     <<: *default_task_verify_pre
     attrs:
       cycledefs: forecast
-      maxtries: '2'
+      maxtries: 2
     command: "&JOBSdir;/PCPCOMBINE.sh"
     walltime: "{{ verification_resources.execution.pcpcombine.obs.walltime }}"
     envars:
@@ -255,7 +255,7 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
     <<: *default_task_verify_pre
     attrs:
       cycledefs: forecast
-      maxtries: '2'
+      maxtries: 2
     command: "&JOBSdir;/PCPCOMBINE.sh"
     envars:
       <<: *default_vars
@@ -288,7 +288,7 @@ metatask_check_post_output_all_mems:
     <<: *default_task_verify_pre
     attrs:
       cycledefs: forecast
-      maxtries: '1'
+      maxtries: 1
     command: "&JOBSdir;/CHECK_POST_OUTPUT.sh"
     envars:
       <<: *default_vars
@@ -311,7 +311,7 @@ metatask_PcpCombine_APCP_all_accums_all_mems:
       <<: *default_task_verify_pre
       attrs:
         cycledefs: forecast
-        maxtries: '2'
+        maxtries: 2
       command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
@@ -341,7 +341,7 @@ metatask_PcpCombine_ASNOW_all_accums_all_mems:
       <<: *default_task_verify_pre
       attrs:
         cycledefs: forecast
-        maxtries: '2'
+        maxtries: 2
       command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
@@ -371,7 +371,7 @@ metatask_PcpCombine_fcst_PM_all_mems:
       <<: *default_task_verify_pre
       attrs:
         cycledefs: forecast
-        maxtries: '2'
+        maxtries: 2
       command: "&JOBSdir;/PCPCOMBINE.sh"
       walltime: "{{ verification_resources.execution.pcpcombine.fcst.walltime }}"
       envars:
