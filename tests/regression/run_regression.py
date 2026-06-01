@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 import sys
+import shlex
 from argparse import Namespace
 from pathlib import Path
 
@@ -12,10 +13,10 @@ DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
 def run_git_command(command):
     """Run a git command and return its output."""
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(shlex.split(command), capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running git command {' '.join(command)}: {e.stderr}")
+        print(f"Error running git command {command}: {e.stderr}")
         sys.exit(1)
 
 def main():
@@ -31,7 +32,7 @@ def main():
     setup_repo_dir(args, workflow_repo_dir)
 
     # Get latest commit to create directory for test output
-    commit = run_git_command(["git", "-C", workflow_repo_dir, "rev-parse", "HEAD"])[:7]
+    commit = run_git_command(f"git -C {workflow_repo_dir} rev-parse HEAD")[:7]
 
     output_path = Path(branch_or_pr_dir) / f"output.{commit}"
 
@@ -72,18 +73,18 @@ def setup_repo_dir(args: Namespace, workflow_repo_dir: Path):
     if not workflow_repo_dir.exists():
         # Clone workflow repo
         repo_loc = f"https://github.com/{WORKFLOW_REPO}" if args.clone_https else f"git@github.com:{WORKFLOW_REPO}"
-        run_git_command(["git", "clone", repo_loc, workflow_repo_dir])
+        run_git_command(f"git clone {repo_loc} {workflow_repo_dir}")
 
         # check out the branch or PR merge commit
         if args.branch:
-            run_git_command(["git", "-C", workflow_repo_dir, "checkout", args.branch])
+            run_git_command(f"git -C {workflow_repo_dir} checkout {args.branch}")
         else:
             merge_commit_id = f"refs/pull/{args.pr}/merge"
-            run_git_command(["git", "-C", workflow_repo_dir, "fetch", "origin", merge_commit_id])
-            run_git_command(["git", "-C", workflow_repo_dir, "checkout", merge_commit_id])
+            run_git_command(f"git -C {workflow_repo_dir} fetch origin {merge_commit_id}")
+            run_git_command(f"git -C {workflow_repo_dir} checkout {merge_commit_id}")
 
     # pull latest changes
-    run_git_command(["git", "-C", workflow_repo_dir, "pull"])
+    run_git_command(f"git -C {workflow_repo_dir} pull")
 
 
 def launch_tests(args: Namespace, workflow_repo_dir: Path, output_path: Path):
