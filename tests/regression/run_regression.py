@@ -7,7 +7,7 @@ import shlex
 from argparse import Namespace
 from pathlib import Path
 
-WORKFLOW_REPO = "NCAR/dtc-vx-workflow"
+WORKFLOW_REPO = "dtcenter/dtc-vx-workflow"
 DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
 
 def run_git_command(command):
