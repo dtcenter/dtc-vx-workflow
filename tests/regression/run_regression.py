@@ -91,21 +91,28 @@ def launch_tests(args: Namespace, workflow_repo_dir: Path, output_path: Path):
     print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
 
     # Determine paths relative to the workflow repo directory
-    we2e_test_dir = Path(workflow_repo_dir) / "tests" / "WE2E"
-    test_script = Path(we2e_test_dir) / "run_we2e_tests.py"
 
-    # Command to run the tests
-    cmd = f"{test_script} --account {args.account} --machine {args.machine} --tests all --expt_basedir {output_path}"
+    we2e_test_dir = workflow_repo_dir / "tests" / "WE2E"
+    test_script = we2e_test_dir / "run_we2e_tests.py"
+
+    # Commands to set up conda and run the tests
+
+    cmd = (
+        f"source {workflow_repo_dir}/setup_conda.sh &&"
+        f" {test_script} --account {args.account} --machine {args.machine}"
+        f" --tests all --expt_basedir {output_path}"
+    )
 
     print(f"RUNNING: {cmd}")
     print(f"CWD: {we2e_test_dir}")
-    print("Launching in background with nohup -- follow nohup.out for output")
+    print("Launching in background with nohup")
+    print(f"Follow {we2e_test_dir}/nohup.out for output", flush=True)
 
-    # Execute in background with nohup
     try:
-        # Construct the final command to be passed to bash
-        final_shell_cmd = f"nohup bash -c '{cmd}' &"
-        subprocess.Popen(final_shell_cmd, shell=True, cwd=we2e_test_dir)
+        # run setup_conda.sh and end-to-end test script
+
+        subprocess.Popen(f"nohup bash -c '{cmd}' &", shell=True, cwd=we2e_test_dir)
+
     except Exception as e:
         print(f"Failed to launch test command: {e}")
         sys.exit(1)
