@@ -10,15 +10,6 @@ from pathlib import Path
 WORKFLOW_REPO = "dtcenter/dtc-vx-workflow"
 DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
 
-def run_git_command(command):
-    """Run a git command and return its output."""
-    try:
-        result = subprocess.run(shlex.split(command), capture_output=True, text=True, check=True)
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running git command {command}: {e.stderr}")
-        sys.exit(1)
-
 def main():
 
     args = read_args()
@@ -48,7 +39,6 @@ def main():
 
     launch_tests(args, workflow_repo_dir, output_path)
 
-
 def read_args() -> Namespace:
     parser = argparse.ArgumentParser(description="Run regression tests")
     parser.add_argument("--branch", help="Branch to run tests for.")
@@ -68,6 +58,14 @@ def read_args() -> Namespace:
         sys.exit(1)
     return args
 
+def run_git_command(command):
+    """Run a git command and return its output."""
+    try:
+        result = subprocess.run(shlex.split(command), capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error running git command {command}: {e.stderr}")
+        sys.exit(1)
 
 def setup_repo_dir(args: Namespace, workflow_repo_dir: Path):
     if not workflow_repo_dir.exists():
@@ -85,7 +83,6 @@ def setup_repo_dir(args: Namespace, workflow_repo_dir: Path):
 
     # pull latest changes
     run_git_command(f"git -C {workflow_repo_dir} pull")
-
 
 def launch_tests(args: Namespace, workflow_repo_dir: Path, output_path: Path):
     print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
@@ -116,7 +113,6 @@ def launch_tests(args: Namespace, workflow_repo_dir: Path, output_path: Path):
     except Exception as e:
         print(f"Failed to launch test command: {e}")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()
