@@ -3,6 +3,17 @@
     echo "ERROR: This script must be sourced, not executed." >&2
     exit 1
 }
+
+# if first argument is vx_diff, create that environment
+# otherwise create vx_workflow
+ENV_NAME=$1
+ENV_YAML=${VX_WFLOW_DIR}/environment.yml
+if [ "${ENV_NAME}" == vx_diff ]; then
+  ENV_YAML=${VX_WFLOW_DIR}/tests/regression/environment.yml
+else
+  ENV_NAME=vx_workflow
+fi
+
 # Logic taken from UFS SRW Application (https://github.com/ufs-community/ufs-srweather-app)
 VX_WFLOW_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 CONDA_BUILD_DIR="${VX_WFLOW_DIR}/conda"
@@ -22,8 +33,8 @@ if [ "${os}" == "MacOSX" ] ; then
   mamba install -y bash coreutils sed
 fi
 conda activate
-if ! conda env list | grep -q "^vx_workflow\s" ; then
-  mamba env create --prefix ${CONDA_BUILD_DIR}/envs/vx_workflow --file "${VX_WFLOW_DIR}/environment.yml" -y
+if ! conda env list | grep -q "^${ENV_NAME}\s" ; then
+  mamba env create --prefix ${CONDA_BUILD_DIR}/envs/${ENV_NAME} --file "${ENV_YAML}" -y
 fi
 
 if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
@@ -33,4 +44,4 @@ if [[ ! "$LD_LIBRARY_PATH" =~ "$CONDA_BUILD_DIR" ]]; then
   export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib:${LD_LIBRARY_PATH}
 fi
 
-conda activate vx_workflow
+conda activate ${ENV_NAME}
