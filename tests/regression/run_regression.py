@@ -4,7 +4,6 @@ import argparse
 import subprocess
 import sys
 import shlex
-from argparse import Namespace
 from pathlib import Path
 
 WORKFLOW_REPO = "dtcenter/dtc-vx-workflow"
@@ -39,7 +38,7 @@ def main():
 
     launch_tests(args, workflow_repo_dir, output_path)
 
-def read_args() -> Namespace:
+def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run regression tests")
     parser.add_argument("--branch", help="Branch to run tests for.")
     parser.add_argument("--pr", help="Pull request to run tests for")
@@ -67,7 +66,7 @@ def run_git_command(command):
         print(f"Error running git command {command}: {e.stderr}")
         sys.exit(1)
 
-def setup_repo_dir(args: Namespace, workflow_repo_dir: Path):
+def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
     if not workflow_repo_dir.exists():
         # Clone workflow repo
         repo_loc = f"https://github.com/{WORKFLOW_REPO}" if args.clone_https else f"git@github.com:{WORKFLOW_REPO}"
@@ -84,7 +83,7 @@ def setup_repo_dir(args: Namespace, workflow_repo_dir: Path):
     # pull latest changes
     run_git_command(f"git -C {workflow_repo_dir} pull")
 
-def launch_tests(args: Namespace, workflow_repo_dir: Path, output_path: Path):
+def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path: Path):
     print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
 
     # Determine paths relative to the workflow repo directory
