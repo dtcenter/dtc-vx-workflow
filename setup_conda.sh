@@ -4,16 +4,6 @@
     exit 1
 }
 
-# if first argument is vx_diff, create that environment
-# otherwise create vx_workflow
-ENV_NAME=$1
-ENV_YAML=${VX_WFLOW_DIR}/environment.yml
-if [ "${ENV_NAME}" == vx_diff ]; then
-  ENV_YAML=${VX_WFLOW_DIR}/tests/regression/environment.yml
-else
-  ENV_NAME=vx_workflow
-fi
-
 # Logic taken from UFS SRW Application (https://github.com/ufs-community/ufs-srweather-app)
 VX_WFLOW_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 CONDA_BUILD_DIR="${VX_WFLOW_DIR}/conda"
@@ -32,7 +22,19 @@ fi
 if [ "${os}" == "MacOSX" ] ; then
   mamba install -y bash coreutils sed
 fi
+
 conda activate
+
+# if first argument is vx_diff, create that environment
+# otherwise create vx_workflow
+ENV_NAME=$1
+ENV_YAML=${VX_WFLOW_DIR}/environment.yml
+if [ "${ENV_NAME}" == vx_diff ]; then
+  ENV_YAML=${VX_WFLOW_DIR}/tests/regression/environment.yml
+else
+  ENV_NAME=vx_workflow
+fi
+
 if ! conda env list | grep -q "^${ENV_NAME}\s" ; then
   mamba env create --prefix ${CONDA_BUILD_DIR}/envs/${ENV_NAME} --file "${ENV_YAML}" -y
 fi
