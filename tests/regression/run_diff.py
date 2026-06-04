@@ -89,6 +89,12 @@ def main():
     for test_name, test_result in test_results.items():
         print(f"{test_name.ljust(65)}:  {test_result.status}")
 
+    print("DETAILS:")
+    for test_name, test_result in test_results.items():
+        print(f"{'-' * 80}\n{test_name}: {test_result.status}\n{'-' * 80}")
+        print(test_result.details)
+        print(f"{'-' * 80}\n\n")
+
     return success
 
 def read_args() -> argparse.Namespace:
