@@ -77,6 +77,7 @@ When finished, you should see seven grib files in your data directory:
      -rw-r--r-- 1 Michael.Kavulich gsd-fv3-dev 19521654 Mar 22  2025 rrfs.t00z.prslev.f006.rrfs_conus_25km.grib2
 
 
+.. _SetupDet:
 
 Setting up the experiment
 ==========================
@@ -201,7 +202,7 @@ In addition to model forecast output, we will also need to download the storm's 
      gunzip *gz
 
 
-When finished, you should see 22 grib files and two ".dat" files in your data directory:
+When finished, you should see 23 grib files and two ".dat" files in your data directory:
 
   .. code-block:: console
 
@@ -219,6 +220,7 @@ When finished, you should see 22 grib files and two ".dat" files in your data di
      -rw-r----- 1 mkavulic gsd-fv3-dev     24480 Mar  6 12:58 bal132025.dat
 
 
+.. _SetupTC:
 Setting up the experiment
 =========================
 
