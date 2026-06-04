@@ -79,14 +79,15 @@ def main():
         test_result.details = text_stream.getvalue().strip()
 
         if not diff_files:
-            test_result.success = True
+            test_result.status = 'SUCCEEDED'
             continue
 
+        test_result.status = 'FAILED'
         success = False
 
     print("SUMMARY:")
     for test_name, test_result in test_results.items():
-        print(f"{test_name.ljust(65)}:  {'SUCCEEDED' if test_result.success else 'FAILED'}")
+        print(f"{test_name.ljust(65)}:  {test_result.status}")
 
     return success
 
