@@ -237,7 +237,7 @@ platform:
   #
   # BEST_TRACK:
   # Staged location on disk for TC "best track" data
-  BEST_TRACK: "" 
+  BEST_TRACK: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
 
 #-----------------------------
 # WORKFLOW config parameters
