@@ -322,7 +322,7 @@ def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int 
     statuses = list()
     for task in expt:
         # Skip non-task entries
-        if task in ["expt_dir","status","start_time","walltime"]:
+        if task in ["expt_dir","status","start_time","walltime","rocoto_path"]:
             continue
         statuses.append(expt[task]["status"])
 
