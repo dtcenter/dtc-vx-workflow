@@ -4,21 +4,25 @@
     exit 1
 }
 
+# Resolve the directory containing this script so that all relative paths
+# (conda_loc, conda/, environment.yml) work regardless of the caller's CWD.
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
 # Check for existing conda/ subdirectory from previous installations
-if [ ! -f "conda_loc" ] && [ -d "conda" ] ; then
+if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
   echo "Found existing conda installation in conda/ subdirectory"
   read -p "Do you want to use the existing conda build? (y/n) " -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
-    EXISTING_CONDA_BUILD="$(readlink -f "conda")"
-    echo "${EXISTING_CONDA_BUILD}" > conda_loc
+    EXISTING_CONDA_BUILD="$(cd "${SCRIPT_DIR}/conda" && pwd)"
+    echo "${EXISTING_CONDA_BUILD}" > "${SCRIPT_DIR}/conda_loc"
     echo "Created conda_loc pointing to: ${EXISTING_CONDA_BUILD}"
   fi
 fi
 
 # Check if conda location file exists
 USE_SYSTEM_CONDA=false
-if [ ! -f "conda_loc" ] && command -v conda &> /dev/null ; then
+if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && command -v conda &> /dev/null ; then
   CONDA_BASE=$(conda info --base)
   echo "Found existing conda installation at: ${CONDA_BASE}"
   read -p "Do you want to use your existing system conda? (y/n) " -r
@@ -28,7 +32,7 @@ if [ ! -f "conda_loc" ] && command -v conda &> /dev/null ; then
     echo "Using system conda installation..."
     # Initialize conda if not already initialized
     . "${CONDA_BASE}/etc/profile.d/conda.sh" 2>/dev/null || true
-    echo "${CONDA_BASE}" > conda_loc
+    echo "${CONDA_BASE}" > "${SCRIPT_DIR}/conda_loc"
   else
     echo "Proceeding with local conda installation..."
   fi
@@ -37,11 +41,11 @@ else
 fi
 
 if [ "$USE_SYSTEM_CONDA" = false ] ; then
-  if [ -f "conda_loc" ] ; then
-    CONDA_BUILD_DIR=$(cat conda_loc)
+  if [ -f "${SCRIPT_DIR}/conda_loc" ] ; then
+    CONDA_BUILD_DIR=$(cat "${SCRIPT_DIR}/conda_loc")
     echo "Using conda from conda_loc: ${CONDA_BUILD_DIR}"
   else
-    CONDA_BUILD_DIR="conda"
+    CONDA_BUILD_DIR="${SCRIPT_DIR}/conda"
     echo "Building local conda install in ${CONDA_BUILD_DIR}/"
   fi
   os=$(uname)
@@ -60,8 +64,8 @@ if [ "$USE_SYSTEM_CONDA" = false ] ; then
     mamba install -y bash coreutils sed
   fi
 
-  CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
-  echo "${CONDA_BUILD_DIR}" > conda_loc
+  CONDA_BUILD_DIR="$(cd "${CONDA_BUILD_DIR}" && pwd)"
+  echo "${CONDA_BUILD_DIR}" > "${SCRIPT_DIR}/conda_loc"
   echo "Local conda build location: ${CONDA_BUILD_DIR}"
 
   if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
@@ -76,15 +80,14 @@ conda activate
 
 if ! conda env list | grep -q "^vx_workflow\s" ; then
   echo "Creating vx_workflow environment..."
-  mamba env create -n vx_workflow --file environment.yml --quiet
+  mamba env create -n vx_workflow --file "${SCRIPT_DIR}/environment.yml" --quiet
 else
   read -p "vx_workflow environment has already been built. Check for updates using environment.yml? (y/n) " -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
     echo "Updating vx_workflow environment..."
-    mamba env update -n vx_workflow --file environment.yml --prune --quiet
+    mamba env update -n vx_workflow --file "${SCRIPT_DIR}/environment.yml" --prune --quiet
   fi
 fi
 
 conda activate vx_workflow
-
