@@ -76,13 +76,13 @@ conda activate
 
 if ! conda env list | grep -q "^vx_workflow\s" ; then
   echo "Creating vx_workflow environment..."
-  mamba env create -n vx_workflow --file environment.yml
+  mamba env create -n vx_workflow --file environment.yml --quiet
 else
-  read -p "vx_workflow environment exists. Update it from environment.yml? (y/n) " -r
+  read -p "vx_workflow environment has already been built. Check for updates using environment.yml? (y/n) " -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
     echo "Updating vx_workflow environment..."
-    mamba env update -n vx_workflow --file environment.yml --prune
+    mamba env update -n vx_workflow --file environment.yml --prune --quiet
   fi
 fi
 
