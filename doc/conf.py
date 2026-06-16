@@ -24,15 +24,15 @@ sys.path.insert(0, os.path.abspath('../tests/WE2E'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'UFS Short-Range Weather App User\'s Guide'
-copyright = '2020, '
+project = 'DTC Verification Workflow User\'s Guide'
+copyright = '2026, '
 author = ' '
 
 # The short X.Y version
 version = 'develop'
 # The full version, including alpha/beta/rc tags
 release = 'Develop Branch Documentation'
-html_logo = "https://github.com/ufs-community/ufs/wiki/images/ufs-epic-logo.png"
+html_logo = "https://avatars.githubusercontent.com/u/67171881?s=200&v=4"
 
 numfig = True
 
@@ -115,6 +115,9 @@ rst_prolog = """
 # Avoid a 403 Forbidden error when accessing certain links (e.g., noaa.gov)
 user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
 
+# Retry failed links up to 3 times before reporting them broken (handles transient 500 errors)
+linkcheck_retries = 3
+
 # Ignore working links that cause a linkcheck 403 error.
 linkcheck_ignore = [r'https://www\.intel\.com/content/www/us/en/docs/cpp\-compiler/developer\-guide\-reference/2021\-10/thread\-affinity\-interface\.html',
                     r'https://www\.intel\.com/content/www/us/en/developer/tools/oneapi/hpc\-toolkit\-download\.html',
@@ -157,7 +160,7 @@ linkcheck_allowed_redirects = {r"https://github\.com/ufs-community/ufs-srweather
 #
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = ["_themes", ]
-html_logo= "https://github.com/ufs-community/ufs/wiki/images/ufs-epic-logo.png"
+html_logo= "https://avatars.githubusercontent.com/u/67171881?s=200&v=4"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -195,7 +198,7 @@ def setup(app):
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'UFS-SRWeather-App'
+htmlhelp_basename = 'DTC-VX-WFLOW'
 
 
 # -- Options for LaTeX output ------------------------------------------------

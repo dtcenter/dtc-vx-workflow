@@ -81,82 +81,82 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
 .. code-block:: console
 
    dtc-vx-workflow
-├── data_environment.yml
-├── doc/
-│   └── UsersGuide/
-├── environment.yml
-├── jobs/
-│   ├── <TASKNAME>.sh
-├── parm/
-│   ├── data_locations.yml
-│   ├── metplus/
-│   │   ├── <taskname>.conf
-│   │   ├── AZCA.poly
-│   │   ├── common.conf
-│   │   ├── EAST_OF_ROCKIES.poly
-│   │   ├── metplus_macros.jinja
-│   │   ├── plot_met_poly_points.py
-│   │   └── vx_configs/
-│   │       ├── vx_config_det.obs_gdas.model_aiml.yaml
-│   │       ├── vx_config_det.obs_gdas.model_gfs.yaml
-│   │       ├── vx_config_det.yaml
-│   │       └── vx_config_ens.yaml
-│   └── wflow/
-│       ├── default_workflow.yaml
-│       ├── verify_det.yaml
-│       ├── verify_ens.yaml
-│       └── verify_pre.yaml
-├── README.md
-├── scripts/
-│   ├── ascii2nc_obs.sh*
-│   ├── check_post_output.sh*
-│   ├── genensprod_or_ensemblestat.sh*
-│   ├── get_verif_obs.sh*
-│   ├── gridstat_or_pointstat_ensmean.sh*
-│   ├── gridstat_or_pointstat_ensprob.sh*
-│   ├── gridstat_or_pointstat.py
-│   ├── integration_test.py*
-│   ├── pb2nc_obs.sh*
-│   └── pcpcombine.sh*
-├── setup_conda.sh
-├── tests/
-│   ├── README.md
-│   ├── test_python/
-│   └── WE2E/
-│       ├── machine_suites/
-│       ├── monitor_jobs.py*
-│       ├── run_we2e_tests.py*
-│       ├── test_configs/
-│       │   └── verification/
-│       │       ├── config.<testname>.yaml
-│       ├── utils.py*
-│       ├── WE2E_summary.py*
-│       └── WE2E_tests.yaml
-└── ush/
-    ├── bash_utils/
-    ├── check_python_version.py*
-    ├── cmp_rundirs_ncfiles.sh*
-    ├── config_defaults.yaml
-    ├── config_utils.py*
-    ├── eval_metplus_timestr_tmpl.py
-    ├── experiment.jsonschema
-    ├── generate_wflow.py*
-    ├── get_crontab_contents.py
-    ├── get_metplus_tool_name.sh
-    ├── get_obs.py
-    ├── launch_vx_wflow.sh
-    ├── load_modules_wflow.sh*
-    ├── machine/
-    ├── python_utils/
-    ├── retrieve_data.py*
-    ├── select_validtime_obs.py
-    ├── set_cycle_and_obs_timeinfo.py
-    ├── set_leadhrs.py
-    ├── set_vx_params.py
-    ├── set_vx_params.sh
-    ├── setup.py
-    ├── source_util_funcs.sh
-    └── test_data/
+   ├── data_environment.yml
+   ├── doc/
+   │   └── UsersGuide/
+   ├── environment.yml
+   ├── jobs/
+   │   ├── <TASKNAME>.sh
+   ├── parm/
+   │   ├── data_locations.yml
+   │   ├── metplus/
+   │   │   ├── <taskname>.conf
+   │   │   ├── AZCA.poly
+   │   │   ├── common.conf
+   │   │   ├── EAST_OF_ROCKIES.poly
+   │   │   ├── metplus_macros.jinja
+   │   │   ├── plot_met_poly_points.py
+   │   │   └── vx_configs/
+   │   │       ├── vx_config_det.obs_gdas.model_aiml.yaml
+   │   │       ├── vx_config_det.obs_gdas.model_gfs.yaml
+   │   │       ├── vx_config_det.yaml
+   │   │       └── vx_config_ens.yaml
+   │   └── wflow/
+   │       ├── default_workflow.yaml
+   │       ├── verify_det.yaml
+   │       ├── verify_ens.yaml
+   │       └── verify_pre.yaml
+   ├── README.md
+   ├── scripts/
+   │   ├── ascii2nc_obs.sh*
+   │   ├── check_post_output.sh*
+   │   ├── genensprod_or_ensemblestat.sh*
+   │   ├── get_verif_obs.sh*
+   │   ├── gridstat_or_pointstat_ensmean.sh*
+   │   ├── gridstat_or_pointstat_ensprob.sh*
+   │   ├── gridstat_or_pointstat.py
+   │   ├── integration_test.py*
+   │   ├── pb2nc_obs.sh*
+   │   └── pcpcombine.sh*
+   ├── setup_conda.sh
+   ├── tests/
+   │   ├── README.md
+   │   ├── test_python/
+   │   └── WE2E/
+   │       ├── machine_suites/
+   │       ├── monitor_jobs.py*
+   │       ├── run_we2e_tests.py*
+   │       ├── test_configs/
+   │       │   └── verification/
+   │       │       ├── config.<testname>.yaml
+   │       ├── utils.py*
+   │       ├── WE2E_summary.py*
+   │       └── WE2E_tests.yaml
+   └── ush/
+       ├── bash_utils/
+       ├── check_python_version.py*
+       ├── cmp_rundirs_ncfiles.sh*
+       ├── config_defaults.yaml
+       ├── config_utils.py*
+       ├── eval_metplus_timestr_tmpl.py
+       ├── experiment.jsonschema
+       ├── generate_wflow.py*
+       ├── get_crontab_contents.py
+       ├── get_metplus_tool_name.sh
+       ├── get_obs.py
+       ├── launch_vx_wflow.sh
+       ├── load_modules_wflow.sh*
+       ├── machine/
+       ├── python_utils/
+       ├── retrieve_data.py*
+       ├── select_validtime_obs.py
+       ├── set_cycle_and_obs_timeinfo.py
+       ├── set_leadhrs.py
+       ├── set_vx_params.py
+       ├── set_vx_params.sh
+       ├── setup.py
+       ├── source_util_funcs.sh
+       └── test_data/
 
 
 Workflow Subdirectories

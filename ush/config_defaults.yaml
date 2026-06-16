@@ -86,14 +86,6 @@ platform:
   # The number of active cycles to run simultaneously. For linux/mac setting this
   # to 1 makes sense
   #
-  # BUILD_VER_FN:
-  # File name containing the version of the modules used for building the App.
-  # Currently, only WCOSS2 uses this file.
-  #
-  # RUN_VER_FN:
-  # File name containing the version of the modules used for running the App.
-  # Currently, only WCOSS2 uses this file.
-  #
   # SCHED:
   # The job scheduler to use (e.g., Slurm). Set this to an empty string in
   # order for the experiment generation script to set it depending on the
@@ -103,7 +95,7 @@ platform:
   # If using the slurm job scheduler (i.e. if SCHED is set to "slurm"), 
   # the default partition to which to submit workflow tasks.  If a task 
   # does not have a specific variable that specifies the partition to which 
-  # it will be submitted (e.g. PARTITION_HPSS, PARTITION_FCST; see below), 
+  # it will be submitted (e.g. PARTITION_HPSS; see below), 
   # it will be submitted to the partition specified by this variable.  If 
   # this is not set or is set to an empty string, it will be (re)set to a 
   # machine-dependent value.  This is not used if SCHED is not set to 
@@ -113,7 +105,7 @@ platform:
   # The default queue or QOS (if using the slurm job scheduler, where QOS
   # is Quality of Service) to which workflow tasks are submitted.  If a 
   # task does not have a specific variable that specifies the queue to which 
-  # it will be submitted (e.g. QUEUE_HPSS, QUEUE_FCST; see below), it will 
+  # it will be submitted (e.g. QUEUE_HPSS; see below), it will
   # be submitted to the queue specified by this variable.  If this is not 
   # set or is set to an empty string, it will be (re)set to a machine-
   # dependent value.
@@ -143,8 +135,6 @@ platform:
   NCORES_PER_NODE: ""
   TASKTHROTTLE: 1000
   CYCLETHROTTLE: 200
-  BUILD_VER_FN: 'build.ver.{{ user.MACHINE|lower() }}'
-  RUN_VER_FN: 'run.ver.{{ user.MACHINE|lower() }}'
   SCHED: ""
   PARTITION_DEFAULT: ""
   QUEUE_DEFAULT: ""
@@ -182,7 +172,10 @@ platform:
   PRE_TASK_CMDS: ""
   #
   #-----------------------------------------------------------------------
-  # MET and METplus directories
+  # MET and METplus directories. MET_INSTALL_DIR is the directory containing
+  # a bin/ subdirectory that contains the MET binary executable files.
+  # METPLUS_ROOT is the directory containing metplus/wrappers/ subdirectories
+  # where the python wrapper scripts can be found.
   #-----------------------------------------------------------------------
   MET_INSTALL_DIR: ''
   METPLUS_ROOT: ''
@@ -241,6 +234,10 @@ platform:
   #-----------------------------------------------------------------------
   #
   EXTRN_MDL_DATA_STORES: ""
+  #
+  # BEST_TRACK:
+  # Staged location on disk for TC "best track" data
+  BEST_TRACK: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
 
 #-----------------------------
 # WORKFLOW config parameters
@@ -350,13 +347,6 @@ workflow:
   # Name of the YAML file containing the YAML workflow definition from
   # which the Rocoto XML file is created.
   #
-  # EXTRN_MDL_VAR_DEFNS_FN:
-  # Name of file (a shell script) containing the defintions of variables
-  # associated with the external model from which ICs or LBCs are generated.  This
-  # file is created by the get_extrn_* task because the values of the variables
-  # it contains are not known before this task runs.  The file is then sourced by
-  # the make_ics and make_lbcs tasks.
-  #
   # WFLOW_LAUNCH_SCRIPT_FN:
   # Name of the script that can be used to (re)launch the experiment's rocoto
   # workflow.
@@ -438,6 +428,7 @@ workflow:
   FCST_LEN_CYCL:
     - !int '{{ workflow.FCST_LEN_HRS }}'
   LONG_FCST_LEN: !int '{{ workflow.FCST_LEN_CYCL|max if workflow.FCST_LEN_HRS < 0 else workflow.FCST_LEN_HRS }}'
+
   #
   #-----------------------------------------------------------------------
   #
@@ -500,9 +491,9 @@ workflow:
 
 
 #----------------------------
-# global config parameters
+# Ensemble config parameters
 #-----------------------------
-global:
+ensemble:
   #
   #-----------------------------------------------------------------------
   #
@@ -533,13 +524,44 @@ global:
   #
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
-  ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+  ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
+  ENS_TIME_LAG_HRS: '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+
+tropical:
+#-----------------------------
+# Settings for tropical-cyclone-specific verification tasks (TCPAIRS, TCSTAT, TCRMW, etc.)
+#-----------------------------
+  # More information on the following settings can be found in the documentation for Automated
+  # Tropical Cyclone Forecast Data/Text Files: https://ftp.nhc.noaa.gov/atcf/README
+  #
+  # BASIN:
+  # Two-character indicator of the tropical cyclone basin: "AL", "EP", or "CP"
+  #
+  # STORM_IDS:
+  # AKA "storm numbers", a list of the numerical ID for each storm for which TC verification tasks
+  # should be run. Each entry can be specified as a two-digit numerical string or an integer. 
+  # This must be specified in each experiment's config_vx.yaml; the default value '00' is invalid.
+  #
+
+  BASIN: "AL"
+  STORM_IDS:
+    - 00
+
+  # The directory where "a-deck" forecast track files can be found.
+  # https://hurricanes.ral.ucar.edu/realtime/index.php#about_adecks
+  ADECK_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
+  # Format for A-deck forecast track file name
+  ADECK_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.trak.atcfunix"
+
+  # MODEL:
+  # The identifier for the forecast data to use for TCPAIRS and TCSTAT comparison; for now the valid options
+  # are 'HFSA' (HAFS-A) and 'HFSB' (HAFS-B)
+  MODEL: 'HFSA'
 
 #
 #-----------------------------------------------------------------------
 #
-# Resources for tasks that run verification
+# Resources for tasks that do not yet have their own dedicated config section
 #
 #-----------------------------------------------------------------------
 #
@@ -584,10 +606,6 @@ verification_resources:
         walltime: 02:00:00
     pb2nc:
       walltime: 00:30:00
-    point2grid:
-      tasks_per_node: '{{ verification.VX_TASKS }}'
-      walltime: 01:00:00
-      memory: '{{ 2 * verification.VX_TASKS }}G'
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -597,14 +615,6 @@ verification_resources:
         walltime: 00:10:00
     check_post_output:
       walltime: 00:30:00
-    regriddataplane:
-      tasks_per_node: '{{ mode.TASKS }}'
-      walltime: 00:30:00
-      memory: '{{ 10 * mode.TASKS }}G'
-    mode:
-      tasks_per_node: '{{ mode.TASKS }}'
-      walltime: 01:00:00
-      memory: '{{ 10 * mode.TASKS }}G'
 
 #----------------------------
 # Verification (VX) parameters
@@ -682,6 +692,8 @@ verification:
   #   * NDAS (NAM Data Assimilation System)
   #   * AERONET (Aerosol Robotic Network)
   #   * AIRNOW (AirNow air quality reports)
+  #   * GOESAOD (GOES satellite Aerosol Optical Depth)
+  #   * GOESADP (GOES satellite Aerosol Detection Product)
   #
   # The script ush/get_obs.py contains further details on the files and
   # directory structure of each obs type.
@@ -692,9 +704,8 @@ verification:
   # Time interval (in hours) at which various types of obs are available
   #
   # Note that MRMS, GOESAOD and GOESADP files are in fact available every few minutes, but here
-  # we set the obs availability interval to 1 hour because currently that
-  # is the shortest output interval for forecasts, i.e. the forecasts cannot
-  # (yet) support sub-hourly output.
+  # we set the obs availability interval to 1 hour because verification of sub-hourly forecast
+  # output is not yet supported.
   #
   CCPA_OBS_AVAIL_INTVL_HRS: 1
   NOHRSC_OBS_AVAIL_INTVL_HRS: 6
@@ -932,12 +943,10 @@ verification:
   # String that specifies a descriptive name for the model being verified.
   # This is used in forming the names of the verification output files and
   # is also included in the contents of those files.
-  #
   VX_FCST_MODEL_NAME: 'srw'
   #
   # VX_FCST_OUTPUT_INTVL_HRS:
-  # The forecast output interval (in hours) to assume for verification
-  # purposes.
+  # The interval between forecast output files (in hours)
   #
   VX_FCST_OUTPUT_INTVL_HRS: 1
   #
@@ -952,7 +961,7 @@ verification:
   # METplus template for the name of the subdirectory containing forecast
   # files to use as inputs to the verification tasks.
   #
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd'
+  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'
   #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
@@ -995,6 +1004,10 @@ verification:
   VX_TASKS: 1
 
 point2grid:
+  execution:
+    tasks_per_node: '{{ point2grid.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * point2grid.TASKS }}G'
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
   # 0: high quality
@@ -1002,14 +1015,34 @@ point2grid:
   # 2: low quality
   # 3: no retrieval quality flag
   GOES_QC_FLAGS: '0,1'
+  # Number of POINT2GRID instances to run in parallel
+  TASKS: '{{ verification.VX_TASKS }}'
 
 regriddataplane:
+  # Runtime settings for REGRIDDATAPLANE jobs
+  execution:
+    tasks_per_node: '{{ regriddataplane.TASKS }}'
+    walltime: 00:30:00
+    memory: '{{ 10 * regriddataplane.TASKS }}G'
+  # Number of REGRIDDATAPLANE instances to run in parallel
   TASKS: 1
+  
+  # Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
   REGRID_METHOD: MAXGAUSS
+
+  # Overrides default settings for Gaussian smoothing. Only used if REGRID_METHOD=MAXGAUSS
   GAUSSIAN_DX: 81.271
   GAUSSIAN_RADIUS: 120
 
 mode:
+  # Runtime settings for MODE jobs
+  execution:
+    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    tasks_per_node: '{{ mode.TASKS }}'
+    # Wallclock time to allocate to submitted MODE job
+    walltime: 01:00:00
+    # Memory to allocate to MODE job
+    memory: '{{ 10 * mode.TASKS }}G'
   # Number of MODE instances to run in parallel
   TASKS: 1
 
@@ -1049,3 +1082,59 @@ mode:
   # OUTPUT_TEMPLATE:
   # Template for MODE output filenames
   OUTPUT_TEMPLATE: 'MODE_GOESAOD_{init?fmt=%Y%m%d%H}'
+
+tcpairs:
+  # Runtime settings for TCPAIRS jobs
+  execution:
+    # Number of TCPAIRS instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCPAIRS job
+    walltime: 00:10:00
+    # Memory to allocate to TCPAIRS job
+    memory: '2G'
+  #
+  # TECH_ID_VX:
+  # The identifier for the best track data to use for TCPAIRS comparison, as read in from the
+  # ATCF-format input file. Valid values are documented here:
+  # https://ftp.nhc.noaa.gov/atcf/docs/nhc_techlist.dat
+  TECH_ID_VX: 'OFCL'
+
+  # OUTPUT_TEMPLATE:
+  # Template for output file(s) from TCPAIRS. {basin} {cyclone} and {init} are substituted in the
+  # METplus process, not in the workflow. The final filename will have the ".tcst" extension added
+  # to it
+  OUTPUT_TEMPLATE: 'tc_pairs.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{init?fmt=%Y}'
+
+tcstat:
+  # Runtime settings for TCSTAT jobs
+  execution:
+    # Number of TCSTAT instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCSTAT job
+    walltime: 00:10:00
+    # Memory to allocate to TCSTAT job
+    memory: '2G'
+
+  # SUMMARY_FILE:
+  # Filename for TCstat summary output
+  # RI_FILE:
+  # Filename for TCstat rapid intensification statistics output
+  #
+  SUMMARY_FILE: 'tc_stat_summary.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
+  RI_FILE: 'tc_rirw.{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}_{init?fmt=%Y}.tcst'
+
+tcrmw:
+  # Runtime settings for TCRMW jobs
+  execution:
+    # Number of TCRMW instances to run in parallel. Currently no support for parallel jobs
+    tasks_per_node: 1
+    # Wallclock time to allocate to submitted TCRMW job
+    walltime: 00:30:00
+    # Memory to allocate to TCRMW job
+    memory: '2G'
+
+  # OUTPUT_TEMPLATE:
+  # Template for output file(s) from TCRMW. {cyclone} and {date} are substituted in the
+  # METplus process, not in the workflow.
+  OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
+

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-
 #
 #-----------------------------------------------------------------------
 #
-# The J-Job script that checks, pulls, and stages observation data for
-# model verification.
+# This script runs the METplus TCSTAT tool for verification
 #
 # Run-time environment variables:
 #
 #    GLOBAL_VAR_DEFNS_FP
+#    CYCLE_DATE
+#    VERBOSE
 #
 # Experiment variables
 #
@@ -55,28 +55,12 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 ========================================================================"
-
 #
 # Call the run script
 #
-cmd=(
-  python3 "${SCRIPTSdir}/get_obs.py"
-     ${VERBOSE_FLAG}
-      --var_defns_path "${GLOBAL_VAR_DEFNS_FP}"
-      --obtype "${OBTYPE}"
-      --obs_day "${YYMMDD}"
-)
-echo "CALLING: ${cmd[*]}"
-"${cmd[@]}" || print_err_msg_exit "Error calling get_obs.py"
-#
-#-----------------------------------------------------------------------
-#
-# Create flag file that indicates completion of task.  This is needed by
-# the workflow.
-#
-#-----------------------------------------------------------------------
-#
-mkdir -p ${WFLOW_FLAG_FILES_DIR}
-file_bn="get_obs_$(echo_lowercase ${OBTYPE})"
-touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${YYMMDD}_complete.txt"
+python $SCRIPTSdir/tcstat.py ${VERBOSE_FLAG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${CYCLE_DATE}" || \
+print_err_msg_exit "\
+Call to \"tcstat.py\" from \"${scrfunc_fn}\" failed."
 

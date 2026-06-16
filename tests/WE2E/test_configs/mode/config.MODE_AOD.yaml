@@ -17,14 +17,14 @@ workflow:
 verification:
   METPLUS_VERBOSITY_LEVEL: 4
   VX_FIELD_GROUPS:
-  - APCP
-  - REFC
-  - RETOP
-  - SFC
-  - UPA
+#  - APCP
+#  - REFC
+#  - RETOP
+#  - SFC
+#  - UPA
   - AOD
-  - PM25
-  - PM10
+#  - PM25
+#  - PM10
   - GOESADP
   - GOESAOD
   VX_FCST_MODEL_NAME: RRFS_verification
@@ -43,12 +43,20 @@ verification:
   - 'EAST'
   VX_TASKS: 8
   OBS_DATA_STORE_AERONET: http
+point2grid:
+  execution:
+    walltime: 00:30:00
 regriddataplane:
+  execution:
+    memory: '30G'
   TASKS: 8
   REGRID_METHOD: MAXGAUSS
   GAUSSIAN_DX: 12
   GAUSSIAN_RADIUS: 18
 mode:
+  execution:
+    walltime: 01:00:00
+    memory: '30G'
   TOTAL_INTEREST_THRESH: 0.6
   TASKS: 8
   CONV_THRESH: '>=0.3'
@@ -70,11 +78,3 @@ verification_resources:
         walltime: 01:00:00
       obs:
         walltime: 00:30:00
-    point2grid:
-      walltime: 00:30:00
-    regriddataplane:
-      memory: '30G'
-    mode:
-      walltime: 01:00:00
-      memory: '30G'
-
