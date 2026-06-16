@@ -6,7 +6,7 @@
 
 # Resolve the directory containing this script so that all relative paths
 # (conda_loc, conda/, environment.yml) work regardless of the caller's CWD.
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SCRIPT_DIR=$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Check for existing conda/ subdirectory from previous installations
 if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
@@ -14,7 +14,7 @@ if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
   read -p "Do you want to use the existing conda build? (y/n) " -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
-    EXISTING_CONDA_BUILD="$(cd "${SCRIPT_DIR}/conda" && pwd)"
+    EXISTING_CONDA_BUILD="$(builtin cd "${SCRIPT_DIR}/conda" && pwd)"
     echo "${EXISTING_CONDA_BUILD}" > "${SCRIPT_DIR}/conda_loc"
     echo "Created conda_loc pointing to: ${EXISTING_CONDA_BUILD}"
   fi
@@ -64,7 +64,7 @@ if [ "$USE_SYSTEM_CONDA" = false ] ; then
     mamba install -y bash coreutils sed
   fi
 
-  CONDA_BUILD_DIR="$(cd "${CONDA_BUILD_DIR}" && pwd)"
+  CONDA_BUILD_DIR="$(builtin cd "${CONDA_BUILD_DIR}" && pwd)"
   echo "${CONDA_BUILD_DIR}" > "${SCRIPT_DIR}/conda_loc"
   echo "Local conda build location: ${CONDA_BUILD_DIR}"
 
