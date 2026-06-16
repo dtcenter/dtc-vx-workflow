@@ -3,36 +3,88 @@
     echo "ERROR: This script must be sourced, not executed." >&2
     exit 1
 }
-# Logic taken from UFS SRW Application (https://github.com/ufs-community/ufs-srweather-app)
-VX_WFLOW_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-CONDA_BUILD_DIR="${VX_WFLOW_DIR}/conda"
-os=$(uname)
-if [ ! -d "${CONDA_BUILD_DIR}" ] ; then
-  test $os == Darwin && os=MacOSX
-  hardware=$(uname -m)
-  installer=Miniforge3-${os}-${hardware}.sh
-  curl -L -O "https://github.com/conda-forge/miniforge/releases/download/26.1.0-0/${installer}"
-  bash ./${installer} -bfp "${CONDA_BUILD_DIR}"
-  rm -f ${installer}
+
+# Check for existing conda/ subdirectory from previous installations
+if [ ! -f "conda_loc" ] && [ -d "conda" ] ; then
+  echo "Found existing conda installation in conda/ subdirectory"
+  read -p "Do you want to use the existing conda build? (y/n) " -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]] ; then
+    EXISTING_CONDA_BUILD="$(readlink -f "conda")"
+    echo "${EXISTING_CONDA_BUILD}" > conda_loc
+    echo "Created conda_loc pointing to: ${EXISTING_CONDA_BUILD}"
+  fi
 fi
 
-. ${CONDA_BUILD_DIR}/etc/profile.d/conda.sh
-# Put some additional packages in the base environment on MacOS systems
-if [ "${os}" == "MacOSX" ] ; then
-  mamba install -y bash coreutils sed
+# Check if conda location file exists
+USE_SYSTEM_CONDA=false
+if [ ! -f "conda_loc" ] && command -v conda &> /dev/null ; then
+  CONDA_BASE=$(conda info --base)
+  echo "Found existing conda installation at: ${CONDA_BASE}"
+  read -p "Do you want to use your existing system conda? (y/n) " -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]] ; then
+    USE_SYSTEM_CONDA=true
+    echo "Using system conda installation..."
+    # Initialize conda if not already initialized
+    . "${CONDA_BASE}/etc/profile.d/conda.sh" 2>/dev/null || true
+    echo "${CONDA_BASE}" > conda_loc
+  else
+    echo "Proceeding with local conda installation..."
+  fi
+else
+  echo "No existing conda installation detected"
 fi
+
+if [ "$USE_SYSTEM_CONDA" = false ] ; then
+  if [ -f "conda_loc" ] ; then
+    CONDA_BUILD_DIR=$(cat conda_loc)
+    echo "Using conda from conda_loc: ${CONDA_BUILD_DIR}"
+  else
+    CONDA_BUILD_DIR="conda"
+    echo "Building local conda install in ${CONDA_BUILD_DIR}/"
+  fi
+  os=$(uname)
+  if [ ! -d "${CONDA_BUILD_DIR}" ] ; then
+    test $os == Darwin && os=MacOSX
+    hardware=$(uname -m)
+    installer=Miniforge3-${os}-${hardware}.sh
+    curl -L -O "https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/${installer}"
+    bash ./${installer} -bfp "${CONDA_BUILD_DIR}"
+    rm -f ${installer}
+  fi
+
+  . ${CONDA_BUILD_DIR}/etc/profile.d/conda.sh
+  # Put some additional packages in the base environment on MacOS systems
+  if [ "${os}" == "MacOSX" ] ; then
+    mamba install -y bash coreutils sed
+  fi
+
+  CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
+  echo "${CONDA_BUILD_DIR}" > conda_loc
+  echo "Local conda build location: ${CONDA_BUILD_DIR}"
+
+  if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
+    export PATH=${CONDA_BUILD_DIR}/condabin:${CONDA_BUILD_DIR}/bin:${PATH}
+  fi
+  if [[ ! "$LD_LIBRARY_PATH" =~ "$CONDA_BUILD_DIR" ]]; then
+    export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib:${LD_LIBRARY_PATH}
+  fi
+fi
+
 conda activate
-if ! conda env list | grep -q "^vx_workflow\s" ; then
-  mamba env create -n vx_workflow --file "${VX_WFLOW_DIR}/environment.yml" -y
-fi
 
-if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
-  export PATH=${CONDA_BUILD_DIR}/condabin:${CONDA_BUILD_DIR}/bin:${PATH}
-fi
-if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
-  export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib
-elif [[ ! "${LD_LIBRARY_PATH}" =~ "$CONDA_BUILD_DIR" ]]; then
-  export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib:${LD_LIBRARY_PATH}
+if ! conda env list | grep -q "^vx_workflow\s" ; then
+  echo "Creating vx_workflow environment..."
+  mamba env create -n vx_workflow --file environment.yml
+else
+  read -p "vx_workflow environment exists. Update it from environment.yml? (y/n) " -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]] ; then
+    echo "Updating vx_workflow environment..."
+    mamba env update -n vx_workflow --file environment.yml --prune
+  fi
 fi
 
 conda activate vx_workflow
+
