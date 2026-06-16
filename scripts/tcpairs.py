@@ -14,7 +14,8 @@ from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, run_metplus
+from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
+import retrieve_data
 
 def tcpairs(config_file, cdate):
     """
@@ -54,6 +55,24 @@ def tcpairs(config_file, cdate):
 
     conf_files=[]
     for storm_id in tccfg['STORM_IDS']:
+        # Ensure best track file is present, and if not, retrieve it:
+        best_track_template=tccfg["BEST_TRACK_FILE"]
+        # Need to substitute keywords manually to check file existence
+        best_track_file = eval_metplus_timestr_tmpl(best_track_template, cdate,
+                                                     cyclone=storm_id, basin=tccfg["BASIN"])
+        if not os.path.exists(best_track_file):
+            lgr.info(f"{best_track_file=} does not exist on disk, attempting to download...")
+            dataargs = ['--debug', \
+                    '--file_set', 'obs', \
+                    '--config', os.path.join(cfg['user']['PARMdir'], 'data_locations.yml'), \
+                    '--cycle_date', cdate, \
+                    '--cyclone', storm_id, \
+                    '--data_stores', "ftp", \
+                    '--data_type', "BDECK", \
+                    '--output_path', output_dir, \
+                    '--summary_file', 'retrieve_data.log']
+            retrieve_data.main(dataargs)
+
         # Set the names of the template METplus configuration file, the resulting rendered conf
         # file, and the METplus log file
         metplus_config_tmpl_fn="TCPAIRS.conf"

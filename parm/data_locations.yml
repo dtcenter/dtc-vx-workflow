@@ -467,4 +467,11 @@ GOESADP:
     file_names:
       obs:
         - "OR_ABI-L2-ADPF-M[3-6]_G16_s{fyyyy}{fjjj}{fhh}*.nc"
+BDECK:
+  ftp:
+    protocol: wget
+    url: "https://ftp.nhc.noaa.gov/atcf/archive/{yyyy}/"
+    file_names:
+      obs:
+        - "al{cyclone}{yyyy}.dat.gz"
 
