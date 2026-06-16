@@ -6,6 +6,10 @@ import sys
 import shlex
 from pathlib import Path
 
+BASELINE_COMMIT = "758ea56"
+#BASELINE_COMMIT = "84b78ac3"
+BASELINE_BRANCH = "develop"
+
 WORKFLOW_REPO = "dtcenter/dtc-vx-workflow"
 DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
 
@@ -15,14 +19,18 @@ def main():
 
     print(f"Regression directory: {args.regression_dir}")
 
-    branch_or_pr_dir = args.branch if args.branch else f"pr_{args.pr}"
+    branch_or_pr_dir = f"pr_{args.pr}" if args.pr else args.branch
     branch_or_pr_dir = Path(args.regression_dir) / branch_or_pr_dir
     workflow_repo_dir = Path(branch_or_pr_dir) / WORKFLOW_REPO.split('/')[-1]
 
     setup_repo_dir(args, workflow_repo_dir)
 
-    # Get latest commit to create directory for test output
-    commit = run_git_command(f"git -C {workflow_repo_dir} rev-parse HEAD")[:7]
+    # create directory for test output
+    # get explicit commit if specified, otherwise get latest commit
+    if args.commit:
+        commit = args.commit
+    else:
+        commit = run_git_command(f"git -C {workflow_repo_dir} rev-parse HEAD")[:7]
 
     output_path = Path(branch_or_pr_dir) / f"output.{commit}"
 
@@ -30,18 +38,33 @@ def main():
     if output_path.is_dir():
         print(f"WARNING: Test dir already exists: {output_path}")
         print("         Remove it to run")
-        sys.exit(0)
+    else:
 
-    # Create test directory
-    print(f"Creating directory: {output_path}")
-    output_path.mkdir(parents=True, exist_ok=True)
+        # Create test directory
+        print(f"Creating directory: {output_path}")
+        output_path.mkdir(parents=True, exist_ok=True)
 
-    launch_tests(args, workflow_repo_dir, output_path)
+        launch_tests(args, workflow_repo_dir, output_path)
+
+    # if running baseline, update symbolic link for baseline output dir
+    if args.baseline:
+        baseline_dir = Path(args.regression_dir) / "output.baseline"
+        print("Updating symbolic link output.baseline to point to {output_path}")
+
+        # remove link if it exists already
+        if baseline_dir.is_symlink():
+            print(f"Removing existing symbolic link: {baseline_dir}")
+            baseline_dir.unlink()
+
+        baseline_dir.symlink_to(output_path, target_is_directory=True)
 
 def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run regression tests")
+    parser.add_argument("--baseline", action="store_true",
+                        help="Run tests for baseline commit. Ignore branch/pr/commit args.")
     parser.add_argument("--branch", help="Branch to run tests for.")
     parser.add_argument("--pr", help="Pull request to run tests for")
+    parser.add_argument("--commit", help="Specific commit to run tests for")
     parser.add_argument("--account", required=True, help="Account to run jobs")
     parser.add_argument("--machine", required=True, help="Machine to run jobs")
     parser.add_argument("--regression_dir", default=DEFAULT_REGRESSION_DIR,
@@ -51,10 +74,19 @@ def read_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # check if branch or pr is specified, but not both
-    if (args.branch and args.pr) or (not args.branch and not args.pr):
-        print("ERROR: Must specify either --branch or --pr, but not both")
+    # if baseline is requested, set branch and commit to baseline values and unset pr arg
+
+    if args.baseline:
+        args.branch = BASELINE_BRANCH
+        args.commit = BASELINE_COMMIT
+        args.pr = None
+
+    # error if pr is requested and a branch or commit is also requested
+
+    if args.pr and (args.branch or args.commit):
+        print("ERROR: Cannot specify --branch or --commit with --pr")
         sys.exit(1)
+
     return args
 
 def run_git_command(command):
@@ -82,6 +114,10 @@ def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
 
     # pull latest changes
     run_git_command(f"git -C {workflow_repo_dir} pull")
+
+    # check out specific commit if specified
+    if args.commit:
+        run_git_command(f"git -C {workflow_repo_dir} checkout {args.commit}")
 
 def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path: Path):
     print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
