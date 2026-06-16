@@ -49,7 +49,7 @@ def main():
     # if running baseline, update symbolic link for baseline output dir
     if args.baseline:
         baseline_dir = Path(args.regression_dir) / "output.baseline"
-        print("Updating symbolic link output.baseline to point to {output_path}")
+        print(f"Updating symbolic link output.baseline to point to {output_path}")
 
         # remove link if it exists already
         if baseline_dir.is_symlink():
