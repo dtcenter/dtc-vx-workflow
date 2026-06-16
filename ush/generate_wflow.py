@@ -166,8 +166,11 @@ def generate_wflow(
     #
     if wflow_manager == "rocoto":
         wflow_db_fn = f"{os.path.splitext(wflow_xml_fn)[0]}.db"
-        rocotorun_cmd = f"rocotorun -w {wflow_xml_fn} -d {wflow_db_fn} -v 10"
-        rocotostat_cmd = f"rocotostat -w {wflow_xml_fn} -d {wflow_db_fn} -v 10"
+        rocoto_path = expt_config["platform"].get("ROCOTO_PATH", "")
+        rocotorun_bin = f"{rocoto_path}/rocotorun" if rocoto_path else "rocotorun"
+        rocotostat_bin = f"{rocoto_path}/rocotostat" if rocoto_path else "rocotostat"
+        rocotorun_cmd = f"{rocotorun_bin} -w {wflow_xml_fn} -d {wflow_db_fn} -v 10"
+        rocotostat_cmd = f"{rocotostat_bin} -w {wflow_xml_fn} -d {wflow_db_fn} -v 10"
 
         cron_relaunch_intvl_mnts = workflow_config["CRON_RELAUNCH_INTVL_MNTS"]
         # pylint: disable=line-too-long

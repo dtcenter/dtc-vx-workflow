@@ -232,6 +232,7 @@ def run_we2e_tests(homedir, args) -> None:
                     "expt_dir": expt_dir,
                     "status": "CREATED",
                     "start_time": starttime_string,
+                    "rocoto_path": machine_defaults["platform"].get("ROCOTO_PATH", ""),
                 }
             })
             # Make WORKFLOW_ID actually mean something

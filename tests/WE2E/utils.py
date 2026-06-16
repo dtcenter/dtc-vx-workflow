@@ -59,7 +59,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
 
         for task in expts_dict[expt]:
             # Skip non-task entries
-            if task in ["expt_dir","status","start_time","walltime"]:
+            if task in ["expt_dir","status","start_time","walltime","rocoto_path"]:
                 continue
             status = expts_dict[expt][task]["status"]
             walltime = expts_dict[expt][task]["walltime"]
@@ -135,6 +135,11 @@ def create_expts_dict(expt_dir: str, delay: int = 5):
             expts_dict[item] = dict()
             expts_dict[item].update({"expt_dir": os.path.join(expt_dir,item)})
             expts_dict[item].update({"status": "CREATED"})
+            vardefs_file = os.path.join(expt_dir, item, "var_defns.yaml")
+            if os.path.isfile(vardefs_file):
+                vardefs = get_yaml_config(vardefs_file)
+                rocoto_path = flatten_dict(vardefs).get("ROCOTO_PATH", "")
+                expts_dict[item].update({"rocoto_path": rocoto_path})
         else:
             logging.debug(f'Skipping directory {item}, experiment XML file not found')
             continue
@@ -170,7 +175,7 @@ def calculate_core_hours(expts_dict: dict) -> dict:
         cores_per_node = vdf["NCORES_PER_NODE"]
         for task in expts_dict[expt]:
             # Skip non-task entries
-            if task in ["expt_dir","status","start_time","walltime"]:
+            if task in ["expt_dir","status","start_time","walltime","rocoto_path"]:
                 continue
             # Cycle is last 12 characters, task name is rest (minus separating underscore)
             taskname = task[:-13]
@@ -258,11 +263,13 @@ def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int 
     # Update experiment, read rocoto database
     rocoto_db = f"{expt['expt_dir']}/vx_wflow.db"
     rocoto_xml = f"{expt['expt_dir']}/vx_wflow.xml"
+    rocoto_path = expt.get("rocoto_path", "")
+    rocotorun_bin = f"{rocoto_path}/rocotorun" if rocoto_path else "rocotorun"
     if submit:
         if refresh:
             logging.debug(f"Updating database for experiment {name}")
         if debug:
-            rocotorun_cmd = ["rocotorun", f"-w {rocoto_xml}", f"-d {rocoto_db}", "-v 10"]
+            rocotorun_cmd = [rocotorun_bin, f"-w {rocoto_xml}", f"-d {rocoto_db}", "-v 10"]
             p = subprocess.run(rocotorun_cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, text=True)
             logging.debug(p.stdout)
@@ -275,7 +282,7 @@ def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int 
                                stderr=subprocess.STDOUT, text=True)
             logging.debug(p.stdout)
         else:
-            rocotorun_cmd = ["rocotorun", f"-w {rocoto_xml}", f"-d {rocoto_db}"]
+            rocotorun_cmd = [rocotorun_bin, f"-w {rocoto_xml}", f"-d {rocoto_db}"]
             subprocess.run(rocotorun_cmd)
             # Run rocotorun again to get around rocotobqserver proliferation issue
             # Delay prevents problems with frequent calls to rocotorun, seen with very large
@@ -424,7 +431,9 @@ def compare_rocotostat(expt_dict,name):
     # Call rocotostat and store output
     rocoto_db = f"{expt_dict['expt_dir']}/vx_wflow.db"
     rocoto_xml = f"{expt_dict['expt_dir']}/vx_wflow.xml"
-    rocotorun_cmd = ["rocotostat", f"-w {rocoto_xml}", f"-d {rocoto_db}", "-v 10"]
+    rocoto_path = expt_dict.get("rocoto_path", "")
+    rocotostat_bin = f"{rocoto_path}/rocotostat" if rocoto_path else "rocotostat"
+    rocotorun_cmd = [rocotostat_bin, f"-w {rocoto_xml}", f"-d {rocoto_db}", "-v 10"]
     p = subprocess.run(rocotorun_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     rsout = p.stdout
 
