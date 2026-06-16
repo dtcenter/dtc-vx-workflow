@@ -8,8 +8,6 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass
 
 DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
-DEFAULT_METPLUS_DIR = Path(DEFAULT_REGRESSION_DIR) / "METplus"
-DEFAULT_BASELINE_DIR = Path(DEFAULT_REGRESSION_DIR) / "baseline"
 
 NOT_RUN = "NOT RUN"
 
@@ -33,21 +31,18 @@ SKIP_KEYWORDS = [
 
 def main():
     args = read_args()
-    if not Path(args.metplus_dir).exists():
-        print(f"ERROR: METplus directory does not exist: {args.metplus_dir}")
+    if not Path(args.metplus).exists():
+        print(f"ERROR: METplus directory does not exist: {args.metplus}")
         sys.exit(1)
 
     success = True
 
-    sys.path.insert(0, str(args.metplus_dir))
+    sys.path.insert(0, str(args.metplus))
     from metplus.util import diff_util
     diff_util.SKIP_KEYWORDS = SKIP_KEYWORDS
 
-    tests_baseline = get_test_paths(args.baseline_dir, not args.diff_all_files)
+    tests_baseline = get_test_paths(args.baseline, not args.diff_all_files)
     tests_new = get_test_paths(args.test_dir, not args.diff_all_files)
-
-    #tests_baseline = [x.name for x in Path(args.baseline_dir).iterdir() if x.is_dir()]
-    #tests_new = [x.name for x in Path(args.test_dir).iterdir() if x.is_dir()]
 
     all_tests = list(set(tests_baseline) & set(tests_new))
     test_results = {x: TestResults() for x in all_tests}
@@ -67,7 +62,7 @@ def main():
             continue
 
         print(f"Diffing {test_name}...")
-        baseline_test = Path(args.baseline_dir) / test_name
+        baseline_test = Path(args.baseline) / test_name
         new_test = Path(args.test_dir) / test_name
 
         # create text stream to capture diff output for each test
@@ -101,13 +96,20 @@ def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run difference tests")
     parser.add_argument("test_dir",
                         help="Directory with test output data to compare to baseline")
-
-    parser.add_argument("--metplus_dir", default=DEFAULT_METPLUS_DIR,
-                        help=f"Directory of METplus repo to get diff_util.py (default: {DEFAULT_METPLUS_DIR})")
-    parser.add_argument("--baseline_dir", default=DEFAULT_BASELINE_DIR,
-                        help=f"Directory with baseline data to use for comparison (default: {DEFAULT_BASELINE_DIR})")
+    parser.add_argument("--regression_dir", default=DEFAULT_REGRESSION_DIR,
+                        help=f"Directory containing regression test output (default: {DEFAULT_REGRESSION_DIR})")
+    parser.add_argument("--metplus",
+                        help="Directory of METplus repo to get diff_util.py (default: regression_dir/METplus)")
+    parser.add_argument("--baseline",
+                        help="Directory with baseline data to use for comparison (default: regression_dir/output.baseline)")
     parser.add_argument("--diff_all_files", action="store_true",)
     args = parser.parse_args()
+
+    if not args.metplus:
+        args.metplus = Path(args.regression_dir) / "METplus"
+    if not args.baseline:
+        args.baseline = Path(args.regression_dir) / "output.baseline"
+
     return args
 
 
