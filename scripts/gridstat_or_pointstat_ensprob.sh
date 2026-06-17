@@ -12,7 +12,7 @@ sections=(
   user
   platform
   workflow
-  global
+  ensemble
   verification
 )
 for sect in ${sections[*]} ; do
@@ -43,7 +43,7 @@ scrfunc_dir=$( dirname "${scrfunc_fp}" )
 #-----------------------------------------------------------------------
 #
 # Get the name of the MET/METplus tool in different formats that may be
-# needed from the global variable METPLUSTOOLNAME.
+# needed from the variable METPLUSTOOLNAME.
 #
 #-----------------------------------------------------------------------
 #

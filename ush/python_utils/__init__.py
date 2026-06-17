@@ -18,7 +18,7 @@ from .environment import (
 from .logging import setup_logging
 from .print_input_args import print_input_args
 from .print_msg import print_err_msg_exit
-from .run_command import run_command
+from .run_command import run_command, run_metplus
 from .config_parser import (
     load_json_config,
     cfg_to_json_str,
@@ -41,3 +41,4 @@ from .config_parser import (
     extend_yaml,
 )
 from .metplus_conf_utils import render_metplus_confs, make_var_lists
+from .eval_metplus_tmpl import eval_metplus_timestr_tmpl, eval_metplus_dt_tmpl

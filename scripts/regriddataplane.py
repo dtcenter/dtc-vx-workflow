@@ -8,7 +8,6 @@ The script is intended to be called from jobs/REGRIDDATAPLANE.sh.
 import argparse
 import logging
 import os
-import subprocess
 
 from multiprocessing import Pool
 from pathlib import Path
@@ -16,7 +15,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging,render_metplus_confs
+from python_utils import setup_logging,render_metplus_confs, run_metplus
 from set_leadhrs import set_leadhrs
 
 def regrid_data_plane(config_file,cdate,field_group,obtype):
@@ -152,22 +151,6 @@ def regrid_data_plane(config_file,cdate,field_group,obtype):
         pool.starmap(run_metplus,args)
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
-
-
-def run_metplus(common_config,config_fn):
-    """Calls the run_metplus script as a subprocess."""
-    logger = logging.getLogger(__name__)
-
-    # Run METplus
-    metplus_path = os.environ["METPLUS_ROOT"]
-    logger.debug(f"{common_config=}")
-    logger.debug(f"{config_fn=}")
-    logger.debug(f"{metplus_path=}")
-    subprocess.run([
-        f"{metplus_path}/ush/run_metplus.py",
-        "-c", common_config,
-        "-c", config_fn
-    ], check=True)
 
 
 if __name__ == "__main__":

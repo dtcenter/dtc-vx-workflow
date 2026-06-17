@@ -42,7 +42,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
     # Create summary table as list of strings
     summary = []
     summary.append('-'*REPORT_WIDTH)
-    summary.append(f'Experiment name {" "*(EXPT_COLUMN_WIDTH-17)} | Status    | Core hours used ')
+    summary.append(f'Experiment name {" "*(EXPT_COLUMN_WIDTH-17)} | Status    | Estimated core hours used ')
     summary.append('-'*REPORT_WIDTH)
     total_core_hours = 0
     statuses = []
@@ -54,7 +54,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
         expt_details.append('-'*REPORT_WIDTH)
         expt_details.append(f'Detailed summary of experiment {expt}')
         expt_details.append(f"in directory {os.path.abspath(expts_dict[expt]['expt_dir'])}")
-        expt_details.append(f'{" "*TASK_COLUMN_WIDTH}| Status    | Walltime   | Core hours used')
+        expt_details.append(f'{" "*TASK_COLUMN_WIDTH}| Status    | Walltime   | Estimated core hours used')
         expt_details.append('-'*REPORT_WIDTH)
 
         for task in expts_dict[expt]:

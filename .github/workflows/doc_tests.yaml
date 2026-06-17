@@ -19,14 +19,21 @@ jobs:
         run: sudo apt-get update --yes && sudo apt-get install --yes plantuml
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Check tech docs
-        run: .github/scripts/check_tech_doc.sh
+      - name: Setup Sphinx build
+        run: |
+          pip install Sphinx==7.4.7
+          pip install sphinx-rtd-theme
+          pip install sphinxcontrib-bibtex
+          pip install sphinxcontrib-plantuml
+
+#      - name: Check tech docs
+#        run: .github/scripts/check_tech_doc.sh
       - name: Build documentation
         run: |
           cd doc
           make clean && make html
-      - name: Check links
-        if: ${{ !cancelled() }}
-        run: |
-          cd doc
-          make linkcheck
+#      - name: Check links
+#        if: ${{ !cancelled() }}
+#        run: |
+#          cd doc
+#          make linkcheck

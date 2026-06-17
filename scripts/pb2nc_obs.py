@@ -16,8 +16,7 @@ from pathlib import Path
 import uwtools.api.config as uwconfig
 
 # Import utilities and helpers
-from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import eval_metplus_dt_tmpl, render_metplus_confs, setup_logging
 
 
 def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False):
@@ -82,7 +81,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
 
         lead = validdt - cycle_dt
         leadhr=int(lead.total_seconds()/3600)
-        file = eval_metplus_dt_tmpl(cycle_dt,validdt,0,f"{obs_dir}/{obs_input_fn_template}")
+        file = eval_metplus_dt_tmpl(f"{obs_dir}/{obs_input_fn_template}", cycle_dt,validdt)
         if os.path.exists(file):
             vx_leadhr_list.append(leadhr)
 

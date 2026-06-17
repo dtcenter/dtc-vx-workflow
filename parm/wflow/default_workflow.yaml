@@ -7,7 +7,6 @@ rocoto:
     AERONET_OBS_DIR: '{{ verification.AERONET_OBS_DIR }}'
     AIRNOW_OBS_DIR: '{{ verification.AIRNOW_OBS_DIR }}'
     CCPA_OBS_DIR: '{{ verification.CCPA_OBS_DIR }}'
-    COMINgfs: '{{ platform.get("COMINgfs") }}'
     GLOBAL_VAR_DEFNS_FP: '{{ workflow.GLOBAL_VAR_DEFNS_FP }}'
     GOESAOD_OBS_DIR: '{{ verification.GOESAOD_OBS_DIR }}'
     GOESADP_OBS_DIR: '{{ verification.GOESADP_OBS_DIR }}'
@@ -27,11 +26,8 @@ rocoto:
     QUEUE_FCST: '{{ platform.get("QUEUE_FCST") }}'
     QUEUE_HPSS: '{{ platform.get("QUEUE_HPSS") }}'
     SCRIPTSdir: '{{ user.SCRIPTSdir }}'
-    SLASH_ENSMEM_SUBDIR: '{{ "/mem#mem#" if global.DO_ENSEMBLE else "/" }}'
     USHdir: '{{ user.USHdir }}'
     WORKFLOW_ID: '{{ workflow.WORKFLOW_ID }}'
-
-    COMIN_DIR: '{{ workflow.EXPTDIR + "/@Y@m@d@H" }}'
     FCST_DIR: '{{ workflow.EXPTDIR + "/@Y@m@d@H" }}'
     LOGDIR: '{{ workflow.EXPTDIR + "/log" }}'
   attrs:

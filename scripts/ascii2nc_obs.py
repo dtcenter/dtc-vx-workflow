@@ -15,8 +15,7 @@ from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
-from eval_metplus_timestr_tmpl import eval_metplus_dt_tmpl
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import eval_metplus_dt_tmpl, render_metplus_confs, setup_logging
 
 
 def ascii2nc_obs(config_file, cdate, obtype):
@@ -81,7 +80,7 @@ def ascii2nc_obs(config_file, cdate, obtype):
 
         lead = validdt - cycle_dt
         leadhr = int(lead.total_seconds()/3600)
-        file = eval_metplus_dt_tmpl(cycle_dt, validdt, 0, f"{obs_in_dir}/{obs_in_fn_tmpl}")
+        file = eval_metplus_dt_tmpl(f"{obs_in_dir}/{obs_in_fn_tmpl}", cycle_dt, validdt)
         if os.path.exists(file):
             vx_leadhr_list.append(leadhr)
 

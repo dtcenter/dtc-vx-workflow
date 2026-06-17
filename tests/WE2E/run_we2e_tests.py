@@ -83,25 +83,6 @@ def run_we2e_tests(homedir, args) -> None:
                     else:
                         logging.debug(f"Skipping non-test file {filename}")
                 logging.debug(f"Will check all tests:\n{tests_to_check}")
-            elif user_spec_tests[0] in ["fundamental", "comprehensive"]:
-                prefix = f"machine_suites/{user_spec_tests[0]}"
-                testfilenames = [
-                    f"{prefix}.{machine}.{args.compiler}.nco",
-                    f"{prefix}.{machine}.{args.compiler}.com",
-                    f"{prefix}.{machine}.{args.compiler}",
-                    f"{prefix}.{machine}",
-                    f"{prefix}",
-                ]
-                for i, testfilename in enumerate(testfilenames):
-                    if Path(testfilename).is_file():
-                        break
-
-                logging.debug(f"Reading test file: {testfilename}")
-                with open(testfilename, encoding="utf-8") as f:
-                    tests_to_check = [x.rstrip() for x in f]
-                logging.debug(
-                    f"Will check {user_spec_tests[0]} tests:\n{tests_to_check}"
-                )
             elif user_spec_tests[0] in testdirs:
                 # If a subdirectory under test_configs/ is specified, run all
                 # tests in that directory
@@ -452,8 +433,9 @@ if __name__ == "__main__":
         nargs="*",
         help="""Can be one of three options (in order of priority):
     1. A test name or list of test names.
-    2. A test suite name ("fundamental", "comprehensive", or "all")
+    2. A subdirectory name under test_configs/
     3. The name of a file (full or relative path) containing a list of test names.
+    4. "all" to run all tests
     """,
         required=True,
     )
