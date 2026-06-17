@@ -33,4 +33,4 @@ platform:
   MET_BASE: /contrib/spack-stack/spack-stack-1.9.2/envs/ue-gcc-12.4.0/install/gcc/12.4.0/
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-nvr5muk'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-nfqs7n3'
-
+  STAGED_DATA: '/scratch3/BMC/hmtb/Michael.Kavulich/VX/vx_test_data'
