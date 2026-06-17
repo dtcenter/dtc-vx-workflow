@@ -7,9 +7,7 @@ import io
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 
-DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
-
-NOT_RUN = "NOT RUN"
+from regression_common import DEFAULT_REGRESSION_DIR, NOT_RUN
 
 @dataclass
 class TestResults:

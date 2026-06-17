@@ -6,12 +6,8 @@ import sys
 import shlex
 from pathlib import Path
 
-BASELINE_COMMIT = "758ea56"
-#BASELINE_COMMIT = "84b78ac3"
-BASELINE_BRANCH = "develop"
-
-WORKFLOW_REPO = "dtcenter/dtc-vx-workflow"
-DEFAULT_REGRESSION_DIR = "/scratch3/BMC/dtc/dtc-vx-workflow_testing"
+from regression_baseline import BASELINE_COMMIT, BASELINE_BRANCH
+from regression_common import WORKFLOW_REPO, DEFAULT_REGRESSION_DIR
 
 def main():
 
