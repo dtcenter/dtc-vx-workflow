@@ -103,21 +103,24 @@ def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
         # Clone workflow repo
         repo_loc = f"https://github.com/{WORKFLOW_REPO}" if args.clone_https else f"git@github.com:{WORKFLOW_REPO}"
         run_git_command(f"git clone {repo_loc} {workflow_repo_dir}")
+    else:
+        # get the latest changes if the repo has already been cloned
+        run_git_command(f"git -C {workflow_repo_dir} fetch origin")
 
-        # check out the branch or PR merge commit
-        if args.branch:
-            run_git_command(f"git -C {workflow_repo_dir} checkout {args.branch}")
-        else:
-            merge_commit_id = f"refs/pull/{args.pr}/merge"
-            run_git_command(f"git -C {workflow_repo_dir} fetch origin {merge_commit_id}")
-            run_git_command(f"git -C {workflow_repo_dir} checkout {merge_commit_id}")
-
-    # pull latest changes
-    run_git_command(f"git -C {workflow_repo_dir} pull")
+    # check out the branch or PR merge commit
+    if args.pr:
+        merge_commit_id = f"refs/pull/{args.pr}/merge"
+        run_git_command(f"git -C {workflow_repo_dir} fetch origin {merge_commit_id}")
+        run_git_command(f"git -C {workflow_repo_dir} checkout {merge_commit_id}")
+    elif args.branch:
+        run_git_command(f"git -C {workflow_repo_dir} checkout {args.branch}")
 
     # check out specific commit if specified
     if args.commit:
         run_git_command(f"git -C {workflow_repo_dir} checkout {args.commit}")
+    # otherwise pull the latest changes if obtaining a branch
+    elif args.branch:
+        run_git_command(f"git -C {workflow_repo_dir} pull origin {args.branch}")
 
 def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path: Path):
     print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
