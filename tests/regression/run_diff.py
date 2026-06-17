@@ -88,6 +88,8 @@ def main():
         print(test_result.details)
         print(f"{'-' * 80}\n\n")
 
+    if success:
+        print("No differences found!")
     return success
 
 def read_args() -> argparse.Namespace:
@@ -135,6 +137,6 @@ def get_test_paths(base_path, get_dated=True):
     return paths
 
 if __name__ == "__main__":
-    result = main()
-    if result:
-        print("No differences found!")
+    status = main()
+    if not status:
+        sys.exit(1)
