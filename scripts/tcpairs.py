@@ -65,7 +65,7 @@ def tcpairs(config_file, cdate):
                                                   cyclone=storm_id, basin=tccfg["BASIN"])
         if os.path.exists(best_track_fp):
             best_track_file = os.path.basename(best_track_fp)
-            shutil.copyfile(best_track_fp, output_dir)
+            shutil.copy(best_track_fp, output_dir)
         else:
             lgr.info(f"{best_track_fp=} does not exist on disk, attempting to download...")
             dataargs = ['--debug', \
@@ -84,14 +84,13 @@ def tcpairs(config_file, cdate):
                                                         cyclone=storm_id, basin=tccfg["BASIN"])
             best_track_zipfp = Path(output_dir,best_track_zipfile)
             best_track_file = best_track_zipfile.rsplit( ".", 1 )[ 0 ]
-            lgr.debug(f"Extracting retrieved zipfile {best_track_zipfp} to {best_track_file}")
+            best_track_fp_out = best_track_zipfp.with_suffix("")
+            lgr.debug(f"Extracting retrieved zipfile {best_track_zipfp} to {best_track_fp_out}")
             # Extract the zip file into output_dir
             with gzip.open(best_track_zipfp, 'rb') as file_in:
-                with open(best_track_file, 'wb') as file_out:
+                with open(best_track_fp_out, 'wb') as file_out:
                     shutil.copyfileobj(file_in, file_out)
-                    lgr.debug(f'{file_in=}')
-                    lgr.debug(f'{file_out=}')
-                    lgr.debug(f'{best_track_file} file created')
+                    lgr.debug(f'{best_track_fp_out} file created')
 
         # Set the names of the template METplus configuration file, the resulting rendered conf
         # file, and the METplus log file
