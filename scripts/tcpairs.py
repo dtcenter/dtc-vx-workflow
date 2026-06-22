@@ -8,6 +8,7 @@ The script is intended to be called from jobs/TCPAIRS.sh.
 import argparse
 import logging
 import os
+import shutil
 
 from multiprocessing import Pool
 from pathlib import Path
@@ -59,10 +60,13 @@ def tcpairs(config_file, cdate):
         # Ensure best track file is present, and if not, retrieve it:
         best_track_template=tccfg["BEST_TRACK_FILE"]
         # Need to substitute keywords manually to check file existence
-        best_track_file = eval_metplus_timestr_tmpl(best_track_template, cdate,
-                                                     cyclone=storm_id, basin=tccfg["BASIN"])
-        if not os.path.exists(best_track_file):
-            lgr.info(f"{best_track_file=} does not exist on disk, attempting to download...")
+        best_track_fp = eval_metplus_timestr_tmpl(best_track_template, cdate,
+                                                  cyclone=storm_id, basin=tccfg["BASIN"])
+        if os.path.exists(best_track_fp):
+            best_track_file = os.path.basename(best_track_fp)
+            shutil.copyfile(best_track_fp, output_dir)
+        else:
+            lgr.info(f"{best_track_fp=} does not exist on disk, attempting to download...")
             dataargs = ['--debug', \
                     '--file_set', 'obs', \
                     '--config', os.path.join(cfg['user']['PARMdir'], 'data_locations.yml'), \
@@ -74,6 +78,10 @@ def tcpairs(config_file, cdate):
                     '--summary_file', 'retrieve_data.log']
             lgr.debug(f'{dataargs=}')
             retrieve_data.main(dataargs)
+            # NEED TO RETRIEVE THIS VALUE RETURNING FROM retrieve_data AFTER REWRITE
+            best_track_file = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
+                                                        cyclone=storm_id, basin=tccfg["BASIN"])
+
 
         # Set the names of the template METplus configuration file, the resulting rendered conf
         # file, and the METplus log file
@@ -99,7 +107,8 @@ def tcpairs(config_file, cdate):
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
                    'fcst_track_file': tccfg['ADECK_TEMPLATE'],
-                   'best_track_dir': cfg["platform"]["BEST_TRACK_DIR"]
+                   'best_track_file': best_track_file,
+                   'best_track_dir': output_dir
                    }
 
         numprocs=1

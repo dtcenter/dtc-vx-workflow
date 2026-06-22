@@ -29,6 +29,6 @@ platform:
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-5zajnpj'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-24hbfcj'
   STAGED_DATA: '/work2/noaa/gsd-fv3-dev/kavulich/vx_workflow/staged_data'
-  BEST_TRACK: /work/noaa/hwrf/noscrub/input/abdeck/btk
+  BEST_TRACK_DIR: /work/noaa/hwrf/noscrub/input/abdeck/btk
   ROCOTO_PATH: '/apps/contrib/rocoto/1.3.7/bin'
 
