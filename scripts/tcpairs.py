@@ -54,7 +54,8 @@ def tcpairs(config_file, cdate):
     os.makedirs(output_dir, exist_ok=True)
 
     conf_files=[]
-    for storm_id in tccfg['STORM_IDS']:
+    for storm in tccfg['STORM_IDS']:
+        storm_id=f"{storm:02}"
         # Ensure best track file is present, and if not, retrieve it:
         best_track_template=tccfg["BEST_TRACK_FILE"]
         # Need to substitute keywords manually to check file existence
@@ -69,8 +70,9 @@ def tcpairs(config_file, cdate):
                     '--cyclone', storm_id, \
                     '--data_stores', "ftp", \
                     '--data_type', "BDECK", \
-                    '--output_path', output_dir, \
+                    '--output_path', str(output_dir), \
                     '--summary_file', 'retrieve_data.log']
+            lgr.debug(f'{dataargs=}')
             retrieve_data.main(dataargs)
 
         # Set the names of the template METplus configuration file, the resulting rendered conf
@@ -97,7 +99,7 @@ def tcpairs(config_file, cdate):
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
                    'fcst_track_file': tccfg['ADECK_TEMPLATE'],
-                   'best_track_dir': cfg["platform"]["BEST_TRACK"]
+                   'best_track_dir': cfg["platform"]["BEST_TRACK_DIR"]
                    }
 
         numprocs=1
@@ -110,9 +112,16 @@ def tcpairs(config_file, cdate):
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{args=}")
-    with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus,args)
+    lgr.debug(f"{args=}")
+    try:
+        with Pool(processes=numprocs) as pool:
+            pool.starmap(run_metplus,args)
+    except Exception:
+        lgr.error(
+            f"METplus {metplus_tool_camel_case} failed. "
+            f"Check the METplus log file(s) for details:"
+        )
+        raise SystemExit(1) from None
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 

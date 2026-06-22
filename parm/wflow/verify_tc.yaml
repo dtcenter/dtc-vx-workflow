@@ -36,6 +36,8 @@ task_tcpairs:
         value: '@Y@m@d@H'
   memory: '{{  tcpairs.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcpairs.execution.tasks_per_node }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
   walltime: "{{ tcpairs.execution.walltime }}"
 
 task_tcstat:

@@ -473,5 +473,5 @@ BDECK:
     url: "https://ftp.nhc.noaa.gov/atcf/archive/{yyyy}/"
     file_names:
       obs:
-        - "al{cyclone}{yyyy}.dat.gz"
+        - "aal{cyclone}{yyyy}.dat.gz"
 
