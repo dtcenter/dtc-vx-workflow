@@ -6,6 +6,7 @@ verifying cyclone track forecasts.
 The script is intended to be called from jobs/TCPAIRS.sh.
 """
 import argparse
+import gzip
 import logging
 import os
 import shutil
@@ -79,9 +80,18 @@ def tcpairs(config_file, cdate):
             lgr.debug(f'{dataargs=}')
             retrieve_data.main(dataargs)
             # NEED TO RETRIEVE THIS VALUE RETURNING FROM retrieve_data AFTER REWRITE
-            best_track_file = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
+            best_track_zipfile = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
                                                         cyclone=storm_id, basin=tccfg["BASIN"])
-
+            best_track_zipfp = Path(output_dir,best_track_zipfile)
+            best_track_file = best_track_zipfile.rsplit( ".", 1 )[ 0 ]
+            lgr.debug(f"Extracting retrieved zipfile {best_track_zipfp} to {best_track_file}")
+            # Extract the zip file into output_dir
+            with gzip.open(best_track_zipfp, 'rb') as file_in:
+                with open(best_track_file, 'wb') as file_out:
+                    shutil.copyfileobj(file_in, file_out)
+                    lgr.debug(f'{file_in=}')
+                    lgr.debug(f'{file_out=}')
+                    lgr.debug(f'{best_track_file} file created')
 
         # Set the names of the template METplus configuration file, the resulting rendered conf
         # file, and the METplus log file
