@@ -65,7 +65,13 @@ if [ "$USE_SYSTEM_CONDA" = false ] ; then
   fi
 
   CONDA_BUILD_DIR="$(builtin cd "${CONDA_BUILD_DIR}" && pwd)"
-  echo "${CONDA_BUILD_DIR}" > "${SCRIPT_DIR}/conda_loc"
+  if [ -z "${CONDA_BUILD_DIR}" ] ; then
+    echo "ERROR: Could not resolve conda installation path." >&2
+    return 1
+  fi
+  if [ ! -f "${SCRIPT_DIR}/conda_loc" ] ; then
+    echo "${CONDA_BUILD_DIR}" > "${SCRIPT_DIR}/conda_loc"
+  fi
   echo "Local conda build location: ${CONDA_BUILD_DIR}"
 
   if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
