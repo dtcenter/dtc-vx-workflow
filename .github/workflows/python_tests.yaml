@@ -35,10 +35,10 @@ jobs:
           micromamba activate vx_workflow
           export PYTHONPATH=$(pwd)/ush
           pylint --version
-          pylint --ignore-imports=yes tests/test_python/
+          pylint --ignore-imports=yes tests/test_python/test_*.py
           pylint ush/generate_wflow.py
           pylint ush/setup.py
-          pylint scripts/test_*.py
+          pylint scripts/*.py
 
       - name: Run python unittests
         run: |
