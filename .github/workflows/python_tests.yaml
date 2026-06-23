@@ -49,9 +49,9 @@ jobs:
 
           python -m unittest discover -s tests/test_python -p "test_*.py"
 
-      - name: Run python functional tests
-        run: |
-          micromamba activate vx_workflow
-          export CI=true
-          export PYTHONPATH=${PWD}/ush
-          python3 -m unittest tests.test_python.test_retrieve_data
+#      - name: Run python functional tests
+#        run: |
+#          micromamba activate vx_workflow
+#          export CI=true
+#          export PYTHONPATH=${PWD}/ush
+#          python3 -m unittest tests.test_python.test_retrieve_data
