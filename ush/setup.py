@@ -154,6 +154,11 @@ def check_bad_settings(cfg):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
             msg+="these variables for this task have been moved to top-level `mode` section; "
             msg+="update your config accordingly\n\n"
+    if bt:=cfg.get("platform").get("BEST_TRACK"):
+        msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
+        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`; "
+        msg+="update your config accordingly\n\n"
+
     if msg:
         logger.critical("The following problems with your config must be fixed:")
         logger.critical(msg)
