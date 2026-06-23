@@ -80,10 +80,10 @@ def tcpairs(config_file, cdate):
             lgr.debug(f'{dataargs=}')
             retrieve_data.main(dataargs)
             # NEED TO RETRIEVE THIS VALUE RETURNING FROM retrieve_data AFTER REWRITE
-            best_track_zipfile = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
+            bt_zipfile = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
                                                         cyclone=storm_id, basin=tccfg["BASIN"])
-            best_track_zipfp = Path(output_dir,best_track_zipfile)
-            best_track_file = best_track_zipfile.rsplit( ".", 1 )[ 0 ]
+            best_track_zipfp = Path(output_dir,bt_zipfile)
+            best_track_file = bt_zipfile.rsplit( ".", 1 )[ 0 ]
             best_track_fp_out = best_track_zipfp.with_suffix("")
             lgr.debug(f"Extracting retrieved zipfile {best_track_zipfp} to {best_track_fp_out}")
             # Extract the zip file into output_dir
