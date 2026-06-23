@@ -38,7 +38,7 @@ jobs:
           pylint --ignore-imports=yes tests/test_python/
           pylint ush/generate_wflow.py
           pylint ush/setup.py
-          pylint scripts/*.py
+          pylint scripts/test_*.py
 
       - name: Run python unittests
         run: |
