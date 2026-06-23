@@ -77,7 +77,9 @@ if [ "$USE_SYSTEM_CONDA" = false ] ; then
   if [[ ! "$PATH" =~ "$CONDA_BUILD_DIR" ]]; then
     export PATH=${CONDA_BUILD_DIR}/condabin:${CONDA_BUILD_DIR}/bin:${PATH}
   fi
-  if [[ ! "$LD_LIBRARY_PATH" =~ "$CONDA_BUILD_DIR" ]]; then
+  if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
+    export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib
+  elif [[ ! "${LD_LIBRARY_PATH}" =~ "$CONDA_BUILD_DIR" ]]; then
     export LD_LIBRARY_PATH=${CONDA_BUILD_DIR}/lib:${LD_LIBRARY_PATH}
   fi
 fi
