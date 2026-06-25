@@ -870,7 +870,7 @@ def get_obs(config, obtype, yyyymmdd_task):
                         if obtype == 'CCPA':
                             fn_raw = f'ccpa.t{hr:02d}z.{accum_obs_formatted}h.hrap.conus.gb2'
                         elif obtype == 'NOHRSC':
-                            fn_raw = 'sfav2_CONUS_{accum_obs_formatted}h_{yyyymmddhh_str}_grid184.grb2' # pylint: disable=line-too-long
+                            fn_raw = f'sfav2_CONUS_{accum_obs_formatted}h_{yyyymmddhh_str}_grid184.grb2' # pylint: disable=line-too-long
                         elif obtype == 'MRMS':
                             #MRMS files are retrieved from HPSS archives as gzip; need to unzip
                             with gzip.open(valid_file_name, 'rb') as f_in:

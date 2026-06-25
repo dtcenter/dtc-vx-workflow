@@ -21,7 +21,7 @@ If an issue already exists, please use that issue to add any additional informat
 <!-- Tell us what happens instead of the expected behavior. -->
 
 ## Machines affected
-<!--- Please provide any relevant information about your setup, including machine/compiler combination. -->
+<!--- Please provide any relevant information about your setup, including machine and MET/METplus version if relevant. -->
 <!-- Reference other issues or PRs in other repositories that this issue is related to, and how they are related. -->
 
 ## Steps To Reproduce

@@ -235,9 +235,9 @@ platform:
   #
   EXTRN_MDL_DATA_STORES: ""
   #
-  # BEST_TRACK:
+  # BEST_TRACK_DIR:
   # Staged location on disk for TC "best track" data
-  BEST_TRACK: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
+  BEST_TRACK_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}'
 
 #-----------------------------
 # WORKFLOW config parameters
@@ -557,6 +557,10 @@ tropical:
   # The identifier for the forecast data to use for TCPAIRS and TCSTAT comparison; for now the valid options
   # are 'HFSA' (HAFS-A) and 'HFSB' (HAFS-B)
   MODEL: 'HFSA'
+
+  # BEST_TRACK_FILE:
+  # Filename or MetPLUS template for TC "best track" data (AKA "b-deck")
+  BEST_TRACK_FILE: '{{ platform.BEST_TRACK_DIR }}/b{basin}{cyclone}{init?fmt=%Y}.dat'
 
 #
 #-----------------------------------------------------------------------

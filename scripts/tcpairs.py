@@ -6,15 +6,18 @@ verifying cyclone track forecasts.
 The script is intended to be called from jobs/TCPAIRS.sh.
 """
 import argparse
+import gzip
 import logging
 import os
+import shutil
 
 from multiprocessing import Pool
 from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, run_metplus
+from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
+import retrieve_data
 
 def tcpairs(config_file, cdate):
     """
@@ -53,7 +56,42 @@ def tcpairs(config_file, cdate):
     os.makedirs(output_dir, exist_ok=True)
 
     conf_files=[]
-    for storm_id in tccfg['STORM_IDS']:
+    for storm in tccfg['STORM_IDS']:
+        storm_id=f"{storm:02}"
+        # Ensure best track file is present, and if not, retrieve it:
+        best_track_template=tccfg["BEST_TRACK_FILE"]
+        # Need to substitute keywords manually to check file existence
+        best_track_fp = eval_metplus_timestr_tmpl(best_track_template, cdate,
+                                                  cyclone=storm_id, basin=tccfg["BASIN"])
+        if os.path.exists(best_track_fp):
+            best_track_file = os.path.basename(best_track_fp)
+            shutil.copy(best_track_fp, output_dir)
+        else:
+            lgr.info(f"{best_track_fp=} does not exist on disk, attempting to download...")
+            dataargs = ['--debug', \
+                    '--file_set', 'obs', \
+                    '--config', os.path.join(cfg['user']['PARMdir'], 'data_locations.yml'), \
+                    '--cycle_date', cdate, \
+                    '--cyclone', storm_id, \
+                    '--data_stores', "ftp", \
+                    '--data_type', "BDECK", \
+                    '--output_path', str(output_dir), \
+                    '--summary_file', 'retrieve_data.log']
+            lgr.debug(f'{dataargs=}')
+            retrieve_data.main(dataargs)
+            # NEED TO RETRIEVE THIS VALUE RETURNING FROM retrieve_data AFTER REWRITE
+            bt_zipfile = eval_metplus_timestr_tmpl('bal{cyclone}{init?fmt=%Y}.dat.gz', cdate,
+                                                        cyclone=storm_id, basin=tccfg["BASIN"])
+            best_track_zipfp = Path(output_dir,bt_zipfile)
+            best_track_file = bt_zipfile.rsplit( ".", 1 )[ 0 ]
+            best_track_fp_out = best_track_zipfp.with_suffix("")
+            lgr.debug(f"Extracting retrieved zipfile {best_track_zipfp} to {best_track_fp_out}")
+            # Extract the zip file into output_dir
+            with gzip.open(best_track_zipfp, 'rb') as file_in:
+                with open(best_track_fp_out, 'wb') as file_out:
+                    shutil.copyfileobj(file_in, file_out)
+                    lgr.debug(f'{best_track_fp_out} file created')
+
         # Set the names of the template METplus configuration file, the resulting rendered conf
         # file, and the METplus log file
         metplus_config_tmpl_fn="TCPAIRS.conf"
@@ -78,7 +116,8 @@ def tcpairs(config_file, cdate):
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,
                    'fcst_track_file': tccfg['ADECK_TEMPLATE'],
-                   'best_track_dir': cfg["platform"]["BEST_TRACK"]
+                   'best_track_file': best_track_file,
+                   'best_track_dir': output_dir
                    }
 
         numprocs=1
@@ -91,9 +130,16 @@ def tcpairs(config_file, cdate):
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{args=}")
-    with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus,args)
+    lgr.debug(f"{args=}")
+    try:
+        with Pool(processes=numprocs) as pool:
+            pool.starmap(run_metplus,args)
+    except Exception:
+        lgr.error(
+            f"METplus {metplus_tool_camel_case} failed. "
+            f"Check the METplus log file(s) for details:"
+        )
+        raise SystemExit(1) from None
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
