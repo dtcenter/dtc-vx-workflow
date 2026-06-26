@@ -48,7 +48,7 @@ def main():
     tests_baseline = get_test_paths(args.baseline, not args.diff_all_files)
     tests_new = get_test_paths(args.test_dir, not args.diff_all_files)
 
-    all_tests = list(set(tests_baseline) & set(tests_new))
+    all_tests = list(set(tests_baseline).union(tests_new))
     test_results = {x: TestResults() for x in all_tests}
 
     # set tests that are not found in either baseline or new output to failed
