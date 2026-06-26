@@ -6,6 +6,8 @@ from pathlib import Path
 import io
 from contextlib import redirect_stdout
 from dataclasses import dataclass
+import logging
+from datetime import datetime
 
 from regression_common import DEFAULT_REGRESSION_DIR, NOT_RUN
 
@@ -29,6 +31,10 @@ SKIP_KEYWORDS = [
 
 def main():
     args = read_args()
+
+    # set up logging
+    setup_logging(args)
+
     if not Path(args.metplus).exists():
         print(f"ERROR: METplus directory does not exist: {args.metplus}")
         sys.exit(1)
@@ -78,18 +84,26 @@ def main():
         test_result.status = 'FAILED'
         success = False
 
-    print("SUMMARY:")
+    logging.info("SUMMARY:")
     for test_name, test_result in test_results.items():
-        print(f"{test_name.ljust(65)}:  {test_result.status}")
+        logging.info(f"{test_name.ljust(65)}:  {test_result.status}")
 
-    print("DETAILS:")
+    logging.info("DETAILS:")
     for test_name, test_result in test_results.items():
-        print(f"{'-' * 80}\n{test_name}: {test_result.status}\n{'-' * 80}")
-        print(test_result.details)
-        print(f"{'-' * 80}\n\n")
+        logging.info(f"{'-' * 80}\n{test_name}: {test_result.status}\n{'-' * 80}")
+        logging.info(test_result.details)
+        logging.info(f"{'-' * 80}\n\n")
 
     if success:
-        print("No differences found!")
+        msg = "SUCCESS: No differences found!"
+        logging.info(msg)
+    else:
+        msg = "ERROR: Differences were found!"
+        logging.error(msg)
+
+    if not args.log_to_terminal:
+        print(msg)
+
     return success
 
 def read_args() -> argparse.Namespace:
@@ -103,15 +117,40 @@ def read_args() -> argparse.Namespace:
     parser.add_argument("--baseline",
                         help="Directory with baseline data to use for comparison (default: regression_dir/output.baseline)")
     parser.add_argument("--diff_all_files", action="store_true",)
+    parser.add_argument("--log_dir",
+                        help="Directory where the log file should be saved (default: regression_dir)")
+    parser.add_argument("--log_to_terminal", action="store_true",
+                        help="If set, log to the terminal (standard output) instead of a file")
+
     args = parser.parse_args()
 
     if not args.metplus:
         args.metplus = Path(args.regression_dir) / "METplus"
     if not args.baseline:
         args.baseline = Path(args.regression_dir) / "output.baseline"
+    if not args.log_dir:
+        args.log_dir = args.regression_dir
 
     return args
 
+def setup_logging(args):
+    log_config = {
+        "format": "%(message)s",
+        "level": logging.INFO,
+    }
+    if args.log_to_terminal:
+        # Route logs to stdout (terminal)
+        print("Logging to terminal because --log_to_terminal was set.")
+        log_config["stream"] = sys.stdout
+    else:
+        # Ensure the directory exists before writing to it
+        Path(args.log_dir).mkdir(parents=True, exist_ok=True)
+        log_file_path = Path(args.log_dir) / f"diff_WE2E_{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
+        print(f"Logging to file: {log_file_path}")
+        log_config["filename"] = str(log_file_path)
+        log_config["filemode"] = "w"
+
+    logging.basicConfig(**log_config)
 
 def get_test_paths(base_path, get_dated=True):
     paths = []
