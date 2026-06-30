@@ -33,7 +33,7 @@ def main():
     args = read_args()
 
     # set up logging
-    setup_logging(args)
+    log_file = setup_logging(args)
 
     if not Path(args.metplus).exists():
         print(f"ERROR: METplus directory does not exist: {args.metplus}")
@@ -94,11 +94,12 @@ def main():
         logging.info(test_result.details)
         logging.info(f"{'-' * 80}\n\n")
 
+    log_msg = '' if not log_file else f"\nSee log file for details: {log_file}"
     if success:
-        msg = "SUCCESS: No differences found!"
+        msg = f"SUCCESS: No differences found!{log_msg}"
         logging.info(msg)
     else:
-        msg = "ERROR: Differences were found!"
+        msg = f"ERROR: Differences were found!{log_msg}"
         logging.error(msg)
 
     if not args.log_to_terminal:
@@ -134,6 +135,7 @@ def read_args() -> argparse.Namespace:
     return args
 
 def setup_logging(args):
+    log_file_path = None
     log_config = {
         "format": "%(message)s",
         "level": logging.INFO,
@@ -151,6 +153,7 @@ def setup_logging(args):
         log_config["filemode"] = "w"
 
     logging.basicConfig(**log_config)
+    return log_file_path
 
 def get_test_paths(base_path, get_dated=True):
     paths = []
