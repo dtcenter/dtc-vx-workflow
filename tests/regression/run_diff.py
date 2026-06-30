@@ -72,7 +72,7 @@ def main():
         # create text stream to capture diff output for each test
         text_stream = io.StringIO()
         with redirect_stdout(text_stream):
-            diff_files = diff_util.compare_dir(str(baseline_test), str(new_test), debug=True)
+            diff_files = diff_util.compare_dir(str(baseline_test), str(new_test), debug=args.debug)
 
         # save detailed report of diff test
         test_result.details = text_stream.getvalue().strip()
@@ -122,6 +122,8 @@ def read_args() -> argparse.Namespace:
                         help="Directory where the log file should be saved (default: regression_dir)")
     parser.add_argument("--log_to_terminal", action="store_true",
                         help="If set, log to the terminal (standard output) instead of a file")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Log information about files that were skipped or had no differences")
 
     args = parser.parse_args()
 
