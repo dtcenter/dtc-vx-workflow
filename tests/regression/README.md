@@ -69,11 +69,14 @@ Run `tail -f` on it to see the progress of the tests.
 Calling the `run_regression.py` script with the `--baseline` argument will
 run the end-to-end tests for the baseline commit and create a symbolic link
 named **output.baseline** in the regression directory.
-The baseline commit is stored in the `run_regression.py` script in the
+The baseline commit is stored in the `regression_baseline.py` file in the
 **BASELINE_COMMIT** variable.
 
-To update the baseline version,
-modify the value of the **BASELINE_COMMIT** variable before running the tests.
+To update the baseline version, note the first 7 characters of the latest
+commit on the develop branch after the changes that modify the output
+have been merged.
+Open the `regression_baseline.py` file and modify the value of the
+**BASELINE_COMMIT** variable to the new commit hash.
 **Be sure to commit the change to the develop branch of `dtc-vx-workflow`.**
 If the output from the baseline commit has already been generated locally,
 the script will skip the tests and update the symbolic link to the baseline commit.
