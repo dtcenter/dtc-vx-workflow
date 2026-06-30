@@ -45,6 +45,15 @@ def main():
     from metplus.util import diff_util
     diff_util.SKIP_KEYWORDS = SKIP_KEYWORDS
 
+    msg = (
+        "Running diff tests"
+        f"\nBASELINE: {Path(args.baseline).resolve()}"
+        f"\nNEW     : {Path(args.test_dir).resolve()}"
+    )
+    logging.info(msg)
+    if not args.log_to_terminal:
+        print(msg)
+
     tests_baseline = get_test_paths(args.baseline, not args.diff_all_files)
     tests_new = get_test_paths(args.test_dir, not args.diff_all_files)
 
