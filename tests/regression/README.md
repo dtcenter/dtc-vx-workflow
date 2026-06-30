@@ -82,8 +82,6 @@ If the output from the baseline commit has already been generated locally,
 the script will skip the tests and update the symbolic link to the baseline commit.
 
 ```
-module load rocoto
-
 account=dtc
 
 machine=ursa
@@ -100,8 +98,6 @@ python3 ./tests/regression/run_regression.py \
 ### Running on a Branch
 
 ```
-module load rocoto
-
 branch=develop
 account=dtc
 
@@ -123,8 +119,6 @@ The only difference is that the pull request number is specified using the `--pr
 of specifying the branch name using the `--branch` argument.
 
 ```
-module load rocoto
-
 pr_number=10
 account=dtc
 
