@@ -11,26 +11,36 @@ import glob
 import logging
 import os
 import sys
+from argparse import Namespace
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
+from typing import Any
+
+# add tests/WE2E and ush directories to sys path to find other python files
+TESTS_WE2E_DIR = Path(__file__).absolute().parent
+USH_DIR = TESTS_WE2E_DIR.parents[1] / "ush"
+sys.path.insert(0, str(TESTS_WE2E_DIR))
+sys.path.insert(0, str(USH_DIR))
 
 from monitor_jobs import monitor_jobs, write_monitor_file
 
 from uwtools.api.config import get_yaml_config
 
-sys.path.append("../../ush")
 # pylint: disable=wrong-import-order, wrong-import-position
 from generate_wflow import generate_wflow
 from python_utils import check_python_version
 
+CONFIG_YAML_GLOB = "test_configs/**/config*.yaml"
+
+ALL_TESTS = glob.glob(CONFIG_YAML_GLOB, recursive=True, root_dir=TESTS_WE2E_DIR)
+TEST_DIRS = next(os.walk(os.path.join(TESTS_WE2E_DIR, "test_configs")))[1]
 
 
-def run_we2e_tests(homedir, args) -> None:
+def run_we2e_tests(args) -> None:
     """Runs the Workflow End-to-End (WE2E) tests selected by the user
 
     Args:
-        homedir (str): The full path to the top-level application directory
         args    (argparse.Namespace): Command-line arguments
 
     Returns:
@@ -40,94 +50,17 @@ def run_we2e_tests(homedir, args) -> None:
     # Set up logging to write to screen and logfile
     setup_logging(debug=args.debug)
     logging.debug(f"Arguments to run_we2e_tests():\n{args}")
-    # Set some important directories
-    ushdir = Path(homedir, "ush")
 
     # Set some variables based on input arguments
     machine = args.machine.lower()
 
     # Derecho requires long delay between calls to rocotorun due to system-level cacheing of
     # job statuses
-    if machine=="derecho":
-        if args.delay < 60:
-            logging.info("Derecho requires 60 second delay between calls to rocotorun")
-            args.delay=60
+    if machine=="derecho" and args.delay < 60:
+        logging.info("Derecho requires 60 second delay between calls to rocotorun")
+        args.delay=60
 
-    alltests = glob.glob("test_configs/**/config*.yaml", recursive=True)
-    testdirs = next(os.walk("test_configs"))[1]
-    # If args.tests is a list of length more than one, we assume it is a list of test names
-    if len(args.tests) > 1:
-        tests_to_check = args.tests
-        logging.debug(f"User specified a list of tests:\n{tests_to_check}")
-    else:
-        # First see if args.tests is a valid test name
-        user_spec_tests = args.tests
-        logging.debug(f"Checking if {user_spec_tests} is a valid test name")
-        match = check_test(user_spec_tests[0])
-        if match:
-            tests_to_check = user_spec_tests
-        else:
-            # If not a valid test name, check if it is a test suite
-            logging.debug(f"Checking if {user_spec_tests} is a valid test suite")
-            if user_spec_tests[0] == "all":
-                tests_to_check = []
-                for f in alltests:
-                    filename = Path(f).name
-                    # We just want the test name in this list, so cut out the
-                    # "config." prefix and ".yaml" extension
-                    if len(filename) > 12:
-                        if filename[:7] == "config." and filename[-5:] == ".yaml":
-                            tests_to_check.append(filename[7:-5])
-                        else:
-                            logging.debug(f"Skipping non-test file {filename}")
-                    else:
-                        logging.debug(f"Skipping non-test file {filename}")
-                logging.debug(f"Will check all tests:\n{tests_to_check}")
-            elif user_spec_tests[0] in testdirs:
-                # If a subdirectory under test_configs/ is specified, run all
-                # tests in that directory
-                logging.debug(
-                    f"{user_spec_tests[0]} is one of the testing directories:\n{testdirs}"
-                )
-                logging.debug(
-                    f"Will run all tests in test_configs/{user_spec_tests[0]}"
-                )
-                tests_in_dir = glob.glob(
-                    f"test_configs/{user_spec_tests[0]}/config*.yaml", recursive=True
-                )
-                tests_to_check = []
-                for f in tests_in_dir:
-                    filename = Path(f).name
-                    # We just want the test name in this list, so cut out the
-                    # "config." prefix and ".yaml" extension
-                    if len(filename) > 12:
-                        if filename[:7] == "config." and filename[-5:] == ".yaml":
-                            tests_to_check.append(filename[7:-5])
-                        else:
-                            logging.debug(f"Skipping non-test file {filename}")
-                    else:
-                        logging.debug(f"Skipping non-test file {filename}")
-            else:
-                # If we have gotten this far then the only option left for user_spec_tests is a
-                # file containing test names
-                logging.debug(
-                    f"Checking if {user_spec_tests} is a file containing test names"
-                )
-                if Path(user_spec_tests[0]).is_file():
-                    with open(user_spec_tests[0], encoding="utf-8") as f:
-                        tests_to_check = [x.rstrip() for x in f]
-                else:
-                    raise FileNotFoundError(
-                        dedent(
-                            f"""
-                    The specified 'tests' argument '{user_spec_tests}'
-                    does not appear to be a valid test name, a valid test suite, a subdirectory
-                    under test_configs/, or a file containing valid test names.
-
-                    Check your inputs and try again.
-                    """
-                        )
-                    )
+    tests_to_check = get_tests_to_check(args)
 
     logging.info("Checking that all tests are valid")
 
@@ -136,20 +69,16 @@ def run_we2e_tests(homedir, args) -> None:
     pretty_list = "\n".join(str(x) for x in tests_to_run)
     logging.info(f"Will run {len(tests_to_run)} tests:\n{pretty_list}")
 
-    config_default_file = Path(ushdir, "config_defaults.yaml")
-    logging.debug(f"Loading config defaults file {config_default_file}")
-    config_defaults = get_yaml_config(config_default_file)
-
-    machine_file = Path(ushdir, "machine", f"{machine}.yaml")
+    machine_file = Path(USH_DIR, "machine", f"{machine}.yaml")
     logging.debug(f"Loading machine defaults file {machine_file}")
     machine_defaults = get_yaml_config(machine_file)
+
+    starttime_string = datetime.now().strftime("%Y%m%d%H%M%S")
 
     monitor_yaml = {}
     for test in tests_to_run:
         # Starting with test yaml template, fill in user-specified and machine- and
         # test-specific options, then write resulting complete config.yaml
-        starttime = datetime.now()
-        starttime_string = starttime.strftime("%Y%m%d%H%M%S")
         test_name = Path(test).name.split(".")[1]
         logging.debug(f"For test {test_name}, constructing config.yaml")
         test_cfg = get_yaml_config(test)
@@ -201,16 +130,16 @@ def run_we2e_tests(homedir, args) -> None:
             "based on specified command-line arguments:\n"
         )
         logging.debug(str(test_cfg))
-        test_cfg.dump(Path(ushdir, "config.yaml"))
+        test_cfg.dump(Path(USH_DIR, "config.yaml"))
 
         logging.info(f"Calling workflow generation function for test {test_name}\n")
         if args.quiet:
             console_handler = logging.getLogger().handlers[1]
             console_handler.setLevel(logging.WARNING)
         expt_dir = generate_wflow(
-            ushdir=str(ushdir),
+            ushdir=str(USH_DIR),
             config="config.yaml",
-            logfile=f"{str(ushdir)}/log.generate_wflow",
+            logfile=f"{str(USH_DIR)}/log.generate_wflow",
             debug=args.debug,
         )
         if args.quiet:
@@ -238,41 +167,115 @@ def run_we2e_tests(homedir, args) -> None:
             # Make WORKFLOW_ID actually mean something
             test_cfg["workflow"].update({"WORKFLOW_ID": workflow_id})
 
-    if args.launch != "cron":
-        monitor_file = f"WE2E_tests_{starttime_string}.yaml"
-        write_monitor_file(monitor_file, monitor_yaml)
-        logging.info("All experiments have been generated;")
-        logging.info(f"Experiment file {monitor_file} created")
-        if args.launch == "python":
-            write_monitor_file(monitor_file, monitor_yaml)
-            logging.debug("calling function that monitors jobs, prints summary")
-            try:
-                monitor_file = monitor_jobs(
-                    monitor_yaml,
-                    monitor_file=monitor_file,
-                    procs=args.procs,
-                    debug=args.debug,
-                    delay=args.delay,
-                )
-            except KeyboardInterrupt:
-                logging.info(
-                    "\n\nUser interrupted monitor script; to resume monitoring jobs run:\n"
-                )
-                rerun_string=f"./monitor_jobs.py -y={monitor_file}"
-                if args.procs>1:
-                    rerun_string+=f" -p={args.procs}"
-                if args.delay!=5:
-                    rerun_string+=f" --delay={args.delay}"
-
-                logging.info(f"{rerun_string}\n")
-        else:
-            logging.info("To automatically run and monitor experiments, use:\n")
-            logging.info(f"./monitor_jobs.py -y={monitor_file}\n")
-    else:
+    if args.launch == "cron":
         logging.info(
             "All experiments have been generated; using cron to submit workflows"
         )
         logging.info("To view running experiments in cron try `crontab -l`")
+        return
+
+    monitor_file = f"WE2E_tests_{starttime_string}.yaml"
+    write_monitor_file(monitor_file, monitor_yaml)
+    logging.info("All experiments have been generated;")
+    logging.info(f"Experiment file {monitor_file} created")
+
+    if args.launch != "python":
+        logging.info("To automatically run and monitor experiments, use:\n")
+        logging.info(f"./monitor_jobs.py -y={monitor_file}\n")
+        return
+
+    write_monitor_file(monitor_file, monitor_yaml)
+    logging.debug("calling function that monitors jobs, prints summary")
+    try:
+        monitor_file = monitor_jobs(
+            monitor_yaml,
+            monitor_file=monitor_file,
+            procs=args.procs,
+            debug=args.debug,
+            delay=args.delay,
+        )
+    except KeyboardInterrupt:
+        logging.info(
+            "\n\nUser interrupted monitor script; to resume monitoring jobs run:\n"
+        )
+        rerun_string=f"./monitor_jobs.py -y={monitor_file}"
+        if args.procs>1:
+            rerun_string+=f" -p={args.procs}"
+        if args.delay!=5:
+            rerun_string+=f" --delay={args.delay}"
+
+        logging.info(f"{rerun_string}\n")
+
+
+def get_tests_to_check(args: Namespace) -> Any:
+    # If args.tests is a list of length more than one, we assume it is a list of test names
+    if len(args.tests) > 1:
+        tests_to_check = args.tests
+        logging.debug(f"User specified a list of tests:\n{tests_to_check}")
+    else:
+        # First see if args.tests is a valid test name
+        user_spec_tests = args.tests
+        logging.debug(f"Checking if {user_spec_tests} is a valid test name")
+        match = check_test(user_spec_tests[0])
+        if match:
+            tests_to_check = user_spec_tests
+        else:
+            # If not a valid test name, check if it is a test suite
+            logging.debug(f"Checking if {user_spec_tests} is a valid test suite")
+            if user_spec_tests[0] == "all":
+                tests_to_check = get_test_names(ALL_TESTS)
+                logging.debug(f"Will check all tests:\n{tests_to_check}")
+            elif user_spec_tests[0] in TEST_DIRS:
+                # If a subdirectory under test_configs/ is specified, run all
+                # tests in that directory
+                logging.debug(
+                    f"{user_spec_tests[0]} is one of the testing directories:\n{TEST_DIRS}"
+                )
+                logging.debug(
+                    f"Will run all tests in test_configs/{user_spec_tests[0]}"
+                )
+                tests_in_dir = glob.glob(
+                    f"test_configs/{user_spec_tests[0]}/config*.yaml", recursive=True,
+                    root_dir=TESTS_WE2E_DIR
+                )
+                tests_to_check = get_test_names(tests_in_dir)
+
+            else:
+                # If we have gotten this far then the only option left for user_spec_tests is a
+                # file containing test names
+                logging.debug(
+                    f"Checking if {user_spec_tests} is a file containing test names"
+                )
+                if Path(user_spec_tests[0]).is_file():
+                    with open(user_spec_tests[0], encoding="utf-8") as f:
+                        tests_to_check = [x.rstrip() for x in f]
+                else:
+                    raise FileNotFoundError(
+                        dedent(
+                            f"""
+                    The specified 'tests' argument '{user_spec_tests}'
+                    does not appear to be a valid test name, a valid test suite, a subdirectory
+                    under test_configs/, or a file containing valid test names.
+
+                    Check your inputs and try again.
+                    """
+                        )
+                    )
+    return tests_to_check
+
+
+def get_test_names(test_list) -> list[str]:
+    test_names = []
+    for f in test_list:
+        filename = Path(f).name
+        # We just want the test name in this list, so cut out the
+        # "config." prefix and ".yaml" extension
+        if len(filename) > 12 and filename.startswith("config.") and filename.endswith(".yaml"):
+            test_names.append(filename[7:-5])
+        else:
+            logging.debug(f"Skipping non-test file {filename}")
+
+    return test_names
 
 
 def check_tests(tests: list) -> list:
@@ -286,24 +289,9 @@ def check_tests(tests: list) -> list:
         tests_to_run: List of configuration files corresponding to test names
     """
 
-    testfiles = glob.glob("test_configs/**/config*.yaml", recursive=True)
     # Check that there are no duplicate test filenames
-    testfilenames = []
-    for testfile in testfiles:
-        testfile = Path(testfile)
-        if testfile.name in testfilenames:
-            duplicates = glob.glob(f"test_configs/**/{testfile.name}", recursive=True)
-            raise ValueError(
-                dedent(
-                    f"""
-                            Found duplicate test file names:
-                            {duplicates}
-                            Ensure that each test file name under the test_configs/ directory
-                            is unique.
-                            """
-                )
-            )
-        testfilenames.append(testfile.name)
+    check_for_duplicate_tests()
+
     tests_to_run = []
     for test in tests:
         # Skip blank/empty testnames; this avoids failure if newlines or spaces are included
@@ -323,16 +311,15 @@ def check_tests(tests: list) -> list:
     # include the same test twice
     for testfile in tests_to_run.copy():
         testfile = Path(testfile)
-        if testfile.is_symlink():
-            if testfile.resolve() in tests_to_run:
-                logging.warning(
-                    dedent(
-                        f"""WARNING: test file {testfile} is a symbolic link to a
-                                test file ({testfile.resolve()}) that is also included in
-                                the test list. Only the latter test will be run."""
-                    )
+        if testfile.is_symlink() and testfile.resolve() in tests_to_run:
+            logging.warning(
+                dedent(
+                    f"""WARNING: test file {testfile} is a symbolic link to a
+                            test file ({testfile.resolve()}) that is also included in
+                            the test list. Only the latter test will be run."""
                 )
-                tests_to_run.remove(str(testfile))
+            )
+            tests_to_run.remove(str(testfile))
     if len(tests_to_run) != len(set(tests_to_run)):
         logging.warning(
             "\nWARNING: Duplicate test names were found in list. "
@@ -341,6 +328,23 @@ def check_tests(tests: list) -> list:
         tests_to_run = list(set(tests_to_run))
     return tests_to_run
 
+def check_for_duplicate_tests():
+    testfilenames = []
+    for testfile in ALL_TESTS:
+        testfile = Path(testfile)
+        if testfile.name in testfilenames:
+            duplicates = glob.glob(f"test_configs/**/{testfile.name}", recursive=True, root_dir=TESTS_WE2E_DIR)
+            raise ValueError(
+                dedent(
+                    f"""
+                            Found duplicate test file names:
+                            {duplicates}
+                            Ensure that each test file name under the test_configs/ directory
+                            is unique.
+                            """
+                )
+            )
+        testfilenames.append(testfile.name)
 
 def check_test(test: str) -> str:
     """
@@ -352,12 +356,10 @@ def check_test(test: str) -> str:
     Returns:
         config: Name of the test configuration file (empty string if no test file is found)
     """
-    # potential test files
-    testfiles = glob.glob("test_configs/**/config*.yaml", recursive=True)
     # potential test file for input test name
     test_config = f"config.{test.strip()}.yaml"
     config = ""
-    for testfile in testfiles:
+    for testfile in ALL_TESTS:
         if test_config in testfile:
             logging.debug(f"found test {test}, testfile {testfile}")
             config = Path(testfile).absolute()
@@ -399,8 +401,6 @@ if __name__ == "__main__":
     # Check python version and presence of some non-standard packages
     check_python_version()
 
-    # Get the "Home" directory, two levels above this one
-    top_dir = Path(__file__).absolute().parent.parent.parent
     LOGFILE = "log.run_WE2E_tests"
 
     # Parse arguments
@@ -533,7 +533,7 @@ if __name__ == "__main__":
     # Call main function
 
     try:
-        run_we2e_tests(top_dir, user_args)
+        run_we2e_tests(user_args)
     except: #pylint: disable=bare-except
         logging.exception(
             dedent(
