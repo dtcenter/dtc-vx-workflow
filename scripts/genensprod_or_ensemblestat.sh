@@ -253,7 +253,7 @@ mkdir -p "${OUTPUT_DIR}"
 #
 #-----------------------------------------------------------------------
 #
-if [ "${grid_or_point}" = "grid" ]; then
+if [ "${MetplusToolName}" = "EnsembleStat" ]; then
   if [ ! -d "${OBS_DIR}" ]; then
     print_err_msg_exit "\
   OBS_DIR does not exist or is not a directory:
