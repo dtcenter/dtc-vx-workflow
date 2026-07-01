@@ -15,9 +15,18 @@ regression_dir=/scratch3/BMC/dtc/dtc-vx-workflow_testing
 mkdir -p ${regression_dir}
 ```
 
+To enable other users to run the tests in this directory,
+ensure that the **{regression_dir}** directory has group read/write permissions.
+
+```
+chmod g+w ${regression_dir}
+```
+
 2. Get METplus
 
-Navigate to the test directory and clone the METplus repository, using the develop branch.
+Navigate to the test directory and clone the METplus repository,
+using the develop branch.
+
 ```
 regression_dir=/scratch3/BMC/dtc/dtc-vx-workflow_testing
 cd ${regression_dir}
