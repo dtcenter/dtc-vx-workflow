@@ -35,6 +35,7 @@ task_tcpairs:
       cyclestr:
         value: '@Y@m@d@H'
   memory: '{{  tcpairs.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
   nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcpairs.execution.tasks_per_node }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
   queue: "&QUEUE_HPSS;"
