@@ -525,7 +525,7 @@ ensemble:
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
   ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  ENS_TIME_LAG_HRS: '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+  ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
 tropical:
 #-----------------------------

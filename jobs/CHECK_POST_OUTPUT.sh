@@ -39,6 +39,8 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+# Sets up PYTHONPATH and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -60,9 +62,13 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-$SCRIPTSdir/check_post_output.sh || \
+python $SCRIPTSdir/check_post_output.py ${VERBOSE_FLAG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --ensmem_index="${ENSMEM_INDX}" || \
 print_err_msg_exit "\
-Call to script \"check_post_output.sh\" from \"${scrfunc_fn}\" failed."
+Call to \"check_post_output.py\" from \"${scrfunc_fn}\" failed."
+
 #
 #-----------------------------------------------------------------------
 #

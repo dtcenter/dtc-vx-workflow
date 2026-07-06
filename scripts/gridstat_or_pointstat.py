@@ -8,7 +8,6 @@ The script is intended to be called from jobs/GRIDSTAT_OR_POINTSTAT.sh.
 """
 
 import argparse
-import ast
 import logging
 import math
 import os
@@ -95,8 +94,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     lgr.debug(f"{vxcfg['VX_NDIGITS_ENSMEM_NAMES']=}")
     time_lag = 0
     if do_ens:
-        time_lag_hrs = ast.literal_eval(cfg['ensemble']['ENS_TIME_LAG_HRS'])[ensmem_index-1]
-        time_lag = time_lag_hrs*3600
+        time_lag = cfg['ensemble']['ENS_TIME_LAG_HRS'][ensmem_index-1]*3600
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we

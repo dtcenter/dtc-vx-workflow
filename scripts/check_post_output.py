@@ -15,6 +15,7 @@ import uwtools.api.config as uwconfig
 
 from python_utils import setup_logging
 from set_leadhrs import set_leadhrs
+from string import Template
 
 
 def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
@@ -43,11 +44,21 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     i = max(ensmem_index - 1, 0)
     time_lag = int(enscfg["ENS_TIME_LAG_HRS"][i]) * 3600
 
-    # Build forecast filename template, prepending subdir template if set
+    # Make a dictionary of variables that may need to be substituted; these will be used to replace
+    # bash-like variables in some strings. This is needed to maintain some functionality while we
+    # still have a mix of bash and python exscripts.
+    subvars = {
+            "ensmem_name": f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
+            "time_lag": time_lag,
+              }
+
+# Build forecast filename template, prepending subdir template if set
     subdir = vxcfg.get("FCST_SUBDIR_TEMPLATE", "")
     fn_template = os.path.join(subdir, vxcfg["FCST_FN_TEMPLATE"]) if subdir \
                   else vxcfg["FCST_FN_TEMPLATE"]
 
+    lgr.debug(f"{fn_template=}")
+    fn_template=Template(fn_template).substitute(subvars)
     lgr.info(
         f"Checking post-processed output files for cycle {cdate}, "
         f"member index {ensmem_index}"

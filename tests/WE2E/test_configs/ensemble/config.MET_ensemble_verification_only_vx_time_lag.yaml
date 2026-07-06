@@ -16,7 +16,7 @@ workflow:
 ensemble:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 2
-  ENS_TIME_LAG_HRS: '[ 0, 12 ]'
+  ENS_TIME_LAG_HRS: !list '[ 0, 12 ]'
 
 
 verification:
