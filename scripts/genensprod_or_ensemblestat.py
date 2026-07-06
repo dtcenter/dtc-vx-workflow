@@ -83,23 +83,36 @@ def genensprod_or_ensemblestat(
 
     exptdir = vxcfg["VX_OUTPUT_BASEDIR"]
 
+    subvars = {
+        "FIELD_GROUP": field_group,
+        "ACCUM_HH": f"{accum_hh:02}",
+        }
+
     # Build obs input dir/template and forecast base dir
     if geom == "grid":
         if "APCP" in met_filedir_name:
             obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
-            obs_in_fn_template = vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            obs_in_fn_template = Template(   
+                vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
             fcst_in_dir = Path(exptdir)
         elif "ASNOW" in met_filedir_name:
             obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
-            obs_in_fn_template = vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
             fcst_in_dir = Path(exptdir)
         elif met_filedir_name == "REFC":
             obs_in_dir = Path(obs_dir)
-            obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
+            ).substitute(subvars)
             fcst_in_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
         elif met_filedir_name == "RETOP":
             obs_in_dir = Path(obs_dir)
-            obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
+            ).substitute(subvars)
             fcst_in_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
         else:
             raise ValueError(
@@ -107,19 +120,23 @@ def genensprod_or_ensemblestat(
             )
     elif geom == "point":
         obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
-        obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+        obs_in_fn_template = Template(
+            vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+        ).substitute(subvars)
         fcst_in_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
     else:
         raise ValueError(f"Invalid parameters: {obtype=}, {field_group=}, {accum_hh=}")
 
-    # Build per-member forecast filename templates (comma-separated list for METplus)
-    subvars = {
-        "FIELD_GROUP": field_group,
-        "ACCUM_HH": f"{accum_hh:02}",
-    }
     fcst_in_fn_templates = []
     for i in range(enscfg["NUM_ENS_MEMBERS"]):
+        # Build per-member forecast filename templates (comma-separated list for METplus)
         ensmem = f"mem{str(i + 1).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+        subvars = {
+            "FIELD_GROUP": field_group,
+            "ACCUM_HH": f"{accum_hh:02}",
+            "time_lag": int(enscfg["ENS_TIME_LAG_HRS"][i]) * 3600,
+            "ensmem_name": ensmem,
+        }
         if field_group in ("APCP", "ASNOW"):
             tmpl = str(Path(
                 cdate, ensmem, "metprd", "PcpCombine_fcst",
