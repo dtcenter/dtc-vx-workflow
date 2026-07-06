@@ -20,14 +20,14 @@ def set_vx_params(obtype,field_group,accum_hh):
                 fieldname_in_obs_in = field_group
                 fieldname_in_fcst_in = field_group
                 fieldname_in_met_out = field_group
-                fieldname_in_met_filedir_names = f"{field_group}{accum_hh:02}"
+                fieldname_in_met_filedir_names = f"{field_group}{accum_hh:02}h"
         case "NOHRSC":
             grid_or_point = "grid"
             if field_group == "ASNOW":
                 fieldname_in_obs_in = field_group
                 fieldname_in_fcst_in = field_group
                 fieldname_in_met_out = field_group
-                fieldname_in_met_filedir_names = f"{field_group}{accum_hh:02}"
+                fieldname_in_met_filedir_names = f"{field_group}{accum_hh:02}h"
         case "MRMS":
             grid_or_point = "grid"
 
