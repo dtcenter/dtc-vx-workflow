@@ -35,7 +35,7 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-# Sets up PYTHONPATH and VERBOSE environment variables
+# Sets up PYTHONPATH, ACCUM_ARG, and VERBOSE environment variables
 . $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
@@ -64,10 +64,10 @@ python $SCRIPTSdir/genensprod_or_ensemblestat.py ${VERBOSE_FLAG} \
   --field_group="${FIELD_GROUP}" \
   --obs_dir="${OBS_DIR}" \
   --obtype="${OBTYPE}" \
-  --accum_hh="${ACCUM_HH}" \
   --fcst_level="${FCST_LEVEL}" \
   --fcst_thresh="${FCST_THRESH}" \
-  --metplus_tool="${METPLUSTOOLNAME}" || \
+  --metplus_tool="${METPLUSTOOLNAME}" \
+  ${ACCUM_ARG} || \
 print_err_msg_exit "\
 Call to \"genensprod_or_ensemblestat.py\" from \"${scrfunc_fn}\" failed."
 

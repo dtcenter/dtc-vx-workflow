@@ -35,7 +35,7 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-# Sets up PYTHONPATH, VERBOSE and ACCUM_ARG environment variables
+# Sets up PYTHONPATH, ACCUM_ARG, ENSMEM_ARG and VERBOSE environment variables
 . $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
@@ -58,15 +58,15 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} ${ACCUM_ARG} \
+python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
-  --ensmem_index="${ENSMEM_INDX}" \
   --field_group="${FIELD_GROUP}" \
   --fcst_level="${FCST_LEVEL}" \
   --fcst_thresh="${FCST_THRESH}" \
   --obtype="${OBTYPE}" \
-  --obs_dir="${OBS_DIR}" || \
+  --obs_dir="${OBS_DIR}" \
+  ${ACCUM_ARG} ${ENSMEM_ARG} || \
 print_err_msg_exit "\
 Call to \"gridstat_or_pointstat.py\" from \"${scrfunc_fn}\" failed."
 

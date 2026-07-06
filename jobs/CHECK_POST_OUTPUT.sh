@@ -65,7 +65,7 @@ In directory:     \"${scrfunc_dir}\"
 python $SCRIPTSdir/check_post_output.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
-  --ensmem_index="${ENSMEM_INDX}" || \
+  ${ENSMEM_ARG} || \
 print_err_msg_exit "\
 Call to \"check_post_output.py\" from \"${scrfunc_fn}\" failed."
 

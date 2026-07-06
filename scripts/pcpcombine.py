@@ -79,19 +79,24 @@ def pcpcombine(
     do_ensemble = enscfg["DO_ENSEMBLE"]
     ensmem = f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
 
+    # Make a dictionary of variables that may need to be substituted; these will be used to replace
+    # bash-like variables in some strings. This is needed to maintain some functionality while we
+    # still have a mix of bash and python exscripts.
     subvars = {
-        "FIELD_GROUP": field_group,
-        "ACCUM_HH": f"{accum_hh:02}",
+            "FIELD_GROUP": field_group,
+            "ACCUM_HH": f"{accum_hh:02}",
+            "ensmem_name": f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
     }
 
     pcp_combine_method = "ADD"
     pcp_combine_command = ""
 
+    time_lag = 0
     if fcst_or_obs == "FCST":
-        time_lag = 0
         if do_ensemble:
             time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index - 1]) * 3600
 
+        subvars["time_lag"]=time_lag
         fcst_subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
         fcst_fn = Template(vxcfg["FCST_FN_TEMPLATE"]).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
@@ -148,7 +153,7 @@ def pcpcombine(
         suffix = f"_{ensmem}"
 
     else:  # OBS
-        time_lag = 0
+        subvars["time_lag"]=time_lag
         input_dir = Path(obs_dir)
         input_fn_template = vxcfg[f"OBS_{obtype}_FN_TEMPLATES"][1]
         output_fn_template = Template(
@@ -285,7 +290,7 @@ if __name__ == "__main__":
         help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("--fcst_or_obs", required=True, type=str,
         help="Whether processing forecast (FCST) or observation (OBS) data")
-    parser.add_argument("--ensmem_index", required=True, type=int,
+    parser.add_argument("--ensmem_index", type=int, default=0,
         help="Ensemble member index (0 for deterministic, 1-based for ensemble members)")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
