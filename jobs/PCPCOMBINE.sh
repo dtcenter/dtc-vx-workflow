@@ -37,7 +37,6 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-set -x
 # Sets up PYTHONPATH, ACCUM_ARG, ENSMEM_ARG, and VERBOSE environment variables
 . $USHdir/set_job_env.sh
 #

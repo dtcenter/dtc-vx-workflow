@@ -13,6 +13,7 @@ import os
 
 from multiprocessing import Pool
 from pathlib import Path
+from string import Template
 
 import uwtools.api.config as uwconfig
 
@@ -64,21 +65,37 @@ def gridstat_or_pointstat_ensprob(
 
     exptdir = vxcfg["VX_OUTPUT_BASEDIR"]
 
+    # Make a dictionary of variables that may need to be substituted; these will be used to replace
+    # bash-like variables in some strings. This is needed to maintain some functionality while we
+    # still have a mix of bash and python exscripts.
+    subvars = {
+            "FIELD_GROUP": field_group,
+            "ACCUM_HH": f"{accum_hh:02}",
+    }
+
     if geom == "grid":
         metplus_tool_name = "grid_stat"
         metplus_tool_camel_case = "GridStat"
         if "APCP" in met_filedir_name:
             obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
-            obs_in_fn_template = vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
         elif "ASNOW" in met_filedir_name:
             obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
-            obs_in_fn_template = vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
+            ).substitute(subvars)
         elif met_filedir_name == "REFC":
             obs_in_dir = Path(obs_dir)
-            obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
+            ).substitute(subvars)
         elif met_filedir_name == "RETOP":
             obs_in_dir = Path(obs_dir)
-            obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
+            obs_in_fn_template = Template(
+                vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
+            ).substitute(subvars)
         else:
             raise ValueError(f"Invalid field group for GridStat ensprob: {field_group}")
         fcst_in_dir = Path(exptdir, cdate, "metprd", "GenEnsProd")
@@ -87,7 +104,9 @@ def gridstat_or_pointstat_ensprob(
         metplus_tool_name = "point_stat"
         metplus_tool_camel_case = "PointStat"
         obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
-        obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+        obs_in_fn_template = Template(
+            vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+        ).substitute(subvars)
         fcst_in_dir = Path(exptdir, cdate, "metprd", "GenEnsProd")
 
     else:
