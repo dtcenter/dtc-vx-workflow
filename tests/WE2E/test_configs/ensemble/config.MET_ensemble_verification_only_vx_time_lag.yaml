@@ -31,3 +31,9 @@ verification:
   VX_NDIGITS_ENSMEM_NAMES: 1
   FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
   VX_MASK: ["CONUS"]
+  VX_TASKS: 6
+gridstat:
+  TASKS: 6
+pointstat:
+  TASKS: 6
+

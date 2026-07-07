@@ -49,9 +49,9 @@ metatask_GridStat_APCP_all_accums_all_mems:
         ENSMEM_INDX: "#mem#"
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.deterministic.gridstat.tasks_per_node }}'
-      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
+      memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
           taskdep_pcpcombine_obs:
@@ -83,9 +83,9 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
         ENSMEM_INDX: "#mem#"
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.deterministic.gridstat.tasks_per_node }}'
-      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
+      memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
           taskdep_pcpcombine_obs:
@@ -113,9 +113,9 @@ metatask_GridStat_REFC_RETOP_all_mems:
         ENSMEM_INDX: "#mem#"
         FCST_LEVEL: 'L0'
         FCST_THRESH: 'all'
-      memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.deterministic.gridstat.tasks_per_node }}'
-      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
+      memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
           # Check that the flag files that indicate that the get_obs_mrms tasks
@@ -155,9 +155,9 @@ metatask_PointStat:
         ENSMEM_INDX: "#mem#"
         FCST_LEVEL: 'all'
         FCST_THRESH: 'all'
-      memory: '{{  verification_resources.execution.deterministic.gridstat.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.deterministic.pointstat.tasks_per_node }}'
-      walltime: "{{ verification_resources.execution.deterministic.pointstat.walltime }}"
+      memory: '{{  pointstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.execution.tasks_per_node }}'
+      walltime: "{{ pointstat.execution.walltime }}"
       dependency:
         and:
           # Check that the flag files that indicate that the Pb2NC tasks are

@@ -292,10 +292,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'vx_config_dict': vx_config_dict
                }
 
-    if field_group == "UPA":
-        numprocs=math.ceil(vxcfg['VX_TASKS']/2)
-    else:
-        numprocs=vxcfg['VX_TASKS']
+    numprocs = cfg[metplus_tool_camel_case.lower()]["TASKS"]
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
@@ -313,7 +310,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
 
 def run_metplus(common_config,config_fn):
-    """Calls the run_metplus script as a subprocess. If VX_TASKS > 1 and vx_leadhr_list > 1,
+    """Calls the run_metplus script as a subprocess. If TASKS > 1 and vx_leadhr_list > 1,
     calls in with starmap for the number of tasks specified."""
 
     # Run METplus

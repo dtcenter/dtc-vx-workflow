@@ -42,3 +42,7 @@ verification:
   VX_FCST_INPUT_BASEDIR: '{{ "%s/%s" % (platform.STAGED_DATA, verification.VX_FCST_MODEL_NAME) }}'
   FCST_FN_TEMPLATE: 'mpashn4nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%H?shift=${time_lag}}.grib2'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'mpashn4nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'
+gridstat:
+  TASKS: 4
+pointstat:
+  TASKS: 4

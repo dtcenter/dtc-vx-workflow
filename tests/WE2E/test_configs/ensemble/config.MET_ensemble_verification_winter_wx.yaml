@@ -24,4 +24,8 @@ verification:
   VX_TASKS: 4
   VX_MASK: ["CONUS"]
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+gridstat:
+  TASKS: 4
+pointstat:
+  TASKS: 4
 
