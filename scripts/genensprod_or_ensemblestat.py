@@ -231,16 +231,19 @@ def genensprod_or_ensemblestat(
         "vx_config_dict": vx_config_dict,
     }
 
-    numprocs = 1
-    conf_files = render_metplus_confs(
-        cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
-    )
+    numprocs=vxcfg['VX_TASKS']
+
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus")
-    common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    mpargs = []
+    for config_fn in conf_files:
+        mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    # Call run_metplus function for as many processors as specified
+        lgr.debug(f"{mpargs=}")
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])
+        pool.starmap(run_metplus,mpargs)
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
