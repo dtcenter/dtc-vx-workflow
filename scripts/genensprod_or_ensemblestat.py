@@ -76,8 +76,9 @@ def genensprod_or_ensemblestat(
     vxcfg = cfg["verification"]
     enscfg = cfg["ensemble"]
 
-    if not Path(obs_dir).is_dir():
-        raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
+    if metplus_tool_name == "ensemble_stat":
+        if not Path(obs_dir).is_dir():
+            raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
 
     geom, _, _, met_out_name, met_filedir_name = set_vx_params(obtype, field_group, accum_hh)
 
