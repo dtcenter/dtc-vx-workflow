@@ -170,7 +170,7 @@ def mode(config_file,cdate,field_group,obtype):
                'merge_flag': modecfg["MERGE_FLAG"],
                }
 
-    numprocs=modecfg['TASKS']
+    numprocs=int(modecfg['TASKS'])
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,
                                       len(vx_leadhr_list))
     lgr.debug(f"{conf_files=}")

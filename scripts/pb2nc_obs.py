@@ -113,7 +113,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
         settings,
         metplus_config_tmpl_fn,
         vx_leadhr_list,
-        vxcfg["VX_TASKS"],
+        int(vxcfg["VX_TASKS"]),
     )
 
     # Run METplus for each generated config file

@@ -292,7 +292,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'vx_config_dict': vx_config_dict
                }
 
-    numprocs = cfg[metplus_tool_camel_case.lower()]["TASKS"]
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
