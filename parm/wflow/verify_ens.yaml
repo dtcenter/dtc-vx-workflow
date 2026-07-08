@@ -43,7 +43,9 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       FCST_LEVEL: 'A#ACCUM_HH#'
       FCST_THRESH: 'all'
       OMP_NUM_THREADS: 4
-    walltime: "{{ verification_resources.execution.ensemble.genensprod.default.walltime }}"
+    memory: '{{ genensprod.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
+    walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       metataskdep_pcpcombine_fcst:
         attrs:
@@ -54,7 +56,9 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       <<: *envars_GenEnsProd_CCPA
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_THRESH: 'none'
-    walltime: "{{ verification_resources.execution.ensemble.ensemblestat.walltime }}"
+    memory: '{{ ensemblestat.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
+    walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_ccpa: &taskdep_pcpcombine_obs_ccpa
@@ -80,7 +84,9 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       FCST_LEVEL: 'A#ACCUM_HH#'
       FCST_THRESH: 'all'
       OMP_NUM_THREADS: 4
-    walltime: "{{ verification_resources.execution.ensemble.genensprod.default.walltime }}"
+    memory: '{{ genensprod.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
+    walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       and:
         metataskdep_pcpcombine_fcst:
@@ -92,7 +98,9 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       <<: *envars_GenEnsProd_NOHRSC
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_THRESH: 'none'
-    walltime: "{{ verification_resources.execution.ensemble.ensemblestat.walltime }}"
+    memory: '{{ ensemblestat.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
+    walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_nohrsc: &taskdep_pcpcombine_obs_nohrsc
@@ -118,7 +126,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       FCST_LEVEL: 'L0'
       FCST_THRESH: 'all'
       OMP_NUM_THREADS: 4
-    walltime: "{{ verification_resources.execution.ensemble.genensprod.default.walltime }}"
+    memory: '{{ genensprod.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
+    walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       and:
         metataskdep_check_post_output: &check_post_output
@@ -131,7 +141,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_LEVEL: 'L0'
       FCST_THRESH: 'none'
-    walltime: "{{ verification_resources.execution.ensemble.ensemblestat.walltime }}"
+    memory: '{{ ensemblestat.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
+    walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
         sh_mrms_obs_available: &all_get_obs_mrms_complete
@@ -161,7 +173,9 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
       FCST_LEVEL: 'all'
       FCST_THRESH: 'all'
       OMP_NUM_THREADS: 4
-    walltime: "{{ verification_resources.execution.ensemble.genensprod.default.walltime }}"
+    memory: '{{ genensprod.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
+    walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       metataskdep_check_post_output:
          <<: *check_post_output
@@ -170,7 +184,9 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     envars:
       <<: *envars_GenEnsProd_NDAS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
-    walltime: "{{ verification_resources.execution.ensemble.ensemblestat.walltime }}"
+    memory: '{{ ensemblestat.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
+    walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
         # Check that the flag files that indicate that the Pb2NC tasks
