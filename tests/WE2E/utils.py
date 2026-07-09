@@ -140,6 +140,8 @@ def create_expts_dict(expt_dir: str, delay: int = 5):
                 vardefs = get_yaml_config(vardefs_file)
                 rocoto_path = flatten_dict(vardefs).get("ROCOTO_PATH", "")
                 expts_dict[item].update({"rocoto_path": rocoto_path})
+            else:
+                logging.warning(f"Could not read variable definitions file {vardefs_file}")
         else:
             logging.debug(f'Skipping directory {item}, experiment XML file not found')
             continue
