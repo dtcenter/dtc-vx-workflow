@@ -60,7 +60,7 @@ def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=No
                 "valid": validdate,
                 "lead": leadsec,
                 "time_lag": time_lag,
-                "basin": basin if basin is not None else None,
+                "basin": basin,
                 "cyclone": str(cyclone) if cyclone is not None else None,
             }.items()
             if v is not None}

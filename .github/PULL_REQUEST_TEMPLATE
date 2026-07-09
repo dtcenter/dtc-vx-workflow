@@ -22,7 +22,7 @@
 - [ ] Text only (documentation, README files, code comments, etc.)
 
 ## TESTS CONDUCTED: 
-<!-- Explicitly state what tests were run on these changes, or if any are still pending (for README or other text-only changes, just put "None required"). Make note of the platform/machine, and other relevant details as necessary. For more complicated changes, or those resulting in scientific changes, please be explicit! -->
+<!-- Explicitly state what tests were run on these changes, or if any are still pending (for README or other text-only changes, just put "None required"). Make note of the platform/machine and other relevant details as necessary. For more complicated changes, or those resulting in scientific changes, please be explicit! -->
 <!-- Add an X to check off a box. -->
 
 - [ ] derecho
@@ -30,6 +30,7 @@
 - [ ] hercules
 - [ ] orion
 - [ ] ursa
+- [ ] other (describe)
 
 ## DEPENDENCIES:
 <!-- Add any links to PRs (internal or external) that must be merged before this one. For example:

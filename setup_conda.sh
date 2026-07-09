@@ -8,7 +8,9 @@
 # (conda_loc, conda/, environment.yml) work regardless of the caller's CWD.
 SCRIPT_DIR=$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-# Check for existing conda/ subdirectory from previous installations
+# If the conda location file does not exist but a conda installation exists under
+# dtc-vx-workflow/ from a previous installation, check if user wants to use it.
+# This is a legacy check for environments created with an older version of this script
 if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
   echo "Found existing conda installation in conda/ subdirectory"
   read -p "Do you want to use the existing conda build? (y/n) " -r
@@ -20,7 +22,7 @@ if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
   fi
 fi
 
-# Check if conda location file exists
+# Check if user has an existing system-level conda install
 USE_SYSTEM_CONDA=false
 if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && command -v conda &> /dev/null ; then
   CONDA_BASE=$(conda info --base)
