@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timedelta
 from python_utils import setup_logging
 
-def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=None, cyclone=None,skip_missing_tags=True):
+def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=None, basin=None, cyclone=None,skip_missing_tags=True):
     """
     Calls native METplus routine for evaluating filename templates
 
@@ -16,6 +16,7 @@ def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=No
                            seconds are optional.
         lhr         (int): [optional] Lead hour (number of hours since init_time)
         time_lag    (int): [optional] Hours of time lag for a time-lagged ensemble member
+        basin       (str): [optional] The basin ID for a given tropical cyclone
         cyclone     (int): [optional] The cyclone number for a given tropical cyclone
     Returns:
         str: The fully resolved filename based on the input parameters
@@ -48,7 +49,7 @@ def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=No
             leadsec=lhr*3600
     # Evaluate the METplus timestring template for the current lead hour
     lgr.debug("Resolving METplus template for:")
-    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{cyclone=}\n")
+    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{basin=}\n{cyclone=}\n")
     # Return the full path with templates resolved
     return sts.do_string_sub(
         tmpl=fn_template,
@@ -59,13 +60,14 @@ def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=No
                 "valid": validdate,
                 "lead": leadsec,
                 "time_lag": time_lag,
+                "basin": basin,
                 "cyclone": str(cyclone) if cyclone is not None else None,
             }.items()
             if v is not None}
     )
 
 
-def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=None, cyclone=None, skip_missing_tags=True):
+def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=None, basin=None, cyclone=None, skip_missing_tags=True):
     """
     Calls native METplus routine for evaluating filename templates with Datetime objects as input
 
@@ -74,6 +76,7 @@ def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=No
         initdate     (dt): Datetime object of initial time
         validdate    (dt): [optional] Datetime object for valid time
         time_lag    (int): [optional] Hours of time lag for a time-lagged ensemble member
+        basin       (str): [optional] The basin ID for a given tropical cyclone
         cyclone     (int): [optional] The cyclone number for a given tropical cyclone
     Returns:
         str: The fully resolved filename based on the input parameters
@@ -95,7 +98,7 @@ def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=No
         leadsec=lead.total_seconds()
     # Evaluate the METplus timestring template for the current lead hour
     lgr.debug("Resolving METplus template for:")
-    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{cyclone=}\n")
+    lgr.debug(f"{fn_template=}\ninit={initdate}\nvalid={validdate}\nlead={leadsec}\n{time_lag=}\n{basin=}\n{cyclone=}\n")
     # Return the full path with templates resolved
     return sts.do_string_sub(
         tmpl=fn_template,
@@ -106,6 +109,7 @@ def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=No
                 "valid": validdate,
                 "lead": leadsec,
                 "time_lag": time_lag,
+                "basin": basin if basin is not None else None,
                 "cyclone": str(cyclone) if cyclone is not None else None,
             }.items()
             if v is not None}

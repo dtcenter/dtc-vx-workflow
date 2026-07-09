@@ -24,4 +24,5 @@ platform:
   MET_BASE: /glade/work/epicufsrt/contrib/spack-stack/derecho/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/oneapi/2024.2.1/
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-5iaknzd'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-n77beh6'
+  ROCOTO_PATH: '/glade/work/epicufsrt/contrib/derecho/rocoto-1.3.7/bin'
 

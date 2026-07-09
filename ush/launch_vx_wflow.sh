@@ -106,7 +106,7 @@ expt_name="${EXPT_SUBDIR}"
 #
 machine=$(echo_lowercase $MACHINE)
 
-. ${USHdir}/load_modules_wflow.sh ${machine}
+source ${USHdir}/../setup_conda.sh
 
 #
 #-----------------------------------------------------------------------
@@ -147,7 +147,7 @@ cd "$exptdir"
 #-----------------------------------------------------------------------
 #
 tmp_fn="rocotorun_output.txt"
-rocotorun_cmd="rocotorun -w \"${WFLOW_XML_FN}\" -d \"${rocoto_database_fn}\" -v 10"
+rocotorun_cmd="$ROCOTO_PATH/rocotorun -w \"${WFLOW_XML_FN}\" -d \"${rocoto_database_fn}\" -v 10"
 eval ${rocotorun_cmd} > ${tmp_fn} 2>&1 || \
   print_err_msg_exit "\
 Call to \"rocotorun\" failed with return code $?."
@@ -172,7 +172,7 @@ done <<< "${rocotorun_output}"
 #
 #-----------------------------------------------------------------------
 #
-rocotostat_cmd="rocotostat -w \"${WFLOW_XML_FN}\" -d \"${rocoto_database_fn}\" -v 10"
+rocotostat_cmd="$ROCOTO_PATH/rocotostat -w \"${WFLOW_XML_FN}\" -d \"${rocoto_database_fn}\" -v 10"
 rocotostat_output=$( eval ${rocotostat_cmd} 2>&1 || \
                      print_err_msg_exit "\
 Call to \"rocotostat\" failed with return code $?."
@@ -244,7 +244,7 @@ ${rocotostat_output}
 #
 #-----------------------------------------------------------------------
 #
-rocotostat_output=$( rocotostat -w "${WFLOW_XML_FN}" -d "${rocoto_database_fn}" -v 10 -s )
+rocotostat_output=$( $ROCOTO_PATH/rocotostat -w "${WFLOW_XML_FN}" -d "${rocoto_database_fn}" -v 10 -s )
 
 regex_search="^[ ]*([0-9]+)[ ]+([A-Za-z]+)[ ]+.*"
 cycle_str=()

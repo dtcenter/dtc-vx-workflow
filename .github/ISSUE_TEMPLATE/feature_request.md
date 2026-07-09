@@ -22,13 +22,9 @@ Please search on the [Issue tracker](https://github.com/ufs-community/ufs-srweat
 ## Solution
 <!-- Add a clear and concise description of the proposed solution. -->
 
-## Requirements**
-<!-- What does the new code need to accomplish? Does it require an update 
-to a version of software (e.g. modules of NCEPLibs, NetCDF, etc.), components 
-(e.g. UFS-Weather-Model), or system tools (e.g. python3) -->
-
-## Acceptance Criteria (Definition of Done)
-<!-- What does it mean for this feature to be finished? -->
+## Requirements
+<!-- What does the new code need to accomplish? Does it require a specific/newer
+version of MET/METplus? -->
 
 ## Dependencies (optional)
 <!-- Directly reference any issues or PRs in this or other repositories that this 

@@ -271,6 +271,8 @@ def fill_template(template_str, cycle_date, templates_only=False, **kwargs):
     """
  
     # Parse keyword args
+    basin = kwargs.get("basin","al")
+    cyclone = kwargs.get("cyclone","00")
     ens_group = kwargs.get("ens_group")
     fcst_hr = kwargs.get("fcst_hr", 0)
     mem = kwargs.get("mem", "")
@@ -296,6 +298,8 @@ def fill_template(template_str, cycle_date, templates_only=False, **kwargs):
         bin6=bin6,
         ens_group=ens_group,
         fcst_hr=fcst_hr,
+        basin=basin,
+        cyclone=cyclone,
         dd=cycle_date.strftime("%d"),
         fdd=f_date.strftime("%d"),
         hh=cycle_hour,
@@ -509,6 +513,8 @@ def get_requested_files(cla, file_templates, input_locs, method="disk", **kwargs
                         cla.cycle_date,
                         fcst_hr=fcst_hr,
                         mem=mem,
+                        basin=cla.basin,
+                        cyclone=cla.cyclone,
                     )
                     input_loc = os.path.join(template_loc, template)
                     logging.info(f"Getting file: {input_loc}")
@@ -1146,9 +1152,21 @@ def parse_args(argv):
         type=to_datetime,
     )
     parser.add_argument(
+        "--basin",
+        help="The 2-letter basin ID, e.g. for files related to cyclone tracks",
+        required=False,
+        default="al",
+    )
+    parser.add_argument(
+        "--cyclone",
+        help="The 2-digit cyclone ID, e.g. for files related to cyclone tracks",
+        required=False,
+        default="00",
+    )
+    parser.add_argument(
         "--data_stores",
         help="List of priority data_stores. Tries first list item \
-        first. Choices: hpss, nomads, aws, http, disk, remote.",
+        first. Choices: hpss, nomads, aws, ftp, http, disk, remote.",
         nargs="*",
         required=True,
         type=to_lower,
@@ -1263,7 +1281,7 @@ def parse_args(argv):
               f"argument when --file_set = {args.file_set}")
 
     # Check valid arguments for various conditions
-    valid_data_stores = ["hpss", "nomads", "aws", "http", "disk", "remote"]
+    valid_data_stores = ["hpss", "nomads", "aws", "ftp", "http", "disk", "remote"]
     for store in args.data_stores:
         if store not in valid_data_stores:
             raise argparse.ArgumentTypeError(f"Invalid value '{store}' provided " \

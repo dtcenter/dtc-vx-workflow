@@ -8,5 +8,5 @@ class Testing(unittest.TestCase):
     """ Define the tests"""
     def test_get_crontab_contents(self):
         """ Call the function and make sure it doesn't fail. """
-        crontab_cmd, _ = get_crontab_contents(called_from_cron=True,machine="HERA",debug=True)
+        crontab_cmd, _ = get_crontab_contents(called_from_cron=True,machine="HERA")
         self.assertEqual(crontab_cmd, "crontab")

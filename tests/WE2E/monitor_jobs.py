@@ -101,7 +101,7 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
                         i=j=0
                         for task in running_expts[expt]:
                             # Skip non-task entries
-                            if task in ["expt_dir","status","start_time","walltime"]:
+                            if task in ["expt_dir","status","start_time","walltime","rocoto_path"]:
                                 continue
                             j+=1
                             if running_expts[expt][task]["status"] == "SUCCEEDED":

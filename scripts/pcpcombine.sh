@@ -295,10 +295,12 @@ mkdir -p "${OUTPUT_DIR}"
 #
 #-----------------------------------------------------------------------
 #
-if [ ! -d "${OBS_DIR}" ]; then
-  print_err_msg_exit "\
-OBS_DIR does not exist or is not a directory:
-  OBS_DIR = \"${OBS_DIR}\""
+if [ "${FCST_OR_OBS}" = "OBS" ]; then
+  if [ ! -d "${OBS_DIR}" ]; then
+    print_err_msg_exit "\
+  OBS_DIR does not exist or is not a directory:
+    OBS_DIR = \"${OBS_DIR}\""
+  fi
 fi
 #
 #-----------------------------------------------------------------------
