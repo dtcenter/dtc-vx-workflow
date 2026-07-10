@@ -52,24 +52,6 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-# Source the file containing the function that determines whether or not
-# a specified variable is an array.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/is_array.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that creates a symlink to a
-# file (including performing checks).
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/create_symlink_to_file.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file that sources YAML files as if they were bash
 #
 #-----------------------------------------------------------------------
