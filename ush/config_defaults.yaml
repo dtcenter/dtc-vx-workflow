@@ -998,7 +998,7 @@ gridstat:
     walltime: 01:00:00
     memory: '{{ 2 * gridstat.TASKS }}G'
   # Number of GRIDSTAT instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 pointstat:
   # Runtime settings for POINTSTAT jobs
@@ -1007,7 +1007,7 @@ pointstat:
     walltime: 01:00:00
     memory: '{{ 2 * pointstat.TASKS }}G'
   # Number of POINTSTAT instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 point2grid:
   execution:
@@ -1022,7 +1022,7 @@ point2grid:
   # 3: no retrieval quality flag
   GOES_QC_FLAGS: '0,1'
   # Number of POINT2GRID instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 genensprod:
   # Runtime settings for GenEnsProd jobs
@@ -1031,7 +1031,7 @@ genensprod:
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
   # Number of GenEnsProd instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
@@ -1040,16 +1040,16 @@ ensemblestat:
     walltime: 01:00:00
     memory: '{{ 2 * ensemblestat.TASKS }}G'
   # Number of EnsembleStat instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
   execution:
     tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
-    memory: '{{ 10 * regriddataplane.TASKS }}G'
+    memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
   # Number of REGRIDDATAPLANE instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
   
   # Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
   REGRID_METHOD: MAXGAUSS
@@ -1068,7 +1068,7 @@ mode:
     # Memory to allocate to MODE job
     memory: '{{ 10 * mode.TASKS }}G'
   # Number of MODE instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
   # For more information on MODE variables see the MODE documentation:
   # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html
