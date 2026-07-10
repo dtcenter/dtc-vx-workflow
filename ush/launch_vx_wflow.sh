@@ -104,7 +104,8 @@ expt_name="${EXPT_SUBDIR}"
 #
 #-----------------------------------------------------------------------
 #
-machine=$(echo_lowercase $MACHINE)
+# Convert machine name to lowercase
+machine="${MACHINE,,}"
 
 source ${USHdir}/../setup_conda.sh
 

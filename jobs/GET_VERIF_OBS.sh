@@ -77,6 +77,7 @@ echo "CALLING: ${cmd[*]}"
 #-----------------------------------------------------------------------
 #
 mkdir -p ${WFLOW_FLAG_FILES_DIR}
-file_bn="get_obs_$(echo_lowercase ${OBTYPE})"
+# ${VARNAME,,} converts contents of VARNAME to lowercase
+file_bn="get_obs_${OBTYPE,,}"
 touch "${WFLOW_FLAG_FILES_DIR}/${file_bn}_${YYMMDD}_complete.txt"
 
