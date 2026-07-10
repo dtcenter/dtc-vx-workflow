@@ -52,67 +52,12 @@ function source_util_funcs() {
 #
 #-----------------------------------------------------------------------
 #
-# Source the file containing the function that checks for preexisting 
-# directories or files and handles them according to a specified method
-# (which can be one of "delete", "rename", and "quit").
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/check_for_preexist_dir_file.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that searches an array for a
-# specified string.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/is_element_of.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that gets the indices of those
-# elements of an array that match a given string.
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/get_elem_inds.sh
-#
-#-----------------------------------------------------------------------
-#
 # Source the file containing the function that determines whether or not
 # a specified variable is an array.
 #
 #-----------------------------------------------------------------------
 #
   . ${bashutils_dir}/is_array.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that checks the validity of a
-# variable's value (given a set of valid values).
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/check_var_valid_value.sh
-#
-#-----------------------------------------------------------------------
-#
-# 
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/print_input_args.sh
-#
-#-----------------------------------------------------------------------
-#
-# Source the file containing the function that processes a list of argu-
-# ments to a script or function, where the list is comprised of a set of
-# argument name-value pairs, e.g. arg1="value1", ...
-#
-#-----------------------------------------------------------------------
-#
-  . ${bashutils_dir}/process_args.sh
 #
 #-----------------------------------------------------------------------
 #

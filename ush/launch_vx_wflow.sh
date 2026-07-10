@@ -70,23 +70,23 @@ export USHdir=$USHdir
 #
 #-----------------------------------------------------------------------
 #
-# Declare arguments.
+# Parse arguments.
 #
 #-----------------------------------------------------------------------
 #
-valid_args=( \
-  "called_from_cron" \
-  )
-process_args valid_args "$@"
-print_input_args "valid_args"
-#
-#-----------------------------------------------------------------------
-#
-# Make sure called_from_cron is set to a valid value.
-#
-#-----------------------------------------------------------------------
-#
-called_from_cron=${called_from_cron:-"False"}
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --called_from_cron=*)
+      called_from_cron="${1#*=}"
+      ;;
+    *)
+      printf "******************************\n"
+      printf "* Error: Invalid argument $1.*\n"
+      printf "******************************\n"
+      exit 1
+  esac
+  shift
+done
 #
 #-----------------------------------------------------------------------
 #
