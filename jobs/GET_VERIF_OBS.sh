@@ -50,7 +50,7 @@ scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
-print_info_msg "
+printf "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
@@ -66,7 +66,7 @@ cmd=(
       --obtype "${OBTYPE}"
       --obs_day "${YYMMDD}"
 )
-echo "CALLING: ${cmd[*]}"
+printf "CALLING: ${cmd[*]}"
 "${cmd[@]}" || print_err_msg_exit "Error calling get_obs.py"
 #
 #-----------------------------------------------------------------------

@@ -119,12 +119,13 @@ where the arguments are defined as follows:
         old_dir_or_file="${dir_or_file}_old${old_indx}"
       done
 
-      print_info_msg "$VERBOSE" "
+      if [ "$VERBOSE" -eq "True" ]; then
+      echo "
 Specified directory or file (dir_or_file) already exists:
   dir_or_file = \"${dir_or_file}\"
 Moving (renaming) preexisting directory or file to:
   old_dir_or_file = \"${old_dir_or_file}\""
-
+      fi
       mv "${dir_or_file}" "${old_dir_or_file}"
       ;;
 #

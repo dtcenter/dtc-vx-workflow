@@ -160,14 +160,16 @@ have been set as follows:
 #-----------------------------------------------------------------------
 #
 # If a global variable named DEBUG is not defined, print out the message.  
-# If it is defined, print out the message only if DEBUG is set to "TRUE".
+# If it is defined, print out the message only if DEBUG is set to "True".
 #
 #-----------------------------------------------------------------------
 #
   if [ -z ${DEBUG+x} ]; then
-    print_info_msg "$msg"
+    printf "$msg"
   else
-    print_info_msg "$DEBUG" "$msg"
+    if [ "${DEBUG}" -eq "True" ]; then
+      printf "$msg"
+    fi
   fi
 
 }
