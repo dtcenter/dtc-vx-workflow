@@ -33,7 +33,7 @@ verification:
   VX_MASK: ["CONUS"]
   VX_TASKS: 6
 gridstat:
-  TASKS: 6
-pointstat:
-  TASKS: 6
+  TASKS: 8
+genensprod:
+  TASKS: 8
 
