@@ -271,7 +271,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         workflow_config["VERBOSE"] = True
 
     # The forecast length (in integer hours) cannot contain more than 3 characters.
-    # Thus, its maximum value is 999.
     fcst_len_hrs_max = 999
     fcst_len_hrs = workflow_config["FCST_LEN_HRS"]
     if fcst_len_hrs > fcst_len_hrs_max:
@@ -430,6 +429,39 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # intervals from integer to datetime.timedelta objects.
     fcst_len_dt = datetime.timedelta(hours=fcst_len_hrs)
     vx_fcst_output_intvl_dt = datetime.timedelta(hours=vx_fcst_output_intvl_hrs)
+
+    # Checks for consistency in ensemble settings
+    ens_config = expt_config["ensemble"]
+    do_ensemble = ens_config["DO_ENSEMBLE"]
+
+    nummems = int(ens_config.get("NUM_ENS_MEMBERS"))
+    if nummems < 1:
+        nummems = 1
+    if do_ensemble and nummems < 2:
+        raise ValueError(f"NUM_ENS_MEMBERS must be > 1 if DO_ENSEMBLE=True\n{ens_config.get('NUM_ENS_MEMBERS')=}")
+    elif not do_ensemble and nummems > 1:
+        raise ValueError(f"NUM_ENS_MEMBERS can not be > 1 if DO_ENSEMBLE=False\n{ens_config.get('NUM_ENS_MEMBERS')=}")
+    #
+    # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
+    # If a list, ensure it's the same length as the specified ensemble size
+    #
+    fns = vx_config.get("FCST_FN_TEMPLATE")
+    if isinstance(fns, str):
+        fns = [fns]
+    if isinstance(fns, list):
+        # If list is len==1, make it len==nummems
+        if len(fns) == 1:
+            fns = fns * nummems
+        elif len(fns) != nummems:
+            logger.error(f"NUM_ENS_MEMBERS={nummems}\nFCST_FN_TEMPLATE={fns}")
+            raise ValueError("Number of entries in FCST_FN_TEMPLATE must equal the number of ensemble members!")
+    else:
+        raise TypeError("Invalid FCST_FN_TEMPLATE entry type {type(fns)}: {fns}")
+
+    # Update dictionary with modified settings
+    ens_config["NUM_ENS_MEMBERS"] = nummems
+    vx_config["FCST_FN_TEMPLATE"] = fns
+
     #
     # -----------------------------------------------------------------------
     #
@@ -702,9 +734,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             )
 
 
-    # Check to make sure that mandatory forecast variables are set.
-    ensemble_sect = expt_config["ensemble"]
-
     # create experiment dir
     Path(exptdir).mkdir(parents=True)
 
@@ -721,7 +750,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # Get the value of the configuration flag for ensemble mode (DO_ENSEMBLE)
     # and ensure that it is set to True if ensemble vx tasks are included in
     # the workflow (or vice-versa).
-    do_ensemble = ensemble_sect["DO_ENSEMBLE"]
     if (not do_ensemble) and ens_vx_tasks:
         msg = dedent(
             f"""
