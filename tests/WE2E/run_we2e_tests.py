@@ -16,6 +16,7 @@ from pathlib import Path
 from textwrap import dedent
 
 from monitor_jobs import monitor_jobs, write_monitor_file
+from utils import DEFAULT_DELAY
 
 from uwtools.api.config import get_yaml_config
 
@@ -23,8 +24,6 @@ sys.path.append("../../ush")
 # pylint: disable=wrong-import-order, wrong-import-position
 from generate_wflow import generate_wflow
 from python_utils import check_python_version
-
-
 
 def run_we2e_tests(homedir, args) -> None:
     """Runs the Workflow End-to-End (WE2E) tests selected by the user
@@ -261,7 +260,7 @@ def run_we2e_tests(homedir, args) -> None:
                 rerun_string=f"./monitor_jobs.py -y={monitor_file}"
                 if args.procs>1:
                     rerun_string+=f" -p={args.procs}"
-                if args.delay!=5:
+                if args.delay!=DEFAULT_DELAY:
                     rerun_string+=f" --delay={args.delay}"
 
                 logging.info(f"{rerun_string}\n")
@@ -510,7 +509,7 @@ if __name__ == "__main__":
         help="Explicitly set VERBOSE=TRUE for all experiments",
     )
     optional.add_argument(
-        '--delay', type=int, default=5,
+        '--delay', type=int, default=DEFAULT_DELAY,
         help='Pause this number of seconds between calls to rocotorun')
 
     user_args = ap.parse_args()

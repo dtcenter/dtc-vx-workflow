@@ -11,10 +11,10 @@ sys.path.append("../../ush")
 from python_utils import check_python_version, load_config_file
 
 from utils import calculate_core_hours, write_monitor_file, update_expt_status,\
-                  update_expt_status_parallel, print_WE2E_summary
+                  update_expt_status_parallel, print_WE2E_summary, DEFAULT_DELAY
 
 def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
-                 mode: str = 'continuous', delay: int = 5, debug: bool = False) -> str:
+                 mode: str = 'continuous', delay: int = DEFAULT_DELAY, debug: bool = False) -> str:
     """Monitors and runs jobs for the specified experiment using Rocoto
 
     Args:
