@@ -232,7 +232,7 @@ def genensprod_or_ensemblestat(
         "vx_config_dict": vx_config_dict,
     }
 
-    numprocs=int(vxcfg['VX_TASKS'])
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
