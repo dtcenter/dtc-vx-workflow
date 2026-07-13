@@ -16,8 +16,7 @@ verification:
   VX_FIELD_GROUPS: [ "AOD", "PM25", "PM10" ]
   VX_FCST_MODEL_NAME: RRFS_CONUS
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/RRFS'
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H}'
-  FCST_FN_TEMPLATE: 'rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
+  FCST_FN_TEMPLATE: '{init?fmt=%Y%m%d%H}/rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
   AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
   AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
   OBS_DATA_STORE_AERONET: http

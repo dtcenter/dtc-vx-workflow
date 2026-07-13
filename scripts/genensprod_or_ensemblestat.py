@@ -132,7 +132,7 @@ def genensprod_or_ensemblestat(
     fcst_in_fn_templates = []
     for i in range(enscfg["NUM_ENS_MEMBERS"]):
         # Build per-member forecast filename templates (comma-separated list for METplus)
-        ensmem = f"mem{str(i + 1).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+        ensmem = f"mem{str(i).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
         subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
