@@ -93,7 +93,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     lgr.debug(f"{vxcfg['VX_NDIGITS_ENSMEM_NAMES']=}")
     time_lag = 0
     if do_ens:
-        time_lag = cfg['ensemble']['ENS_TIME_LAG_HRS'][ensmem_index-1]*3600
+        time_lag = cfg['ensemble']['ENS_TIME_LAG_HRS'][ensmem_index]*3600
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
@@ -147,13 +147,13 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
             fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
+                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
         elif met_filedir_name == "RETOP":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
             fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
+                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
         else:
             raise ValueError(f"Invalid OBTYPE for GridStat: {obtype}")
 
@@ -165,7 +165,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
             fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
+                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
             met_filedir_name = "AERONET_AOD"
@@ -173,7 +173,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_AERONET_FN_TEMPLATE_ASCII2NC_OUTPUT"]
             fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"]).substitute(subvars))
+                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
         elif obtype == "AIRNOW":
             # AIRNOW format has slightly different names for different tasks, and also differs
             # based on ob source
