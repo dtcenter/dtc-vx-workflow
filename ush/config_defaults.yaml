@@ -944,13 +944,18 @@ verification:
   # METplus template for the name of the subdirectory containing forecast
   # files to use as inputs to the verification tasks.
   #
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'
+  FCST_SUBDIR_TEMPLATE: ''
+  #
   #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
   # to the verification tasks. This can be a string for deterministic runs
   # or ensembles with a uniform naming template; otherwise, this should be
   # a list of strings with length equal to the number of ensemble members
+  #
+  # If your directory structure includes METplus wildcards that must be
+  # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those
+  # subdirectories should be included here rather than under VX_FCST_INPUT_BASEDIR
   # 
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
   #
