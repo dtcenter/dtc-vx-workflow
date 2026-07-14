@@ -436,7 +436,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     nummems = int(ens_config.get("NUM_ENS_MEMBERS"))
     if nummems < 1:
-        nummems = 1
+        raise ValueError(f"NUM_ENS_MEMBERS must be > 0\n{ens_config.get('NUM_ENS_MEMBERS')=}")
     if do_ensemble and nummems < 2:
         raise ValueError(f"NUM_ENS_MEMBERS must be > 1 if DO_ENSEMBLE=True\n{ens_config.get('NUM_ENS_MEMBERS')=}")
     elif not do_ensemble and nummems > 1:
