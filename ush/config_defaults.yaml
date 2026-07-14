@@ -519,7 +519,7 @@ ensemble:
   #-----------------------------------------------------------------------
   #
   DO_ENSEMBLE: false
-  NUM_ENS_MEMBERS: 0
+  NUM_ENS_MEMBERS: 1
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
 tropical:
