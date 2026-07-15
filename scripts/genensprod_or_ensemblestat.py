@@ -145,9 +145,7 @@ def genensprod_or_ensemblestat(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).safe_substitute(subvars),
             ))
         else:
-            subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
-            fn = Template(vxcfg["FCST_FN_TEMPLATE"][i]).safe_substitute(subvars)
-            tmpl = str(Path(subdir, fn)) if subdir else fn
+            tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][i]).safe_substitute(subvars)
         fcst_in_fn_templates.append(tmpl)
     fcst_in_fn_template = ", ".join(fcst_in_fn_templates)
 

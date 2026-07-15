@@ -940,13 +940,6 @@ verification:
   #
   VX_FCST_INPUT_BASEDIR: '{{ workflow.EXPTDIR }}'
   #
-  # FCST_SUBDIR_TEMPLATE:
-  # METplus template for the name of the subdirectory containing forecast
-  # files to use as inputs to the verification tasks.
-  #
-  FCST_SUBDIR_TEMPLATE: ''
-  #
-  #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
   # to the verification tasks. This can be a string for deterministic runs

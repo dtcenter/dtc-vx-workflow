@@ -52,10 +52,8 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
             "time_lag": time_lag,
               }
 
-# Build forecast filename template, prepending subdir template if set
-    subdir = vxcfg.get("FCST_SUBDIR_TEMPLATE", "")
-    fn_template = os.path.join(subdir, vxcfg["FCST_FN_TEMPLATE"][i]) if subdir \
-                  else vxcfg["FCST_FN_TEMPLATE"][i]
+# Build forecast filename template
+    fn_template = vxcfg["FCST_FN_TEMPLATE"][i]
 
     lgr.debug(f"{fn_template=}")
     fn_template=Template(fn_template).substitute(subvars)
