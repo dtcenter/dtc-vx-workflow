@@ -70,8 +70,7 @@ def tcrmw(config_file, cdate):
         subvars = {
                 "time_lag": 0,
                   }
-        fcst_fn_template=os.path.join(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                      Template(vxcfg["FCST_FN_TEMPLATE"][0]).substitute(subvars))
+        fcst_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][0]).substitute(subvars)
         lgr.debug(f"{fcst_fn_template=}")
 
         # TCRMW does not accept "cyclone" keyword

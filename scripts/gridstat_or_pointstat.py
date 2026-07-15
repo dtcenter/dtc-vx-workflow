@@ -146,14 +146,12 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
+            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif met_filedir_name == "RETOP":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
+            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         else:
             raise ValueError(f"Invalid OBTYPE for GridStat: {obtype}")
 
@@ -164,16 +162,14 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
+            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
             met_filedir_name = "AERONET_AOD"
             obs_in_dir = Path(exptdir, "metprd", "Ascii2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_AERONET_FN_TEMPLATE_ASCII2NC_OUTPUT"]
-            fcst_in_fn_template = Path(Template(vxcfg["FCST_SUBDIR_TEMPLATE"]).substitute(subvars),
-                                       Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars))
+            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif obtype == "AIRNOW":
             # AIRNOW format has slightly different names for different tasks, and also differs
             # based on ob source
