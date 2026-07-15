@@ -135,7 +135,9 @@ task_run_MET_Pb2nc_obs_NDAS:
   envars:
     <<: *default_vars
     OBTYPE: NDAS
-  walltime: "{{ verification_resources.execution.pb2nc.walltime }}"
+  memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.execution.tasks_per_node }}'
+  walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
       datadep:

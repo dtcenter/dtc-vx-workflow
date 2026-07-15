@@ -84,13 +84,20 @@ def make_var_lists(vx_config_dict,field_group):
 
     return fcst_var_list,obs_var_list
 
-def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
+def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=None):
     """Renders metplus conf files from the appropriate template and user settings.
     If VX_TASKS > 1 and vx_leadhr_list > 1, renders a conf file for each parallel task.
-    Returns the filename(s) of metplus conf files that were rendered"""
+    Returns the filename(s) of metplus conf files that were rendered
+
+    vx_leadhr_list (list)
+    tasks (int): The number of parallel tasks to prepare conf files for
+    extra (dict): A dictionary of additional settings to append to the conf file"""
 
     logger = logging.getLogger(__name__)
 
+    # initialize extra as an empty dictionary if not provided
+    if extra is None:
+        extra={}
     num_fhrs = len(vx_leadhr_list)
     outconfs = []
     logger.debug(f"Loading METplus conf template file: {template_fn}")
@@ -117,15 +124,22 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
             if settings.get("staging_dir"):
                 settings['staging_dir'] = f"{settings['staging_dir']}.{i}"
             # For cases where things don't divide evenly, ensure we get best distribution
+            logger.debug(f"{vx_leadhr_list=}")
             if i >= remainder:
                 vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task:],vx_leadhr_list[:hours_per_task]
             else:
                 vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task+1:],vx_leadhr_list[:hours_per_task+1]
             settings['vx_leadhr_list'] = ', '.join(map(str,task_fhrs))
             logger.debug(f"Task {i} will process lead hours: {settings['vx_leadhr_list']}")
+            logger.debug(f"{vx_leadhr_list=}")
+            logger.debug(f"{settings['vx_leadhr_list']=}")
             rendered = template.render(settings)
             with open(outconf,'w', encoding="utf-8") as f:
                 f.write(rendered)
+                # Write additional lines to the end of the conf file
+                for k, v in extra.items():
+                    logger.debug(f"Adding extra line to conf file: '{k} = {v}'")
+                    f.write(f"\n{k} = {v}")
             outconfs.append(outconf)
 
     else:
@@ -141,6 +155,10 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
         rendered = template.render(settings)
         with open(outconf,'w', encoding="utf-8") as f:
             f.write(rendered)
+            # Write additional lines to the end of the conf file
+            for k, v in extra.items():
+                logge.debug(f"Adding extra line to conf file: '{k} = {v}'")
+                f.write(f"\n{k} = {v}")
         outconfs = [outconf]
 
     return outconfs

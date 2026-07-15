@@ -53,7 +53,7 @@ task_run_MODE_GOESAOD:
     <<: *default_vars
     FIELD_GROUP: 'GOESAOD'
     OBTYPE: 'GOESAOD'
-    OMP_NUM_THREADS: 4
+    OMP_NUM_THREADS: "{{ mode.execution.threads }}"
   memory: '{{  mode.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   nodes: '{{ verification_resources.execution.nodes }}:ppn={{ mode.execution.tasks_per_node }}'
   walltime: "{{ mode.execution.walltime }}"
