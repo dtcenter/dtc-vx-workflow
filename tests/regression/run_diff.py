@@ -27,6 +27,7 @@ SKIP_KEYWORDS = [
     "log.generate_wflow",
     ".conf",
     "/log/",
+    "/stage/",
 ]
 
 def main():
