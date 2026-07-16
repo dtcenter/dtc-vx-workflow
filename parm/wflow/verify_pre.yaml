@@ -130,7 +130,7 @@ task_run_MET_Pb2nc_obs_NDAS:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: cycledefs_obs_days_inst
-    maxtries: 2
+    maxtries: !int "{{ pb2nc.execution.tries }}"
   command: "&JOBSdir;/PB2NC_OBS.sh"
   envars:
     <<: *default_vars
@@ -185,7 +185,7 @@ task_run_MET_Point2Grid_GOESAOD:
   <<: *default_task_verify_pre
   attrs:
     cycledefs: forecast
-    maxtries: 2
+    maxtries: !int "{{ point2grid.execution.tries }}"
   command: "&JOBSdir;/POINT2GRID.sh"
   memory: '{{  point2grid.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   walltime: "{{ point2grid.execution.walltime }}"
