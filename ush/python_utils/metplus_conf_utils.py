@@ -119,7 +119,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
             logger.debug(f"metplus final rendered conf for task: {outconf}")
             hours_per_task,remainder = divmod(num_fhrs,tasks)
             if settings.get("staging_dir"):
-                settings['staging_dir'] = f"{settings['staging_dir']}.{i}"
+                settings['staging_dir'] = f"{str(settings['staging_dir']).rsplit('.',1)[0]}.{i}"
             # For cases where things don't divide evenly, ensure we get best distribution
             logger.debug(f"{vx_leadhr_list=}")
             if i >= remainder:
@@ -143,6 +143,8 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
         #Remove task-specific suffixes if we're only using one task
         settings['metplus_log_fn'] = settings['metplus_log_fn'].rsplit('.',1)[0]
         settings['metplus_config_fn'] = settings['metplus_config_fn'].rsplit('.',1)[0]
+        if settings.get("staging_dir"):
+            settings['staging_dir'] = f"{str(settings['staging_dir']).rsplit('.',1)[0]}"
         outconf = f"{settings['output_dir']}/{settings['metplus_config_fn']}"
         logger.debug("Rendering conf file")
         logger.debug(f"metplus log file: {settings['metplus_log_fn']}")
