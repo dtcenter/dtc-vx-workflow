@@ -55,8 +55,8 @@ def main():
     if not args.log_to_terminal:
         print(msg)
 
-    tests_baseline = get_test_paths(args.baseline, not args.diff_all_files)
-    tests_new = get_test_paths(args.test_dir, not args.diff_all_files)
+    tests_baseline = get_test_paths(args.baseline, not args.diff_inputs)
+    tests_new = get_test_paths(args.test_dir, not args.diff_inputs)
 
     all_tests = list(set(tests_baseline).union(tests_new))
     test_results = {x: TestResults() for x in all_tests}
@@ -127,7 +127,8 @@ def read_args() -> argparse.Namespace:
                         help="Directory of METplus repo to get diff_util.py (default: regression_dir/METplus)")
     parser.add_argument("--baseline",
                         help="Directory with baseline data to use for comparison (default: regression_dir/output.baseline)")
-    parser.add_argument("--diff_all_files", action="store_true",)
+    parser.add_argument("--diff_inputs", action="store_true",
+                        help="If set, run the diff utility on each output directory, which includes the input observation files.")
     parser.add_argument("--log_dir",
                         help="Directory where the log file should be saved (default: regression_dir)")
     parser.add_argument("--log_to_terminal", action="store_true",

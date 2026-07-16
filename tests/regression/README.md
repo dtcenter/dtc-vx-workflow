@@ -152,7 +152,10 @@ You can also override the location of METplus to use with the `--metplus` argume
 
 The default behavior is to run the diff utility on all files in the dated subdirectories
 under the output directory, because these are assumed to contain the actual MET output.
-The `--diff_all_files` argument can be added to run the diff utility on all files in the output directory.
+The `--diff_inputs` argument can be added to run the diff utility on each
+output directory, which includes the input observation files.
+A list of keywords to skip workflow files are defined in the `run_diff.py`
+script in the **SKIP_KEYWORDS** variable.
 
 ```
 regression_dir=/scratch3/BMC/dtc/dtc-vx-workflow_testing
