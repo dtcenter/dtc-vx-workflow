@@ -150,7 +150,9 @@ def genensprod_or_ensemblestat(
     fcst_in_fn_template = ", ".join(fcst_in_fn_templates)
 
     output_dir = Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
-    staging_dir = Path(exptdir, cdate, "stage", met_filedir_name)
+    # The ".0" will be stripped from this dirname if using only one task, otherwise
+    # it will be replaced with the task number
+    staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}.0")
     os.makedirs(output_dir, exist_ok=True)
 
     if obtype in ("CCPA", "NOHRSC"):
