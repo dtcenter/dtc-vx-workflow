@@ -142,6 +142,14 @@ python3 ./tests/regression/run_regression.py \
   --regression_dir ${regression_dir}
 ```
 
+### Running on a Subset of Tests
+
+The `--tests` argument can be provided to the `run_regression.py` script
+to define a subset of tests to run.
+The format of the argument is the same as the `--tests` argument to the
+`tests/WE2E/run_we2e_tests.py` script.
+The default behavior is to pass `--tests all` to the `run_we2e_tests.py` script.
+
 ## Running the Diff Utility
 
 To run the METplus diff utility, call the `run_diff.py` script,
@@ -152,7 +160,10 @@ You can also override the location of METplus to use with the `--metplus` argume
 
 The default behavior is to run the diff utility on all files in the dated subdirectories
 under the output directory, because these are assumed to contain the actual MET output.
-The `--diff_all_files` argument can be added to run the diff utility on all files in the output directory.
+The `--diff_inputs` argument can be added to run the diff utility on each
+output directory, which includes the input observation files.
+A list of keywords to skip workflow files are defined in the `run_diff.py`
+script in the **SKIP_KEYWORDS** variable.
 
 ```
 regression_dir=/scratch3/BMC/dtc/dtc-vx-workflow_testing
