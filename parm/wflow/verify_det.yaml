@@ -37,7 +37,7 @@ metatask_GridStat_APCP_all_accums_all_mems:
       <<: *default_task_verify_det
       attrs:
         <<: *default_attrs
-        maxtries: 2
+        maxtries: !int "{{ gridstat.execution.tries }}"
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars
@@ -71,7 +71,7 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
       <<: *default_task_verify_det
       attrs:
         <<: *default_attrs
-        maxtries: 2
+        maxtries: !int "{{ gridstat.execution.tries }}"
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars
@@ -103,6 +103,9 @@ metatask_GridStat_REFC_RETOP_all_mems:
       FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
     task_run_MET_GridStat_vx_#FIELD_GROUP#_mem#mem#:
       <<: *default_task_verify_det
+      attrs:
+        <<: *default_attrs
+        maxtries: !int "{{ gridstat.execution.tries }}"
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars
@@ -145,6 +148,9 @@ metatask_PointStat:
       mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PointStat_vx_#FIELD_GROUP#_mem#mem#:
       <<: *default_task_verify_det
+      attrs:
+        <<: *default_attrs
+        maxtries: !int "{{ pointstat.execution.tries }}"
       command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT.sh"
       envars:
         <<: *default_vars

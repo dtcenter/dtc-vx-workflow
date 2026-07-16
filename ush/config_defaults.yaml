@@ -987,9 +987,14 @@ verification:
 pb2nc:
   # Runtime settings for PB2NC jobs
   execution:
+    # Number of PB2NC tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
     tasks_per_node: '{{ gridstat.TASKS }}'
+    # Wallclock time to allocate to submitted PB2NC jobs
     walltime: 00:30:00
+    # Memory to allocate to PB2NC jobs
     memory: '{{ 2 * gridstat.TASKS }}G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   # Number of PB2NC instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -999,6 +1004,7 @@ gridstat:
     tasks_per_node: '{{ gridstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat.TASKS }}G'
+    tries: 1
   # Number of GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1008,6 +1014,7 @@ pointstat:
     tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat.TASKS }}G'
+    tries: 1
   # Number of POINTSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1033,6 +1040,7 @@ genensprod:
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
     threads: 4
+    tries: 1
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1048,6 +1056,7 @@ ensemblestat:
     walltime: 01:00:00
     memory: '{{ 2 * ensemblestat.TASKS }}G'
     threads: 4
+    tries: 1
   # Number of EnsembleStat instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1057,6 +1066,7 @@ regriddataplane:
     tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
     memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
+    tries: 1
   # Number of REGRIDDATAPLANE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
   
@@ -1070,7 +1080,7 @@ regriddataplane:
 mode:
   # Runtime settings for MODE jobs
   execution:
-    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    # Number of MODE tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
     tasks_per_node: '{{ mode.TASKS }}'
     # Wallclock time to allocate to submitted MODE job
     walltime: 01:00:00
@@ -1078,7 +1088,8 @@ mode:
     memory: '{{ 10 * mode.TASKS }}G'
     # Number of threads to assign to each task
     threads: 4
-
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   # Number of MODE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1128,6 +1139,8 @@ tcpairs:
     walltime: 00:10:00
     # Memory to allocate to TCPAIRS job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   #
   # TECH_ID_VX:
   # The identifier for the best track data to use for TCPAIRS comparison, as read in from the
@@ -1150,6 +1163,8 @@ tcstat:
     walltime: 00:10:00
     # Memory to allocate to TCSTAT job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # SUMMARY_FILE:
   # Filename for TCstat summary output
@@ -1168,6 +1183,8 @@ tcrmw:
     walltime: 00:30:00
     # Memory to allocate to TCRMW job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # OUTPUT_TEMPLATE:
   # Template for output file(s) from TCRMW. {cyclone} and {date} are substituted in the

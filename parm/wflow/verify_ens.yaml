@@ -1,8 +1,8 @@
 default_task_verify_ens: &default_task_verify_ens
   account: '&ACCOUNT;'
-  attrs:
+  attrs: &default_ens_attrs
     cycledefs: forecast
-    maxtries: 2
+    maxtries: 1
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
@@ -32,6 +32,9 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h: &task_GenEnsProd_CCPA
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_CCPA
       <<: *default_vars
@@ -52,6 +55,9 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
           metatask: PcpCombine_APCP#ACCUM_HH#h_all_mems
   task_run_MET_EnsembleStat_vx_APCP#ACCUM_HH#h:
     <<: *task_GenEnsProd_CCPA
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_CCPA
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
@@ -74,6 +80,9 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h: &task_GenEnsProd_NOHRSC
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NOHRSC
       <<: *default_vars
@@ -95,6 +104,9 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
             metatask: PcpCombine_ASNOW#ACCUM_HH#h_all_mems
   task_run_MET_EnsembleStat_vx_ASNOW#ACCUM_HH#h:
     <<: *task_GenEnsProd_NOHRSC
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_NOHRSC
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
@@ -117,6 +129,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_MRMS
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_MRMS
       <<: *default_vars
@@ -138,6 +153,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
             metatask: check_post_output_all_mems
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_MRMS
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_MRMS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
@@ -165,6 +183,9 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_NDAS
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NDAS
       <<: *default_vars
@@ -184,6 +205,9 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
          <<: *check_post_output
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_NDAS
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_NDAS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
