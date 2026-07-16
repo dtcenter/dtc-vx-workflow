@@ -67,7 +67,9 @@ def read_args() -> argparse.Namespace:
                         help=f"Directory to run regression tests (default: {DEFAULT_REGRESSION_DIR})")
     parser.add_argument("--clone_https", action="store_true",
                         help="Clone via https instead of ssh", )
-
+    parser.add_argument("--tests", default="all",
+                        help="Defines tests to run (default: all)."
+                             " Matches format expected by run_we2e_tests.py script.")
     args = parser.parse_args()
 
     # if baseline is requested, set branch and commit to baseline values and unset pr arg
@@ -76,6 +78,11 @@ def read_args() -> argparse.Namespace:
         args.branch = BASELINE_BRANCH
         args.commit = BASELINE_COMMIT
         args.pr = None
+
+        # tests argument cannot be provided if baseline argument is requested
+        if args.tests != "all":
+            print("ERROR: Cannot specify --baseline and a subset of tests with --tests")
+            sys.exit(1)
 
     # error if pr is requested and a branch or commit is also requested
 
@@ -120,7 +127,7 @@ def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
         run_command(f"git -C {workflow_repo_dir} pull origin {args.branch}")
 
 def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path: Path):
-    print(f"Running all WE2E tests in {Path(output_path.parent.name) / output_path.name}")
+    print(f"Running WE2E tests in {Path(output_path.parent.name) / output_path.name}: {args.tests}")
 
     # Determine paths relative to the workflow repo directory
 
@@ -132,7 +139,7 @@ def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path:
     cmd = (
         f"source {workflow_repo_dir}/setup_conda.sh &&"
         f" {test_script} --account {args.account} --machine {args.machine}"
-        f" --tests all --expt_basedir {output_path}"
+        f" --tests {args.tests} --expt_basedir {output_path}"
     )
 
     print(f"RUNNING: {cmd}")
