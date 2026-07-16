@@ -1,0 +1,90 @@
+metadata:
+  description: |-
+    First attempt at verifying REFS data, now with EAS calcs and
+    a few more task-specific parallelism settings
+workflow:
+  DATE_FIRST_CYCL: '2026042712'
+  DATE_LAST_CYCL: '2026042712'
+  FCST_LEN_HRS: 42
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+  - parm/wflow/verify_pre.yaml
+  - parm/wflow/verify_det.yaml
+  - parm/wflow/verify_ens.yaml
+  EXPT_SUBDIR: REFS_test_verification_EAS_moreprocs2
+  USE_CRON_TO_RELAUNCH: false
+  EXPT_BASEDIR: rm_subdir
+  VERBOSE: true
+ensemble:
+  DO_ENSEMBLE: true
+  NUM_ENS_MEMBERS: 14
+  ENS_TIME_LAG_HRS: !list '[ 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6 ]'
+verification:
+  VX_FCST_MODEL_NAME: REFS
+  VX_FIELD_GROUPS:
+  - APCP
+  - REFC
+  - RETOP
+  - SFC
+  - UPA
+  VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/data/'
+  VX_MASK:
+  - CONUS
+  FCST_FN_TEMPLATE:
+  - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs01_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs02_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs03_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs04_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs05_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs01_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs02_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs03_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs04_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs05_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  CCPA_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/ccpa'
+  MRMS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/mrms'
+  NDAS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/ndas'
+
+  VX_TASKS: 8
+gridstat:
+  TASKS: 16
+pointstat:
+  TASKS: 8
+ensemblestat:
+  execution:
+    walltime: 02:00:00
+    memory: '120G'
+    threads: 32
+  TASKS: 30
+genensprod:
+  execution:
+    walltime: 08:00:00
+  TASKS: 30
+  conf:
+    # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
+    # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
+    # Set one of these to true to calculate EAS statistics
+    GEN_ENS_PROD_ENSEMBLE_FLAG_EAS: False
+    GEN_ENS_PROD_ENSEMBLE_FLAG_EAS_WIDTH: False
+    # A list of candidate widths (in number of gridpoints) in increasing order
+    GEN_ENS_PROD_EAS_PROB_WIDTH: '[ 3, 5, 7, 9, 11, 13, 15 ]'
+    # Valid shapes are CIRCLE or SQUARE
+    GEN_ENS_PROD_EAS_PROB_SHAPE: 'CIRCLE'
+    # A number between 0 and 1 specifying the required ratio of valid data in the neighborhood for an output value to be computed
+    GEN_ENS_PROD_EAS_PROB_VLD_THRESH: 0.0
+    # Similarity criteria parameter α: related to the amount of bias tolerated. 0.5 is recommended.
+    GEN_ENS_PROD_EAS_PROB_ALPHA: 0.5
+    # Definitions for gaussian smoother applied to raw EAS probability values
+    GEN_ENS_PROD_EAS_PROB_GAUSSIAN_DX: 81.27
+    GEN_ENS_PROD_EAS_PROB_GAUSSIAN_RADIUS: 120
+gridstat_ens:
+  execution:
+    walltime: 02:00:00
+  TASKS: 30
+user:
+  MACHINE: URSA
+  ACCOUNT: fv3lam
