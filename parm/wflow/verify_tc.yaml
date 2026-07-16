@@ -1,6 +1,6 @@
 default_task_tc: &default_task_tc
   account: '&ACCOUNT;'
-  attrs: &default_attrs
+  attrs: &default_tc_attrs
     cycledefs: forecast
     maxtries: 1
   envars: &default_vars
@@ -27,6 +27,9 @@ default_task_tc: &default_task_tc
 
 task_tcpairs:
   <<: *default_task_tc
+  attrs:
+    <<: *default_tc_attrs
+    maxtries: !int "{{ tcpairs.execution.tries }}"
   command: "&JOBSdir;/TCPAIRS.sh"
   envars:
     <<: *default_vars
@@ -43,6 +46,9 @@ task_tcpairs:
 
 task_tcstat:
   <<: *default_task_tc
+  attrs:
+    <<: *default_tc_attrs
+    maxtries: !int "{{ tcstat.execution.tries }}"
   command: "&JOBSdir;/TCSTAT.sh"
   envars:
     <<: *default_vars
@@ -60,6 +66,9 @@ task_tcstat:
 
 task_tcrmw:
   <<: *default_task_tc
+  attrs:
+    <<: *default_tc_attrs
+    maxtries: !int "{{ tcrmw.execution.tries }}"
   command: "&JOBSdir;/TCRMW.sh"
   envars:
     <<: *default_vars

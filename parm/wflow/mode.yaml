@@ -30,6 +30,7 @@ task_run_RegridDataPlane_GOESAOD:
   <<: *default_task_mode
   attrs:
     <<: *default_attrs
+    maxtries: !int "{{ regriddataplane.execution.tries }}"
   command: "&JOBSdir;/REGRIDDATAPLANE.sh"
   envars:
     <<: *default_vars
@@ -48,6 +49,7 @@ task_run_MODE_GOESAOD:
   <<: *default_task_mode
   attrs:
     <<: *default_attrs
+    maxtries: !int "{{ mode.execution.tries }}"
   command: "&JOBSdir;/MODE.sh"
   envars:
     <<: *default_vars
