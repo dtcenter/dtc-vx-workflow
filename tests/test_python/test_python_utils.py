@@ -132,6 +132,77 @@ class Testing(unittest.TestCase):
             "regional_workflow", util.get_ini_value(cfg, "regional_workflow", "repo_url")
         )
 
+    def test_parse_test_list_get_tests_to_run(self):
+        """ Test parsing of different --tests arguments formats """
+        # get all existing tests from tests/WE2E/test_configs directory
+        test_configs_dir = os.path.join(self.ushdir, os.pardir,
+                                        "tests", "WE2E", "test_configs")
+        test_categories = [f.name for f in os.scandir(test_configs_dir) if f.is_dir()]
+        we2e_tests = {}
+        for test_category in test_categories:
+            tests = [f.name[7:-5] for f in os.scandir(os.path.join(test_configs_dir, test_category))
+                     if f.is_file()]
+            we2e_tests[test_category] = tests
+
+        total_test_num = sum(len(tests) for tests in we2e_tests.values())
+        all_tests = [item for tests in we2e_tests.values() for item in tests]
+
+        # sub tests to run to test different values for --tests argument and their expected results
+        # each test contains:
+        # * name of the test to identify it if it fails
+        # * list of arguments to pass to the --tests argument
+        # * expected number of tests that were found
+        # * exception that is expected to be raised (set to None if no exception is expected)
+        # Note: number of expected tests for tests that raise exceptions are set to the expected
+        #  number of valid tests found if logic is revised to ignore/warn instead of error when a
+        #  bad value is provided, enhanced to support multiple test categories or categories in
+        #  file list files, etc. These tests are noted with "(not supported)" in the name.
+
+        test_cases = [
+            ("all", ["all"], total_test_num, None),
+            ("single test", ["MET_verification_winter_wx"], 1, None),
+            ("single test invalid", ["pizza"], 0, FileNotFoundError),
+            ("single test file name (not supported)", ["config.MET_verification_winter_wx.yaml"], 1, FileNotFoundError),
+            ("multiple tests", ["MET_verification_winter_wx", "vx-det_multicyc_fcst-overlap_ncep-hrrr"], 2, None),
+            ("all tests listed out", all_tests, total_test_num, None),
+            ("multiple tests one invalid", ["MET_verification_winter_wx", "pudding"], 1, FileNotFoundError),
+            ("subdirectory invalid", ["olives"], 0, FileNotFoundError),
+            ("2 subdirectories (not supported)", ["deterministic", "ensemble"], len(we2e_tests["deterministic"] + we2e_tests["ensemble"]), FileNotFoundError),
+        ]
+
+        # add test cases for each subdirectory - list of test names and temporary file containing list of test names
+        for test_cat, tests in we2e_tests.items():
+            test_cases.append((f"{test_cat} subdir", [test_cat], len(tests), None))
+            test_cases.append((f"file path - {test_cat} subdir", [self.create_tmp_test_file(tests)], len(tests), None))
+
+        # name of file path using temporary files
+        test_cases.append(("file path - all tests", [self.create_tmp_test_file(all_tests)], total_test_num, None))
+
+        # file path that contains an invalid test name
+        test_cases.append(("file path - invalid test name", [self.create_tmp_test_file(["MET_verification_winter_wx", "pizza"])], 1, FileNotFoundError))
+
+        # file path that contains a test category (not supported)
+        test_cases.append(("file path - category (not supported)", [self.create_tmp_test_file(["deterministic"])], len(we2e_tests["deterministic"]), FileNotFoundError))
+
+        # test both options for names_only argument to get_tests_to_run function
+        for names_only in (True, False):
+            for name, inputs, expected, exception in test_cases:
+                with self.subTest(msg=name, inputs=inputs, expected=expected):
+                    if exception:
+                        with self.assertRaises(exception):
+                            util.get_tests_to_run(inputs, names_only=names_only)
+                    else:
+                        self.assertEqual(len(util.get_tests_to_run(inputs, names_only=names_only)), expected)
+
+    def create_tmp_test_file(self, contents: list) -> str:
+        """Helper to create a temporary file and automatically schedule its deletion."""
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+            tmp.write("\n".join(contents))
+            file_path = tmp.name
+
+        self.addCleanup(os.remove, file_path)
+        return file_path
+
     def setUp(self):
         """setUp is where we do preparation for running the unittests.
         If you need to download files for running test cases, prepare common stuff
