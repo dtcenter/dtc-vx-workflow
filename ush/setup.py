@@ -165,11 +165,11 @@ def check_bad_settings(cfg):
             msg+="update your config accordingly\n\n"
         if bad:=ex.get("ensemble"):
             if bad.get("genensprod"):
-                msg+=f"verification_resources:execution:ensemble contains invalid key:\n"
+                msg+="verification_resources:execution:ensemble contains invalid key:\n"
                 msg+="genensprod settings have been moved to top-level `genensprod` section; \n"
                 msg+="update your config accordingly\n\n"
             if bad.get("ensemblestat"):
-                msg+=f"verification_resources:execution:ensemble contains invalid key:\n"
+                msg+="verification_resources:execution:ensemble contains invalid key:\n"
                 msg+="ensemblestat settings have been moved to top-level `ensemblestat` section; \n"
                 msg+="update your config accordingly\n\n"
             # No else: here since verification_resources:execution:ensemble still has valid keys
