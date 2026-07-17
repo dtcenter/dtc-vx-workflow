@@ -156,7 +156,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
             f.write(rendered)
             # Write additional lines to the end of the conf file
             for k, v in extra.items():
-                logge.debug(f"Adding extra line to conf file: '{k} = {v}'")
+                logger.debug(f"Adding extra line to conf file: '{k} = {v}'")
                 f.write(f"\n{k} = {v}")
         outconfs = [outconf]
 
