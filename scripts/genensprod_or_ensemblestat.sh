@@ -249,14 +249,16 @@ mkdir -p "${OUTPUT_DIR}"
 #
 #-----------------------------------------------------------------------
 #
-# Check for existence of top-level OBS_DIR.
+# Check for existence of top-level OBS_DIR, if necessary.
 #
 #-----------------------------------------------------------------------
 #
-if [ ! -d "${OBS_DIR}" ]; then
-  print_err_msg_exit "\
-OBS_DIR does not exist or is not a directory:
-  OBS_DIR = \"${OBS_DIR}\""
+if [ "${MetplusToolName}" = "EnsembleStat" ]; then
+  if [ ! -d "${OBS_DIR}" ]; then
+    print_err_msg_exit "\
+  OBS_DIR does not exist or is not a directory:
+    OBS_DIR = \"${OBS_DIR}\""
+  fi
 fi
 #
 #-----------------------------------------------------------------------

@@ -88,16 +88,26 @@ fi
 
 conda activate
 
-if ! conda env list | grep -q "^vx_workflow\s" ; then
-  echo "Creating vx_workflow environment..."
-  mamba env create -n vx_workflow --file "${SCRIPT_DIR}/environment.yml" --quiet
+# if first argument is vx_diff, create that environment
+# otherwise create vx_workflow
+ENV_NAME=$1
+ENV_YAML=${SCRIPT_DIR}/environment.yml
+if [ "${ENV_NAME}" == vx_diff ]; then
+  ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
 else
-  read -p "vx_workflow environment has already been built. Check for updates using environment.yml? (y/n) " -r
+  ENV_NAME=vx_workflow
+fi
+
+if ! conda env list | grep -q "^${ENV_NAME}\s" ; then
+  echo "Creating ${ENV_NAME} environment..."
+  mamba env create -n ${ENV_NAME} --file "${ENV_YAML}" --quiet
+else
+  read -p "${ENV_NAME} environment has already been built. Check for updates using environment.yml? (y/n) " -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
-    echo "Updating vx_workflow environment..."
-    mamba env update -n vx_workflow --file "${SCRIPT_DIR}/environment.yml" --prune --quiet
+    echo "Updating ${ENV_NAME} environment..."
+    mamba env update -n ${ENV_NAME} --file "${ENV_YAML}" --prune --quiet
   fi
 fi
 
-conda activate vx_workflow
+conda activate ${ENV_NAME}
