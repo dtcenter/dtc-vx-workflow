@@ -59,6 +59,7 @@ def pcpcombine(
     ensmem_index : int
         Ensemble member index (0 for deterministic, 1-based for ensemble members).
     """
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
 
     fcst_or_obs = fcst_or_obs.upper()

@@ -9,7 +9,6 @@ The script is intended to be called from jobs/GRIDSTAT_OR_POINTSTAT.sh.
 
 import argparse
 import logging
-import math
 import os
 import subprocess
 

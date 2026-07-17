@@ -10,12 +10,12 @@ The script is intended to be called from jobs/CHECK_POST_OUTPUT.sh.
 import argparse
 import logging
 import os
+from string import Template
 
 import uwtools.api.config as uwconfig
 
 from python_utils import setup_logging
 from set_leadhrs import set_leadhrs
-from string import Template
 
 
 def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:

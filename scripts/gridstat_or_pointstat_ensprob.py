@@ -53,6 +53,7 @@ def gridstat_or_pointstat_ensprob(
     fcst_thresh : str
         Forecast threshold set (usually "all" or "none").
     """
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
 
     cfg = uwconfig.get_yaml_config(config=config_file)

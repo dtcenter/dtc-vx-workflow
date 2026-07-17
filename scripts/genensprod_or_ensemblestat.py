@@ -62,6 +62,7 @@ def genensprod_or_ensemblestat(
     metplus_tool : str
         METplus tool to run: ``"GENENSPROD"`` or ``"ENSEMBLESTAT"`` (case-insensitive).
     """
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
 
     key = metplus_tool.upper()
@@ -93,7 +94,7 @@ def genensprod_or_ensemblestat(
     if geom == "grid":
         if "APCP" in met_filedir_name:
             obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
-            obs_in_fn_template = Template(   
+            obs_in_fn_template = Template(
                 vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
             ).substitute(subvars)
             fcst_in_dir = Path(exptdir)
