@@ -155,7 +155,7 @@ The default behavior is to pass `--tests all` to the `run_we2e_tests.py` script.
 To run the METplus diff utility, call the `run_diff.py` script,
 passing the path to the output directory of the end-to-end tests.
 By default, the output.baseline directory is used as the baseline.
-You can override this by passing the `--baseline` argument.
+You can override this by passing the `--baseline_dir` argument.
 You can also override the location of METplus to use with the `--metplus` argument.
 
 The default behavior is to run the diff utility on all files in the dated subdirectories

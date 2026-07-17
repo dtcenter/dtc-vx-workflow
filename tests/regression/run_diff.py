@@ -11,11 +11,20 @@ from datetime import datetime
 
 from regression_common import DEFAULT_REGRESSION_DIR, NOT_RUN
 
+# get function from WE2E script to get tests to run
+
+USH_DIR = Path(__file__).absolute().parents[2] / "ush"
+sys.path.insert(0, str(USH_DIR))
+
+from python_utils.parse_test_list import get_tests_to_run, get_pretty_list
+
+# class to store test results - status and any details regarding differences
 @dataclass
 class TestResults:
     status: str = NOT_RUN
-    details: str = ""
+    details: str = "No details to report"
 
+# keywords to search in file paths to skip diff if found
 SKIP_KEYWORDS = [
     "vx_wflow.xml",
     "var_defns.yaml",
@@ -40,43 +49,31 @@ def main():
         print(f"ERROR: METplus directory does not exist: {args.metplus}")
         sys.exit(1)
 
-    success = True
-
     sys.path.insert(0, str(args.metplus))
     from metplus.util import diff_util
     diff_util.SKIP_KEYWORDS = SKIP_KEYWORDS
 
+    tests_to_diff = get_tests_to_run(args.tests, names_only=True)
+
     msg = (
         "Running diff tests"
-        f"\nBASELINE: {Path(args.baseline).resolve()}"
+        f"\nBASELINE: {Path(args.baseline_dir).resolve()}"
         f"\nNEW     : {Path(args.test_dir).resolve()}"
+        f"\n\nTests to Diff:\n{get_pretty_list(tests_to_diff)}"
+        f"\n\nUsing SKIP_KEYWORDS:\n{get_pretty_list(SKIP_KEYWORDS)}\n"
     )
     logging.info(msg)
     if not args.log_to_terminal:
         print(msg)
 
-    tests_baseline = get_test_paths(args.baseline, not args.diff_inputs)
-    tests_new = get_test_paths(args.test_dir, not args.diff_inputs)
-
-    all_tests = list(set(tests_baseline).union(tests_new))
-    test_results = {x: TestResults() for x in all_tests}
-
-    # set tests that are not found in either baseline or new output to failed
-    not_in_baseline = [x for x in tests_new if x not in tests_baseline]
-    not_in_new = [x for x in tests_baseline if x not in tests_new]
-    for test_name in not_in_baseline:
-        test_results[test_name].status = 'FAILED (not in baseline)'
-        success = False
-    for test_name in not_in_new:
-        test_results[test_name].status = 'FAILED (not in new output)'
-        success = False
+    test_results = init_test_results(tests_to_diff, args)
 
     for test_name, test_result in test_results.items():
         if test_result.status != NOT_RUN:
             continue
 
         print(f"Diffing {test_name}...")
-        baseline_test = Path(args.baseline) / test_name
+        baseline_test = Path(args.baseline_dir) / test_name
         new_test = Path(args.test_dir) / test_name
 
         # create text stream to capture diff output for each test
@@ -91,20 +88,23 @@ def main():
             test_result.status = 'SUCCEEDED'
             continue
 
-        test_result.status = 'FAILED'
-        success = False
+        test_result.status = 'FAILED (diffs found)'
+
+    longest_test_len = len(max(test_results, key=len))
 
     logging.info("SUMMARY:")
     for test_name, test_result in test_results.items():
-        logging.info(f"{test_name.ljust(65)}:  {test_result.status}")
+        logging.info(f"{test_name.ljust(longest_test_len+1)}:  {test_result.status}")
 
-    logging.info("DETAILS:")
+    logging.info("\nDETAILS:")
     for test_name, test_result in test_results.items():
         logging.info(f"{'-' * 80}\n{test_name}: {test_result.status}\n{'-' * 80}")
         logging.info(test_result.details)
         logging.info(f"{'-' * 80}\n\n")
 
     log_msg = '' if not log_file else f"\nSee log file for details: {log_file}"
+
+    success = all(result.status == "SUCCEEDED" for result in test_results.values())
     if success:
         msg = f"SUCCESS: No differences found!{log_msg}"
         logging.info(msg)
@@ -117,6 +117,59 @@ def main():
 
     return success
 
+def init_test_results(tests_to_diff, args):
+    test_results = {}
+
+    for test_name in tests_to_diff:
+        baseline_path = Path(args.baseline_dir) / test_name
+        test_path = Path(args.test_dir) / test_name
+
+        baseline_found = baseline_path.is_dir()
+        new_found = test_path.is_dir()
+
+        # if test output is found for both baseline and new output
+        if baseline_found and new_found:
+            # if diffing inputs, init test results for TEST_NAME
+            if args.diff_inputs:
+                # default status is NOT RUN, so diff will be run for this test
+                test_results[test_name] = TestResults()
+                continue
+
+            # otherwise init test results for each dated subdirectory
+
+            # get dated subdirectories from both baseline and new output
+            baseline_subdirs = _get_dated_subdirectories(baseline_path)
+            test_subdirs = _get_dated_subdirectories(test_path)
+
+            for subdir in baseline_subdirs.union(test_subdirs):
+                # init test results for TEST_NAME/YYYYMMDDHH
+                subdir_name = f"{test_name}/{subdir}"
+                test_results[subdir_name] = TestResults()
+
+                # mark tests as failed if dated subdirectory found in one but not the other
+                if subdir in baseline_subdirs - test_subdirs:
+                    test_results[subdir_name].status = 'FAILED (not in new output)'
+                elif subdir in test_subdirs - baseline_subdirs:
+                    test_results[subdir_name].status = 'FAILED (not in baseline output)'
+                # if dated subdirectory found in both, leave status as NOT RUN to run diff
+
+            continue
+
+        # if test is not found in either baseline or new output, set status to failed
+        test_results[test_name] = TestResults()
+
+        if not baseline_found and not new_found:
+            test_results[test_name].status = 'FAILED (not in either output)'
+        elif baseline_found:
+            test_results[test_name].status = 'FAILED (not in new output)'
+        else:
+            test_results[test_name].status = 'FAILED (not in baseline)'
+
+    return test_results
+
+def _get_dated_subdirectories(the_path):
+    return set([x.name for x in the_path.iterdir() if x.is_dir() and x.name.isdigit()])
+
 def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run difference tests")
     parser.add_argument("test_dir",
@@ -125,7 +178,7 @@ def read_args() -> argparse.Namespace:
                         help=f"Directory containing regression test output (default: {DEFAULT_REGRESSION_DIR})")
     parser.add_argument("--metplus",
                         help="Directory of METplus repo to get diff_util.py (default: regression_dir/METplus)")
-    parser.add_argument("--baseline",
+    parser.add_argument("--baseline_dir",
                         help="Directory with baseline data to use for comparison (default: regression_dir/output.baseline)")
     parser.add_argument("--diff_inputs", action="store_true",
                         help="If set, run the diff utility on each output directory, which includes the input observation files.")
@@ -135,13 +188,15 @@ def read_args() -> argparse.Namespace:
                         help="If set, log to the terminal (standard output) instead of a file")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Log information about files that were skipped or had no differences")
-
+    parser.add_argument("-t", "--tests", type=str, nargs="*",default=["all"],
+                        help="Defines tests to diff (default: all)."
+                             " Matches format expected by run_we2e_tests.py script.")
     args = parser.parse_args()
 
     if not args.metplus:
         args.metplus = Path(args.regression_dir) / "METplus"
-    if not args.baseline:
-        args.baseline = Path(args.regression_dir) / "output.baseline"
+    if not args.baseline_dir:
+        args.baseline_dir = Path(args.regression_dir) / "output.baseline"
     if not args.log_dir:
         args.log_dir = args.regression_dir
 
@@ -168,28 +223,6 @@ def setup_logging(args):
     logging.basicConfig(**log_config)
     return log_file_path
 
-def get_test_paths(base_path, get_dated=True):
-    paths = []
-    # Loop through the main test directories (e.g., TEST_NAME)
-    for test_dir in Path(base_path).iterdir():
-        if not test_dir.is_dir():
-            continue
-
-        has_date_subdirs = False
-
-        if get_dated:
-            # Look for numeric subdirectories inside the test directory
-            for sub_dir in test_dir.iterdir():
-                if sub_dir.is_dir() and sub_dir.name.isdigit():
-                    # Store as 'TEST_NAME/202602010000'
-                    paths.append(f"{test_dir.name}/{sub_dir.name}")
-                    has_date_subdirs = True
-
-        # Fallback if get_dated is False or no numeric subdirs were found
-        if not has_date_subdirs:
-            paths.append(test_dir.name)
-
-    return paths
 
 if __name__ == "__main__":
     status = main()
