@@ -148,12 +148,31 @@ def check_bad_settings(cfg):
             msg+="update your config accordingly\n\n"
         if bad:=ex.get("regriddataplane"):
             msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}"
-            msg+="these variables for this task moved to top-level `regriddataplane` section; "
+            msg+="these variables for this task moved to top-level `regriddataplane` section; \n"
             msg+="update your config accordingly\n\n"
         if bad:=ex.get("mode"):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
-            msg+="these variables for this task have been moved to top-level `mode` section; "
+            msg+="these variables for this task have been moved to top-level `mode` section; \n"
             msg+="update your config accordingly\n\n"
+        if bad:=ex.get("deterministic"):
+            msg+=f"verification_resources:execution contains invalid key `deterministic`:\n{bad}\n"
+            if bad.get("gridstat"):
+                msg+="gridstat settings have been moved to top-level `gridstat` section; \n"
+            if bad.get("pointstat"):
+                msg+="pointstat settings have been moved to top-level `pointstat` section; \n"
+            else:
+                msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
+            msg+="update your config accordingly\n\n"
+        if bad:=ex.get("ensemble"):
+            if bad.get("genensprod"):
+                msg+=f"verification_resources:execution:ensemble contains invalid key:\n"
+                msg+="genensprod settings have been moved to top-level `genensprod` section; \n"
+                msg+="update your config accordingly\n\n"
+            if bad.get("ensemblestat"):
+                msg+=f"verification_resources:execution:ensemble contains invalid key:\n"
+                msg+="ensemblestat settings have been moved to top-level `ensemblestat` section; \n"
+                msg+="update your config accordingly\n\n"
+            # No else: here since verification_resources:execution:ensemble still has valid keys
     if bt:=cfg.get("platform").get("BEST_TRACK"):
         msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
         msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`; "
