@@ -26,7 +26,6 @@ from textwrap import dedent
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-import jinja2
 #
 # Note: yaml may not be available in which case we suppress
 # the exception, so that we can have other functionality
@@ -181,7 +180,7 @@ def extend_yaml(yaml_dict, full_dict=None, parent=None):
     Updates ``yaml_dict`` in place by rendering any existing Jinja2 templates
     that exist in a value.
     """
-
+    import jinja2
     if full_dict is None:
         full_dict = yaml_dict
 
