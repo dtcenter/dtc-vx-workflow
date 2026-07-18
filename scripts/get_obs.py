@@ -873,10 +873,15 @@ def get_obs(config, obtype, yyyymmdd_task):
                             fn_raw = f'sfav2_CONUS_{accum_obs_formatted}h_{yyyymmddhh_str}_grid184.grb2' # pylint: disable=line-too-long
                         elif obtype == 'MRMS':
                             #MRMS files are retrieved from HPSS archives as gzip; need to unzip
-                            with gzip.open(valid_file_name, 'rb') as f_in:
-                                with open(fn_raw:=valid_file_name.replace(".gz",""), 'wb') as f_out:
-                                    shutil.copyfileobj(f_in, f_out)
-                            fn_raw = os.path.join('topofhour', fn_raw)
+                            if valid_file_name:
+                                with gzip.open(valid_file_name, 'rb') as f_in:
+                                    with open(fn_raw:=valid_file_name.replace(".gz",""), 'wb') as f_out:
+                                        shutil.copyfileobj(f_in, f_out)
+                                fn_raw = os.path.join('topofhour', fn_raw)
+                            else:
+                                logging.warning("No file found for MRMS for valid time\n")
+                                logging.warning(f"{yyyymmddhh}, field group {fg}")
+                                continue
                         elif obtype == 'NDAS':
                             time_ago = yyyymmddhh_arcv - yyyymmddhh
                             hrs_ago = int(time_ago.seconds/3600)
