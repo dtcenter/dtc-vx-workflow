@@ -9,7 +9,8 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
 

@@ -6,9 +6,6 @@ workflow:
   DATE_LAST_CYCL: '2019061518'
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
-  taskgroups:
-    - parm/wflow/verify_pre.yaml
-    - parm/wflow/verify_det.yaml
 verification:
   VX_FCST_MODEL_NAME: srw.RRFS_CONUS_25km
   VX_MASK: ["CONUS"]

@@ -251,7 +251,8 @@ workflow:
   #-----------------------------------------------------------------------
   #
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
   #
   #-----------------------------------------------------------------------
@@ -569,11 +570,6 @@ verification_resources:
   execution:
     nodes: 1
     tasks_per_node: 1
-    ensemble:
-      gridstat:
-        walltime: 01:00:00
-      pointstat:
-        walltime: 01:00:00
     get_obs:
       aeronet:
         walltime: 02:00:00
@@ -1009,7 +1005,7 @@ gridstat:
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 pointstat:
-  # Runtime settings for POINTSTAT jobs
+  # Runtime settings for deterministic POINTSTAT jobs
   execution:
     tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
@@ -1018,11 +1014,32 @@ pointstat:
   # Number of POINTSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
+gridstat_ens:
+  # Runtime settings for ensemble GRIDSTAT jobs (ensmean/ensprob)
+  execution:
+    tasks_per_node: '{{ gridstat_ens.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat_ens.TASKS }}G'
+    tries: 1
+  # Number of ensemble GRIDSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+pointstat_ens:
+  # Runtime settings for ensemble POINTSTAT jobs (ensmean/ensprob)
+  execution:
+    tasks_per_node: '{{ pointstat_ens.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat_ens.TASKS }}G'
+    tries: 1
+  # Number of ensemble POINTSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
 point2grid:
   execution:
     tasks_per_node: '{{ point2grid.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * point2grid.TASKS }}G'
+    tries: 1
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
   # 0: high quality
