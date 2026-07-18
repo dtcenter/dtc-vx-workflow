@@ -8,9 +8,6 @@ workflow:
   DATE_LAST_CYCL: '2023071712'
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
-  taskgroups:
-    - parm/wflow/verify_pre.yaml
-    - parm/wflow/verify_det.yaml
 verification:
   VX_FCST_MODEL_NAME: RRFS_smoke_test
   VX_FIELD_GROUPS: [ "AOD", "PM25", "PM10" ]

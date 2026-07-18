@@ -111,6 +111,11 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     taskgroups = default_config["workflow"]["taskgroups"]
     default_config["rocoto"]["tasks"] = {}
     for taskgroup in taskgroups:
+        if "verify_pre.yaml" in taskgroup:
+            logger.error("The `verify_pre.yaml` task group has been split into two task groups:")
+            logger.error("`get_obs.yaml` and `preprocessing.yaml`.")
+            logger.error("Update your config accordingly")
+            raise ValueError(f'{taskgroups=}')
         tasks = get_yaml_config(homedir / taskgroup)
         keep = {k: v for k, v in tasks.items() if not re.search(r"^default_*", k)}
         default_config["rocoto"]["tasks"].update(keep)
@@ -140,7 +145,6 @@ def check_bad_settings(cfg):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
         msg+="The `global` section has been renamed to `ensemble`; "
         msg+="update your config accordingly\n\n"
-        raise KeyError(msg)
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
@@ -439,7 +443,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError(f"NUM_ENS_MEMBERS must be > 0\n{ens_config.get('NUM_ENS_MEMBERS')=}")
     if do_ensemble and nummems < 2:
         raise ValueError(f"NUM_ENS_MEMBERS must be > 1 if DO_ENSEMBLE=True\n{ens_config.get('NUM_ENS_MEMBERS')=}")
-    elif not do_ensemble and nummems > 1:
+    if not do_ensemble and nummems > 1:
         raise ValueError(f"NUM_ENS_MEMBERS can not be > 1 if DO_ENSEMBLE=False\n{ens_config.get('NUM_ENS_MEMBERS')=}")
     #
     # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
