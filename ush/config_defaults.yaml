@@ -143,33 +143,15 @@ platform:
   REMOVE_MEMORY: False
   #
   #-----------------------------------------------------------------------
-  #
-  # Set run commands for platforms without a workflow manager. These values
-  # will be ignored unless WORKFLOW_MANAGER: "none".  Definitions:
-  #
-  # RUN_CMD_PRDGEN: 
-  # The run command for the product generation job.
-  #
-  # RUN_CMD_SERIAL:
-  # The run command for some serial jobs 
-  #
-  #-----------------------------------------------------------------------
-  #
-  RUN_CMD_SERIAL: ""
-  RUN_CMD_PRDGEN: ""
-  #
-  #-----------------------------------------------------------------------
-  #
+  # SCHED_NATIVE_CMD:
   # Allows an extra parameter to be passed to SCHEDULER (SLURM/PBSPRO) via 
   # XML Native command
+  # 
+  # SCHED_NATIVE_CMD_HPSS:
+  # Same command, but for jobs submitted to "PARTITION_HPSS"
   #
   SCHED_NATIVE_CMD: ""
-  #
-  #-----------------------------------------------------------------------
-  # Pre task commands such as "ulimit" needed by tasks
-  #-----------------------------------------------------------------------
-  #
-  PRE_TASK_CMDS: ""
+  SCHED_NATIVE_CMD_HPSS: ""
   #
   #-----------------------------------------------------------------------
   # MET and METplus directories. MET_INSTALL_DIR is the directory containing
