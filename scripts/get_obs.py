@@ -875,7 +875,7 @@ def get_obs(config, obtype, yyyymmdd_task):
                             #MRMS files are retrieved from HPSS archives as gzip; need to unzip
                             if valid_file_name:
                                 with gzip.open(valid_file_name, 'rb') as f_in:
-                                    with open(fn_raw:=valid_file_name.replace(".gz",""), 'wb') as f_out:
+                                    with open(fn_raw:=valid_file_name.replace(".gz",""), 'wb') as f_out: # pylint: disable=line-too-long
                                         shutil.copyfileobj(f_in, f_out)
                                 fn_raw = os.path.join('topofhour', fn_raw)
                             else:

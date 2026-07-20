@@ -235,7 +235,8 @@ def genensprod_or_ensemblestat(
 
     numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
 
-    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,cfg["genensprod"].get("conf"))
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,
+                                      cfg["genensprod"].get("conf"))
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")

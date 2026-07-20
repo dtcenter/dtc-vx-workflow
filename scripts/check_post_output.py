@@ -9,7 +9,6 @@ The script is intended to be called from jobs/CHECK_POST_OUTPUT.sh.
 
 import argparse
 import logging
-import os
 from string import Template
 
 import uwtools.api.config as uwconfig
