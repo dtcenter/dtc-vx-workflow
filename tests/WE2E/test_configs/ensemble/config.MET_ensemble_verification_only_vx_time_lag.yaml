@@ -30,7 +30,7 @@ verification:
   VX_FCST_MODEL_NAME: RRFSE_CONUS
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/output_data/fcst_ens/RRFS_CONUS_3km'
   VX_NDIGITS_ENSMEM_NAMES: 1
-  FCST_FN_TEMPLATE: 
+  FCST_FN_TEMPLATE:
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem1/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem2/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
   VX_MASK: ["CONUS"]

@@ -24,7 +24,7 @@ verification:
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_ensemble_verification_winter_wx'
   VX_TASKS: 4
   VX_MASK: ["CONUS"]
-  FCST_FN_TEMPLATE: 
+  FCST_FN_TEMPLATE:
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem001/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem002/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem003/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
