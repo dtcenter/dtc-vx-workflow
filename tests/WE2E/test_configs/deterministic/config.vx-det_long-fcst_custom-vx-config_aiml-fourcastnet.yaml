@@ -1,7 +1,7 @@
 metadata:
   description: |-
     This is a test for deterministic verification of the
-    FourCastNet (fcnv2) global AI model.  Note that this test uses a custom 
+    FourCastNet (fcnv2) global AI model.  Note that this test uses a custom
     verification configuration file (as opposed to the default one in the
     SRW) because the AI model output often does not include many of the
     fields that exist in physics-based models.
