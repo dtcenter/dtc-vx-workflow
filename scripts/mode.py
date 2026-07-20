@@ -123,9 +123,7 @@ def mode(config_file,cdate,field_group,obtype):
     metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                     f"{vxcfg['VX_CONFIG_DET_FN']}")
+    vx_config_dict = cfg.get("fields")
 
     # Create the entries for forecast and variable names to pass to METplus conf file. This logic
     # is overkill for now but serves as a template for how this could be done in

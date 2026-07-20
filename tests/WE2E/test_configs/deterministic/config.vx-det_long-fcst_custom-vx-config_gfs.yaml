@@ -36,10 +36,35 @@ verification:
   OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', '{valid?fmt=%Y%m%d}/gdas.t{valid?fmt=%H}z.prepbufr.nr' ]
   #
   VX_FCST_MODEL_NAME: 'gfs'
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.obs_gdas.model_gfs.yaml'
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}'
   FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/atmos/{{ verification.VX_FCST_MODEL_NAME }}.t00z.pgrb2.0p25.f{lead?fmt=%HHH}'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.pgrb2.0p25.f{lead?fmt=%HHH}_a${ACCUM_HH}h.nc'
   #
   VX_FCST_OUTPUT_INTVL_HRS: 6
   VX_FIELD_GROUPS: [ "SFC" ]
+fields:
+  SFC:
+    TMP:
+      Z2: []
+    UGRD:
+      Z10: ['ge2.572']
+    VGRD:
+      Z10: ['ge2.572']
+    WIND:
+      Z10: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+    PRMSL:
+      Z0: []
+    DPT: !remove
+    RH: !remove
+    TCDC: !remove
+    VIS: !remove
+    GUST: !remove
+    HGT%%CEILING: !remove
+    SPFH: !remove
+    CRAIN%%PRWE: !remove
+    CSNOW%%PRWE: !remove
+    CFRZR%%PRWE: !remove
+    CICEP%%PRWE: !remove
+
+  UPA:
+

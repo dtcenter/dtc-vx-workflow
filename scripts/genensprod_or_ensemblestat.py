@@ -194,9 +194,7 @@ def genensprod_or_ensemblestat(
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"
     metplus_log_fn = f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.0"
 
-    vx_config_dict = uwconfig.get_yaml_config(
-        config=f"{cfg['user']['METPLUS_CONF']}/{vxcfg['VX_CONFIG_ENS_FN']}"
-    )
+    vx_config_dict = cfg.get("fields")
 
     settings = {
         "metplus_tool_name": metplus_tool_name,

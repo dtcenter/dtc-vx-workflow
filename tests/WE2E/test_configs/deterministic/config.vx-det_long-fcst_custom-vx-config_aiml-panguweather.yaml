@@ -32,10 +32,22 @@ verification:
   OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', '{valid?fmt=%Y%m%d}/gdas.t{valid?fmt=%H}z.prepbufr.nr' ]
   #
   VX_FCST_MODEL_NAME: 'pw'
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.obs_gdas.model_aiml.yaml'
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}'
   FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}.grb2'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}_a${ACCUM_HH}h.nc'
   #
   VX_FCST_OUTPUT_INTVL_HRS: 6
   VX_FIELD_GROUPS: [ "SFC" ]
+fields:
+  SFC:
+    TMP:
+      Z2: []
+    UGRD:
+      Z10: ['ge2.572']
+    VGRD:
+      Z10: ['ge2.572']
+    WIND:
+      Z10: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+    PRES%%PRMSL:
+      Z0: []
+
