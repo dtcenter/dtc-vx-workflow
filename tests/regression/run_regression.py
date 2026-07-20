@@ -115,7 +115,7 @@ def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
     if args.pr:
         merge_commit_id = f"refs/pull/{args.pr}/merge"
         run_command(f"git -C {workflow_repo_dir} fetch origin {merge_commit_id}")
-        run_command(f"git -C {workflow_repo_dir} checkout {merge_commit_id}")
+        run_command(f"git -C {workflow_repo_dir} checkout FETCH_HEAD")
     elif args.branch:
         run_command(f"git -C {workflow_repo_dir} checkout {args.branch}")
 
