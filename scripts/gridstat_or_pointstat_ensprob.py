@@ -163,9 +163,7 @@ def gridstat_or_pointstat_ensprob(
         f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}_ensprob.0"
     )
 
-    vx_config_dict = uwconfig.get_yaml_config(
-        config=f"{cfg['user']['METPLUS_CONF']}/{vxcfg['VX_CONFIG_ENS_FN']}"
-    )
+    vx_config_dict = cfg.get("fields")
 
     settings = {
         "metplus_tool_name": metplus_tool_name,

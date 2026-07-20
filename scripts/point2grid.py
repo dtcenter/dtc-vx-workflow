@@ -133,8 +133,7 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                     f"{vxcfg['VX_CONFIG_DET_FN']}")
+    vx_config_dict = cfg.get("fields")
 
     # Define variables that appear in the jinja template
     settings = {
