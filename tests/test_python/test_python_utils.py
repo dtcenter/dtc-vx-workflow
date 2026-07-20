@@ -136,7 +136,7 @@ class Testing(unittest.TestCase):
     def test_parse_test_list_get_tests_to_run(self):
         """ Test parsing of different --tests arguments formats """
         # get all existing tests from tests/WE2E/test_configs directory
-        test_configs_dir = (Path(self.ushdir).parent / "tests" / "WE2E" / "test_configs").resolve()
+        test_configs_dir = Path(self.ushdir).parent / "tests" / "WE2E" / "test_configs"
         test_categories = [f.name for f in os.scandir(test_configs_dir) if f.is_dir()]
         we2e_tests = {}
         for test_category in test_categories:
@@ -213,8 +213,8 @@ class Testing(unittest.TestCase):
         for all test cases etc, this is the best place to do it"""
 
         util.set_env_var("DEBUG", "FALSE")
-        self.test_dir = os.path.dirname(os.path.abspath(__file__))
-        self.ushdir = os.path.join(self.test_dir, "..", "..", "ush")
+        self.test_dir = Path(__file__).resolve().parent
+        self.ushdir = self.test_dir.parents[1] / "ush"
 
 if __name__ == "__main__":
     unittest.main()
