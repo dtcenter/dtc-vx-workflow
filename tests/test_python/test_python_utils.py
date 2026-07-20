@@ -13,6 +13,7 @@ All conda packages needed to run the workflow must be loaded for unit tests to p
 import glob
 import os
 import shutil
+from pathlib import Path
 import tempfile
 import unittest
 
@@ -135,8 +136,7 @@ class Testing(unittest.TestCase):
     def test_parse_test_list_get_tests_to_run(self):
         """ Test parsing of different --tests arguments formats """
         # get all existing tests from tests/WE2E/test_configs directory
-        test_configs_dir = os.path.join(self.ushdir, os.pardir,
-                                        "tests", "WE2E", "test_configs")
+        test_configs_dir = (Path(self.ushdir).parent / "tests" / "WE2E" / "test_configs").resolve()
         test_categories = [f.name for f in os.scandir(test_configs_dir) if f.is_dir()]
         we2e_tests = {}
         for test_category in test_categories:
@@ -192,7 +192,11 @@ class Testing(unittest.TestCase):
                         with self.assertRaises(exception):
                             util.get_tests_to_run(inputs, names_only=names_only)
                     else:
-                        self.assertEqual(len(util.get_tests_to_run(inputs, names_only=names_only)), expected)
+                        actual_results = util.get_tests_to_run(inputs, names_only=names_only)
+                        self.assertEqual(len(actual_results), expected)
+                        if not names_only:
+                            for result in actual_results:
+                                self.assertIn(str(test_configs_dir), str(result))
 
     def create_tmp_test_file(self, contents: list) -> str:
         """Helper to create a temporary file and automatically schedule its deletion."""

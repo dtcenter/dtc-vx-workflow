@@ -192,5 +192,5 @@ def _check_test(test: str):
     for testfile in ALL_TESTS:
         if test_config in testfile:
             logging.debug(f"found test {test}, testfile {testfile}")
-            config = Path(testfile).absolute()
+            config = TESTS_WE2E_DIR / Path(testfile)
     return config
