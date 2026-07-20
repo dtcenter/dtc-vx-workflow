@@ -175,3 +175,13 @@ python3 ./tests/regression/run_diff.py \
   ${test_dir} \
   --regression_dir ${regression_dir}
 ```
+
+### Diffing a Subset of Tests
+
+The `--tests` argument can be provided to the `run_diff.py` script
+to define a subset of tests to diff.
+The format of the argument is the same as the `--tests` argument to the
+`tests/WE2E/run_we2e_tests.py` script.
+The list of tests defined here determines which subdirectories to pass to the
+diff utility. Tests not found in either directory will be reported as a failure.
+The default behavior is diff all tests found under `tests/WE2E/test_configs`.
