@@ -241,9 +241,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                     f"{vxcfg['VX_CONFIG_DET_FN']}")
+    # Load config section that defines thresholds for verification
+    vx_config_dict = cfg.get("fields")
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
