@@ -143,49 +143,54 @@ def check_bad_settings(cfg):
     msg=''
     if bad:=cfg.get("global"):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
-        msg+="The `global` section has been renamed to `ensemble`; "
-        msg+="update your config accordingly\n\n"
+        msg+="The `global` section has been renamed to `ensemble`"
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
-            msg+="these variables for this task have moved to top-level `point2grid` section;"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task have moved to top-level `point2grid` section"
         if bad:=ex.get("regriddataplane"):
             msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}"
-            msg+="these variables for this task moved to top-level `regriddataplane` section; \n"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task moved to top-level `regriddataplane` section \n"
         if bad:=ex.get("mode"):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
-            msg+="these variables for this task have been moved to top-level `mode` section; \n"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task have been moved to top-level `mode` section\n"
+        if bad:=ex.get("pb2nc"):
+            msg+=f"verification_resources:execution contains invalid key `pb2nc`:\n{bad}\n"
+            msg+="these variables for this task have been moved to top-level `pb2nc` section\n"
         if bad:=ex.get("deterministic"):
             msg+=f"verification_resources:execution contains invalid key `deterministic`:\n{bad}\n"
             if bad.get("gridstat"):
-                msg+="gridstat settings have been moved to top-level `gridstat` section; \n"
+                msg+="gridstat settings have been moved to top-level `gridstat` section\n"
             if bad.get("pointstat"):
-                msg+="pointstat settings have been moved to top-level `pointstat` section; \n"
+                msg+="pointstat settings have been moved to top-level `pointstat` section\n"
             else:
-                msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
-            msg+="update your config accordingly\n\n"
+                msg+="unknown key {bad}, see config_defaults.yaml for valid settings\n"
         if bad:=ex.get("ensemble"):
             if bad.get("genensprod"):
-                msg+="verification_resources:execution:ensemble contains invalid key:\n"
-                msg+="genensprod settings have been moved to top-level `genensprod` section; \n"
-                msg+="update your config accordingly\n\n"
+                msg+="verification_resources:execution:ensemble contains invalid key `genensprod`\n"
+                msg+="These settings have been moved to top-level `genensprod` section\n"
             if bad.get("ensemblestat"):
-                msg+="verification_resources:execution:ensemble contains invalid key:\n"
-                msg+="ensemblestat settings have been moved to top-level `ensemblestat` section; \n"
-                msg+="update your config accordingly\n\n"
-            # No else: here since verification_resources:execution:ensemble still has valid keys
+                msg+="verification_resources:execution:ensemble has invalid key `ensemblestat`\n"
+                msg+="These settings have been moved to top-level `ensemblestat` section\n"
+            if bad.get("gridstat"):
+                msg+="verification_resources:execution:ensemble contains invalid key `gridstat`\n"
+                msg+="These settings have been moved to top-level `gridstat_ens` section\n"
+            if bad.get("pointstat"):
+                msg+="verification_resources:execution:ensemble contains invalid key `pointstat`\n"
+                msg+="These settings have been moved to top-level `pointstat_ens` section\n"
+            else:
+                msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
     if bt:=cfg.get("platform").get("BEST_TRACK"):
         msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
-        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`; "
-        msg+="update your config accordingly\n\n"
-
+        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`"
+    if vf:=cfg.get("verification"):
+        if bad:=vf.get("FCST_SUBDIR_TEMPLATE"):
+            msg+=f"verification: contains deprecated key `FCST_SUBDIR_TEMPLATE`:\n{bad}\n"
+            msg+="Prepend this value to `FCST_FN_TEMPLATE` to restore previous functionality"
     if msg:
         logger.critical("The following problems with your config must be fixed:")
         logger.critical(msg)
-        raise KeyError("Invalid keys found in config; see above messages for details")
+        raise KeyError("Invalid key(s) found in config.yaml file; see above messages for details")
 
     return cfg
 
