@@ -123,10 +123,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                 vxcfg["OBS_CCPA_APCP_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
             ).substitute(subvars)
             lgr.debug(f"{vxcfg['FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT']=}")
-            fcst_in_fn_template = Template(
-                vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
-            ).substitute(subvars)
-            lgr.debug(f"{fcst_in_fn_template=}")
+            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
         elif "ASNOW" in met_filedir_name:
             if do_ens:
                 obs_in_dir = Path(exptdir, cdate, "obs", "metprd", "PcpCombine_obs")
@@ -139,19 +136,19 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                     vxcfg["OBS_NOHRSC_ASNOW_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
                 ).substitute(subvars)
             )
-            fcst_in_fn_template = Path(
+            fcst_fn_tmpl = Path(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
             )
         elif met_filedir_name == "REFC":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
-            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif met_filedir_name == "RETOP":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
-            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         else:
             raise ValueError(f"Invalid OBTYPE for GridStat: {obtype}")
 
@@ -162,14 +159,14 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
-            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
             met_filedir_name = "AERONET_AOD"
             obs_in_dir = Path(exptdir, "metprd", "Ascii2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_AERONET_FN_TEMPLATE_ASCII2NC_OUTPUT"]
-            fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif obtype == "AIRNOW":
             # AIRNOW format has slightly different names for different tasks, and also differs
             # based on ob source
@@ -186,13 +183,14 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             else:
                 fcst_in_dir = Path(exptdir, cdate, "metprd", "PcpCombine_fcst")
             obs_in_fn_template = vxcfg["OBS_AIRNOW_FN_TEMPLATE_ASCII2NC_OUTPUT"]
-            fcst_in_fn_template = Path(
+            fcst_fn_tmpl = Path(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).substitute(subvars)
             )
         else:
             raise ValueError(f"Invalid OBTYPE for PointStat: {obtype}")
     else:
         raise ValueError(f"Invalid parameters:\n{obtype=}\n{field_group=}\n{accum_hh=}")
+    lgr.debug(f"{fcst_fn_tmpl=}")
 
     if do_ens:
         output_dir=Path(exptdir, cdate, ensmem, "metprd", metplus_tool_camel_case)
@@ -262,7 +260,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'obs_input_dir': obs_in_dir,
                'obs_input_fn_template': obs_in_fn_template,
                'fcst_input_dir': fcst_in_dir,
-               'fcst_input_fn_template': fcst_in_fn_template,
+               'fcst_input_fn_template': fcst_fn_tmpl,
                'output_dir': output_dir,
                'staging_dir': staging_dir,
                'vx_fcst_model_name': vxcfg['VX_FCST_MODEL_NAME'],

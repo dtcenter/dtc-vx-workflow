@@ -137,6 +137,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     return default_config
 
 def check_bad_settings(cfg):
+    # pylint: disable=too-many-statements
     """Checks initial config for deprecated or incorrect settings"""
     logger = logging.getLogger(__name__)
 
@@ -445,11 +446,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     nummems = int(ens_config.get("NUM_ENS_MEMBERS"))
     if nummems < 1:
-        raise ValueError(f"NUM_ENS_MEMBERS must be > 0\n{ens_config.get('NUM_ENS_MEMBERS')=}")
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 0; set to 1 for deterministic vx")
     if do_ensemble and nummems < 2:
-        raise ValueError(f"NUM_ENS_MEMBERS must be > 1 if DO_ENSEMBLE=True\n{ens_config.get('NUM_ENS_MEMBERS')=}")
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 1 if DO_ENSEMBLE=True")
     if not do_ensemble and nummems > 1:
-        raise ValueError(f"NUM_ENS_MEMBERS can not be > 1 if DO_ENSEMBLE=False\n{ens_config.get('NUM_ENS_MEMBERS')=}")
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) can not be > 1 if DO_ENSEMBLE=False")
     #
     # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
     # If a list, ensure it's the same length as the specified ensemble size
@@ -463,7 +464,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             fns = fns * nummems
         elif len(fns) != nummems:
             logger.error(f"NUM_ENS_MEMBERS={nummems}\nFCST_FN_TEMPLATE={fns}")
-            raise ValueError("Number of entries in FCST_FN_TEMPLATE must equal the number of ensemble members!")
+            raise ValueError("Number of entries in FCST_FN_TEMPLATE must equal number of members!")
     else:
         raise TypeError("Invalid FCST_FN_TEMPLATE entry type {type(fns)}: {fns}")
 
