@@ -98,7 +98,8 @@ def pcpcombine(
             time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index]) * 3600
 
         subvars["time_lag"]=time_lag
-        input_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).safe_substitute(subvars)
+        input_fn_template = Template(
+                vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
         output_fn_template = Template(
             vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
