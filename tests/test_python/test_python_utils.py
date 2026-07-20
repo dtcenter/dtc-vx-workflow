@@ -159,30 +159,87 @@ class Testing(unittest.TestCase):
         #  file list files, etc. These tests are noted with "(not supported)" in the name.
 
         test_cases = [
-            ("all", ["all"], total_test_num, None),
-            ("single test", ["MET_verification_winter_wx"], 1, None),
-            ("single test invalid", ["pizza"], 0, FileNotFoundError),
-            ("single test file name (not supported)", ["config.MET_verification_winter_wx.yaml"], 1, FileNotFoundError),
-            ("multiple tests", ["MET_verification_winter_wx", "vx-det_multicyc_fcst-overlap_ncep-hrrr"], 2, None),
-            ("all tests listed out", all_tests, total_test_num, None),
-            ("multiple tests one invalid", ["MET_verification_winter_wx", "pudding"], 1, FileNotFoundError),
-            ("subdirectory invalid", ["olives"], 0, FileNotFoundError),
-            ("2 subdirectories (not supported)", ["deterministic", "ensemble"], len(we2e_tests["deterministic"] + we2e_tests["ensemble"]), FileNotFoundError),
+            (
+                "all",
+               ["all"],
+               total_test_num, None
+            ),
+            (
+                "single test",
+                 ["MET_verification_winter_wx"],
+                 1, None
+            ),
+            (
+                "single test invalid",
+                 ["pizza"],
+                 0, FileNotFoundError
+            ),
+            (
+                "single test file name (not supported)",
+                 ["config.MET_verification_winter_wx.yaml"],
+                 1, FileNotFoundError
+            ),
+            (
+                "multiple tests",
+                 ["MET_verification_winter_wx", "vx-det_multicyc_fcst-overlap_ncep-hrrr"],
+                 2, None
+            ),
+            (
+                "all tests listed out",
+                 all_tests,
+                 total_test_num, None
+            ),
+            (
+                "multiple tests one invalid",
+                 ["MET_verification_winter_wx", "pudding"],
+                 1, FileNotFoundError
+            ),
+            (
+                "subdirectory invalid",
+                 ["olives"],
+                 0, FileNotFoundError
+            ),
+            (
+                "2 subdirectories (not supported)",
+                 ["deterministic", "ensemble"],
+                 len(we2e_tests["deterministic"] + we2e_tests["ensemble"]), FileNotFoundError
+            ),
         ]
 
-        # add test cases for each subdirectory - list of test names and temporary file containing list of test names
+        # add test cases for each subdirectory
+        # list of test names and temporary file containing list of test names
         for test_cat, tests in we2e_tests.items():
-            test_cases.append((f"{test_cat} subdir", [test_cat], len(tests), None))
-            test_cases.append((f"file path - {test_cat} subdir", [self.create_tmp_test_file(tests)], len(tests), None))
+            test_cases.append((
+                f"{test_cat} subdir",
+                [test_cat],
+                len(tests), None
+            ))
+            test_cases.append((
+                f"file path - {test_cat} subdir",
+                [self.create_tmp_test_file(tests)],
+                len(tests), None
+            ))
 
         # name of file path using temporary files
-        test_cases.append(("file path - all tests", [self.create_tmp_test_file(all_tests)], total_test_num, None))
+        test_cases.append((
+            "file path - all tests",
+            [self.create_tmp_test_file(all_tests)],
+            total_test_num, None
+        ))
 
         # file path that contains an invalid test name
-        test_cases.append(("file path - invalid test name", [self.create_tmp_test_file(["MET_verification_winter_wx", "pizza"])], 1, FileNotFoundError))
+        test_cases.append((
+            "file path - invalid test name",
+            [self.create_tmp_test_file(["MET_verification_winter_wx", "pizza"])],
+            1, FileNotFoundError
+        ))
 
         # file path that contains a test category (not supported)
-        test_cases.append(("file path - category (not supported)", [self.create_tmp_test_file(["deterministic"])], len(we2e_tests["deterministic"]), FileNotFoundError))
+        test_cases.append((
+            "file path - category (not supported)",
+            [self.create_tmp_test_file(["deterministic"])],
+            len(we2e_tests["deterministic"]), FileNotFoundError
+        ))
 
         # test both options for names_only argument to get_tests_to_run function
         for names_only in (True, False):
