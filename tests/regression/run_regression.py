@@ -122,7 +122,7 @@ def setup_repo_dir(args: argparse.Namespace, workflow_repo_dir: Path):
     # check out specific commit if specified
     if args.commit:
         run_command(f"git -C {workflow_repo_dir} checkout {args.commit}")
-    # otherwise pull the latest changes if obtaining a branch
+    # otherwise pull the latest changes if requesting a branch
     elif args.branch:
         run_command(f"git -C {workflow_repo_dir} pull origin {args.branch}")
 
@@ -132,8 +132,7 @@ def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path:
 
     # Determine paths relative to the workflow repo directory
 
-    we2e_test_dir = workflow_repo_dir / "tests" / "WE2E"
-    test_script = we2e_test_dir / "run_we2e_tests.py"
+    test_script = workflow_repo_dir / "tests" / "WE2E" / "run_we2e_tests.py"
 
     # Commands to set up conda and run the tests
 
@@ -142,16 +141,17 @@ def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path:
         f" {test_script} --account {args.account} --machine {args.machine}"
         f" --tests {' '.join(args.tests)} --expt_basedir {output_path}"
     )
+    nohup_log = output_path / "nohup.out"
 
     print(f"RUNNING: {cmd}")
-    print(f"CWD: {we2e_test_dir}")
+    print(f"CWD: {output_path}")
     print("Launching in background with nohup")
-    print(f"Follow {we2e_test_dir}/nohup.out for output", flush=True)
+    print(f"Follow {nohup_log} for output", flush=True)
 
     try:
         # run setup_conda.sh and end-to-end test script
 
-        subprocess.Popen(f"nohup bash -c '{cmd}' &", shell=True, cwd=we2e_test_dir)
+        subprocess.Popen(f"nohup bash -c '{cmd}' &", shell=True, cwd=output_path)
 
     except Exception as e:
         print(f"Failed to launch test command: {e}")
