@@ -505,6 +505,59 @@ ensemble:
   NUM_ENS_MEMBERS: 1
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
+  # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
+  # gridstat_ensmean and gridstat_ensprob, and pointstat_ensmean and pointstat_ensprob
+  # You can overwrite this in each individual task's section if you wish
+  fields:
+    APCP:
+      APCP: 
+        A1: ['gt0.0', 'ge0.254', 'ge0.508', 'ge2.54']
+        A3: ['gt0.0', 'ge0.508', 'ge2.54', 'ge6.350']
+        A6: ['gt0.0', 'ge2.54', 'ge6.350', 'ge12.700']
+        A24: ['gt0.0', 'ge6.350', 'ge12.700', 'ge25.400']
+    ASNOW:
+      ASNOW:
+        A6: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
+        A24: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+    REFC:
+      REFC%%MergedReflectivityQCComposite:
+        L0%%Z500: ['ge20', 'ge30', 'ge40', 'ge50']
+    RETOP:
+      RETOP%%EchoTop18:
+        L0%%Z500: ['ge20', 'ge30', 'ge40', 'ge50']
+    SFC:
+      TMP:
+        Z2: ['ge268', 'ge273', 'ge278', 'ge293', 'ge298', 'ge303']
+      DPT:
+        Z2: ['ge263', 'ge268', 'ge273', 'ge288', 'ge293', 'ge298']
+      WIND:
+        Z10: ['ge5', 'ge10', 'ge15']
+      TCDC:
+        L0: ['lt25', 'gt75']
+      VIS:
+        L0: ['lt1609', 'lt8045', 'ge8045']
+      HGT%%CEILING:
+        L0: ['lt152', 'lt305', 'lt914']
+    UPA:
+      TMP:
+        P850: ['ge288', 'ge293', 'ge298']
+        P700: ['ge273', 'ge278', 'ge283']
+        P500: ['ge258', 'ge263', 'ge268']
+      DPT:
+        P850: ['ge273', 'ge278', 'ge283']
+        P700: ['ge263', 'ge268', 'ge273']
+      WIND:
+        P850: ['ge5', 'ge10', 'ge15']
+        P700: ['ge10', 'ge15', 'ge20']
+        P500: ['ge15', 'ge21', 'ge26']
+        P250: ['ge26', 'ge31', 'ge36', 'ge46', 'ge62']
+      HGT:
+        P500: ['ge5400', 'ge5600', 'ge5880']
+      CAPE:
+        L0%%L0-100000: ['le1000', 'gt1000&&lt2500', 'ge2500&&lt4000', 'ge2500']
+      HPBL%%PBL:
+        Z0%%L0: ['lt500', 'lt1500', 'gt1500']
+
 tropical:
 #-----------------------------
 # Settings for tropical-cyclone-specific verification tasks (TCPAIRS, TCSTAT, TCRMW, etc.)
@@ -1191,7 +1244,7 @@ tcrmw:
   OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
 
 #
-# This configuration file specifies the field groups, fields, levels,
+# The field: section the field groups (e.g. APCP, fields, levels,
 # and thresholds to use for DETERMINISTIC verification.  The format is
 # as follows:
 #
@@ -1232,6 +1285,11 @@ tcrmw:
 #
 # it means the name of the field in the forecast data is RETOP while its
 # name in the observations is EchoTop18.
+#
+# For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary
+# found in the ensemble: section will be used (see above). You can also 
+# overwrite the thresholds used for any individual task by including a
+# fields: section in the dictionary for that task
 #
 fields:
   APCP:
