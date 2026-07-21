@@ -192,6 +192,9 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         raise ValueError(f"Invalid parameters:\n{obtype=}\n{field_group=}\n{accum_hh=}")
     lgr.debug(f"{fcst_fn_tmpl=}")
 
+    # Need to load gridstat or pointstat config section depending on what we're running
+    taskcfg = cfg[metplus_tool_camel_case.lower()]
+
     if do_ens:
         output_dir=Path(exptdir, cdate, ensmem, "metprd", metplus_tool_camel_case)
         staging_dir=Path(exptdir, cdate, ensmem, "stage", met_filedir_name)
@@ -241,8 +244,11 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load config section that defines thresholds for verification
+    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
+    # use the top-level fields: section
     vx_config_dict = cfg.get("fields")
+    if taskcfg.get("fields"):
+        vx_config_dict = taskcfg.get("fields")
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
