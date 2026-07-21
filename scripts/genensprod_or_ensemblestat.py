@@ -76,6 +76,8 @@ def genensprod_or_ensemblestat(
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
     enscfg = cfg["ensemble"]
+    # Need to load genensprod or ensemblestat config section depending on what we're running
+    taskcfg = cfg[metplus_tool_camel_case.lower()]
 
     if metplus_tool_name == "ensemble_stat":
         if not Path(obs_dir).is_dir():
@@ -193,8 +195,13 @@ def genensprod_or_ensemblestat(
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}.conf"
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"
     metplus_log_fn = f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.0"
-
+    # If user provided a fields: section for this task, use that. Otherwise, if there's a fields:
+    # section in the ensemble: section, use that. Otherwise, use the top-level fields: section
     vx_config_dict = cfg.get("fields")
+    if fields:=taskcfg.get("fields"):
+        vx_config_dict = fields
+    elif fields:=enscfg.get("fields"):
+        vx_config_dict = fields
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -231,7 +238,7 @@ def genensprod_or_ensemblestat(
         "vx_config_dict": vx_config_dict,
     }
 
-    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
+    numprocs = int(taskcfg["TASKS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,
                                       cfg["genensprod"].get("conf"))

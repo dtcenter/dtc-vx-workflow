@@ -132,9 +132,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
     metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = cfg.get("fields")
-
     # Define variables that appear in the jinja template
     settings = {
                'metplus_verbosity_level': vxcfg['METPLUS_VERBOSITY_LEVEL'],
@@ -159,8 +156,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
                'input_field_group': field_group,
                'input_level_fcst': fcst_level,
                'input_thresh_fcst': fcst_thresh,
-               # Rest of settings from yaml file
-               'vx_config_dict': vx_config_dict
                }
 
     numprocs=vxcfg['VX_TASKS']

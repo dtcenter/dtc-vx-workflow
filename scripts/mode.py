@@ -123,7 +123,11 @@ def mode(config_file,cdate,field_group,obtype):
     metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
+    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
+    # use the top-level fields: section
     vx_config_dict = cfg.get("fields")
+    if modecfg.get("fields"):
+        vx_config_dict = modecfg.get("fields")
 
     # Create the entries for forecast and variable names to pass to METplus conf file. This logic
     # is overkill for now but serves as a template for how this could be done in

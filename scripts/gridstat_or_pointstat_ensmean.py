@@ -57,6 +57,7 @@ def gridstat_or_pointstat_ensmean(
 
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
+    enscfg = cfg["ensemble"]
 
     if not Path(obs_dir).is_dir():
         raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
@@ -117,6 +118,9 @@ def gridstat_or_pointstat_ensmean(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
+    # Need to load "gridstat_ens" or "pointstat_ens" config section depending on what we're running
+    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ens"]
+
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensmean")
     staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}_ensmean")
     os.makedirs(output_dir, exist_ok=True)
@@ -162,7 +166,14 @@ def gridstat_or_pointstat_ensmean(
         f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}_ensmean.0"
     )
 
+    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
+    # if there's a fields: section in the ensemble: section, use the thresholds defined there.
+    # Otherwise, use the top-level fields: section
     vx_config_dict = cfg.get("fields")
+    if fields:=taskcfg.get("fields"):
+        vx_config_dict = fields
+    elif fields:=enscfg.get("fields"):
+        vx_config_dict = fields
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -181,7 +192,7 @@ def gridstat_or_pointstat_ensmean(
         "output_fn_template": "",
         "staging_dir": staging_dir,
         "vx_fcst_model_name": vxcfg["VX_FCST_MODEL_NAME"],
-        "num_ens_members": cfg["ensemble"]["NUM_ENS_MEMBERS"],
+        "num_ens_members": enscfg["NUM_ENS_MEMBERS"],
         "ensmem_name": "",
         "time_lag": 0,
         "fieldname_in_obs_input": str(obs_in_dir),
