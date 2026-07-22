@@ -1311,10 +1311,12 @@ fields:
       fcst_levels: [A6]
       fcst_thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+      obs_options: 'convert(x) = 100.0*x;'
     - fcst_name: ASNOW_24
       fcst_levels: [A24]
       fcst_thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+      obs_options: 'convert(x) = 100.0*x;'
   REFC:
     - fcst_name: REFC
       obs_name: MergedReflectivityQCComposite
