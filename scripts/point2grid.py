@@ -18,7 +18,7 @@ import uwtools.api.config as uwconfig
 from python_utils import render_metplus_confs, run_metplus, setup_logging
 from set_leadhrs import set_leadhrs
 
-def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thresh):
+def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     """Execute the METplus Point2Grid task.
 
@@ -36,8 +36,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
         Observation type for this verification (currently only ``GOESAOD`` is supported).
     fcst_level : str
         Forecast level (e.g., ``L0`` or ``A03``) expected by MET.
-    fcst_thresh : str
-        Forecast threshold set to verify against; usually ``"all"`` or ``"none"``.
 
     Returns
     -------
@@ -155,7 +153,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level,fcst_thre
                'metplus_templates_dir': cfg['user']['METPLUS_CONF'],
                'input_field_group': field_group,
                'input_level_fcst': fcst_level,
-               'input_thresh_fcst': fcst_thresh,
                }
 
     numprocs=vxcfg['VX_TASKS']
@@ -190,8 +187,6 @@ if __name__ == "__main__":
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--fcst_level', required=True, type=str,
            help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
-    parser.add_argument('--fcst_thresh', required=True, type=str,
-           help='Set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
            help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
@@ -206,4 +201,4 @@ if __name__ == "__main__":
     logging.info(f"{os.environ['METPLUS_ROOT']=}")
 
     point2grid(pargs.config,pargs.cycle_date,pargs.obs_dir,pargs.field_group,pargs.obtype,
-         pargs.fcst_level,pargs.fcst_thresh)
+         pargs.fcst_level)

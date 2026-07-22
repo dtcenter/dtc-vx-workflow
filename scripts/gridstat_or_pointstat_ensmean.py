@@ -16,7 +16,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_var_list
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -29,7 +29,6 @@ def gridstat_or_pointstat_ensmean(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
 ) -> None:
     """Execute a METplus GridStat or PointStat verification task on ensemble mean output.
 
@@ -49,8 +48,6 @@ def gridstat_or_pointstat_ensmean(
         Accumulation hours for the observation type.
     fcst_level : str
         METplus forecast level (e.g. L0, A03).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     """
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
@@ -175,6 +172,13 @@ def gridstat_or_pointstat_ensmean(
     elif fields:=enscfg.get("fields"):
         vx_config_dict = fields
 
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+    if field_group in ['APCP', 'ASNOW']:
+        fcst_level=f"A{accum_hh}"
+    else:
+        fcst_level="all"
+    var_list=make_var_list(vx_config_dict,field_group,fcst_level)
+
     settings = {
         "metplus_tool_name": metplus_tool_name,
         "MetplusToolName": metplus_tool_camel_case,
@@ -205,9 +209,10 @@ def gridstat_or_pointstat_ensmean(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "vx_mask": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
+        # Variable list
+        'var_list': var_list,
     }
 
     numprocs = int(vxcfg["VX_TASKS"])
@@ -242,8 +247,6 @@ if __name__ == "__main__":
         help="Accumulation hours for this observation type")
     parser.add_argument("--fcst_level", required=True, type=str,
         help="METplus forecast level (e.g. L0, A03)")
-    parser.add_argument("--fcst_thresh", required=True, type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
     args = parser.parse_args()
@@ -253,5 +256,5 @@ if __name__ == "__main__":
 
     gridstat_or_pointstat_ensmean(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
     )

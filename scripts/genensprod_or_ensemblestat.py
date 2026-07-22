@@ -17,7 +17,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_var_list
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -36,7 +36,6 @@ def genensprod_or_ensemblestat(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
     metplus_tool: str,
 ) -> None:
     """Execute a METplus GenEnsProd or EnsembleStat ensemble verification task.
@@ -57,8 +56,6 @@ def genensprod_or_ensemblestat(
         Accumulation hours for the observation type.
     fcst_level : str
         METplus forecast level (e.g. L0, A03).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     metplus_tool : str
         METplus tool to run: ``"GENENSPROD"`` or ``"ENSEMBLESTAT"`` (case-insensitive).
     """
@@ -200,8 +197,21 @@ def genensprod_or_ensemblestat(
     vx_config_dict = cfg.get("fields")
     if fields:=taskcfg.get("fields"):
         vx_config_dict = fields
+        lgr.debug("USING TASK SPECIFIC FIELDS")
     elif fields:=enscfg.get("fields"):
         vx_config_dict = fields
+        lgr.debug("USING ENSEMBLE SPECIFIC FIELDS")
+
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+    if field_group in ['APCP', 'ASNOW']:
+        fcst_level=f"A{accum_hh}"
+    else:
+        fcst_level="all"
+    if metplus_tool.upper() == "GENENSPROD":
+        lgr.debug("THIS IS GENENSPROD")
+        var_list=make_var_list(vx_config_dict,field_group,fcst_level,ens=True)
+    else:
+        var_list=make_var_list(vx_config_dict,field_group,fcst_level)
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -233,9 +243,11 @@ def genensprod_or_ensemblestat(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "vx_mask": ", ".join(vx_mask_files),
-        "vx_config_dict": vx_config_dict,
+        # Variable list
+        'var_list': var_list,
+        # Rest of settings from yaml file
+        'vx_config_dict': vx_config_dict
     }
 
     numprocs = int(taskcfg["TASKS"])
@@ -274,8 +286,6 @@ if __name__ == "__main__":
         help="Accumulation hours for this observation type")
     parser.add_argument("--fcst_level", default="", type=str,
         help="METplus forecast level (e.g. L0, A03)")
-    parser.add_argument("--fcst_thresh", default="", type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("--metplus_tool", required=True, type=str,
         help="METplus tool to run: GENENSPROD or ENSEMBLESTAT")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -287,6 +297,6 @@ if __name__ == "__main__":
 
     genensprod_or_ensemblestat(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
         args.metplus_tool,
     )

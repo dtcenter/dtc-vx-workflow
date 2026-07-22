@@ -22,8 +22,7 @@ from python_utils import setup_logging, render_metplus_confs, make_var_list
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,
-                          fcst_thresh):
+def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index):
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     """
     Execute a METplus ``GridStat`` or ``PointStat`` verification task.
@@ -44,8 +43,6 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         Accumulation hours for the observation type.
     ensmem_index : int
         Index of the ensemble member to process (``0`` for deterministic runs).
-    fcst_thresh : str
-        Forecast threshold set to verify against, usually ``"all"`` or ``"none"``.
 
     Returns
     -------
@@ -253,7 +250,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         fcst_level=f"A{accum_hh}"
     else:
         fcst_level="all"
-    var_list=make_var_list(vx_config_dict,field_group,fcst_level,fcst_thresh)
+    var_list=make_var_list(vx_config_dict,field_group,fcst_level)
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
@@ -341,8 +338,6 @@ if __name__ == "__main__":
            help='The index for this ensemble member (0 for deterministic)')
     parser.add_argument('--field_group', required=True, type=str,
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
-    parser.add_argument('--fcst_thresh', required=True, type=str,
-           help='Set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
            help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
@@ -356,4 +351,4 @@ if __name__ == "__main__":
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
     gridstat_or_pointstat(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,
-         args.accum_hh,args.ensmem_index,args.fcst_thresh)
+         args.accum_hh,args.ensmem_index)
