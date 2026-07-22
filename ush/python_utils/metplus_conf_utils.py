@@ -3,7 +3,7 @@ Common utilities for creating/handling METplus configuration files
 """
 import logging
 
-def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
+def make_var_list(vx_config_dict,field_group,level,thresh):
     """Renders a multi-line string representing the list of forecast and observation variables
     as expected by METplus in a .conf file. For each field group, ``vx_config_dict[field_group]``
     is a LIST of field entries; each entry becomes one ``FCST_VARn`` / ``OBS_VARn`` block. Using a
@@ -57,7 +57,10 @@ def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
         lgr.debug(f"{entry=}")
         fcstvar = entry["fcst_name"]
         obsvar = entry.get("obs_name", fcstvar)
-
+        lgr.debug(f"{level=}")
+        if level != "all":
+            if level not in entry["fcst_levels"]:
+                continue
         fcst_levels = list(entry["fcst_levels"])
         obs_levels = list(entry.get("obs_levels", fcst_levels))
         if len(obs_levels) != len(fcst_levels):
@@ -65,6 +68,8 @@ def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
                 f"For field '{fcstvar}' in group '{field_group}', 'obs_levels' "
                 f"(length {len(obs_levels)}) must be the same length as 'levels' "
                 f"(length {len(fcst_levels)})")
+        lgr.debug(f"{fcst_levels}")
+        lgr.debug(f"{obs_levels}")
 
         fcst_var_list=f"FCST_VAR{i}_NAME = {fcstvar}\n"
         fcst_var_list+=f"FCST_VAR{i}_LEVELS = {', '.join(fcst_levels)}\n"
