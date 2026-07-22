@@ -7,7 +7,7 @@ import sys
 from jinja2 import Environment, FileSystemLoader
 
 
-def make_var_list(vx_config_dict,field_group,level,thresh):
+def make_var_list(vx_config_dict,field_group,level,ens=False):
     """Renders a multi-line string representing the list of forecast and observation variables
     as expected by METplus in a .conf file. For each field group, ``vx_config_dict[field_group]``
     is a LIST of field entries; each entry becomes one ``FCST_VARn`` / ``OBS_VARn`` block. Using a
@@ -57,6 +57,7 @@ def make_var_list(vx_config_dict,field_group,level,thresh):
         raise ValueError(f"Provided field group {field_group} is not in field config dictionary")
 
     var_list=''
+    ens_var_list=''
     for i, entry in enumerate(vx_config_dict[field_group], start=1):
         lgr.debug(f"{entry=}")
         fcstvar = entry["fcst_name"]
@@ -74,6 +75,15 @@ def make_var_list(vx_config_dict,field_group,level,thresh):
                 f"(length {len(fcst_levels)})")
         lgr.debug(f"{fcst_levels}")
         lgr.debug(f"{obs_levels}")
+        if ens:
+            ens_var_list+=f"ENS_VAR{i}_NAME = {fcstvar}\n"
+            ens_var_list+=f"ENS_VAR{i}_LEVELS = {', '.join(fcst_levels)}\n"
+            if entry.get("fcst_thresholds"):
+                ens_var_list+=f"ENS_VAR{i}_THRESH = {', '.join(entry['fcst_thresholds'])}\n"
+            if opt:=entry.get("fcst_options"):
+                ens_var_list+=f"ENS_VAR{i}_OPTIONS = {opt}\n"
+            lgr.debug(f"{ens_var_list}")
+            continue
 
         fcst_var_list=f"FCST_VAR{i}_NAME = {fcstvar}\n"
         fcst_var_list+=f"FCST_VAR{i}_LEVELS = {', '.join(fcst_levels)}\n"
@@ -81,7 +91,7 @@ def make_var_list(vx_config_dict,field_group,level,thresh):
         obs_var_list+=f"OBS_VAR{i}_LEVELS = {', '.join(obs_levels)}\n"
 
         # Set threshold variables unless thresh has been set to "none" (or thresholds is an empty list or missing)
-        if thresh != "none" and entry.get("fcst_thresholds"):
+        if entry.get("fcst_thresholds"):
             fcst_threshlist = ', '.join(entry["fcst_thresholds"])
             obs_threshlist = ', '.join(entry.get("obs_thresholds", entry["fcst_thresholds"]))
             fcst_var_list+=f"FCST_VAR{i}_THRESH = {fcst_threshlist}\n"
@@ -98,6 +108,11 @@ def make_var_list(vx_config_dict,field_group,level,thresh):
         lgr.debug(f"{fcst_var_list=}")
         lgr.debug(f"{obs_var_list=}")
         lgr.debug(f"{var_list=}")
+
+    lgr.debug(f"Ending {ens_var_list}")
+
+    if ens:
+        return ens_var_list
 
     return var_list
 

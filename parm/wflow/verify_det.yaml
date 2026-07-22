@@ -47,7 +47,6 @@ metatask_GridStat_APCP_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'CCPA'
         ENSMEM_INDX: "#mem#"
-        FCST_THRESH: 'all'
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
       nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
       walltime: "{{ gridstat.execution.walltime }}"
@@ -80,7 +79,6 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'NOHRSC'
         ENSMEM_INDX: "#mem#"
-        FCST_THRESH: 'all'
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
       nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
       walltime: "{{ gridstat.execution.walltime }}"
@@ -112,7 +110,6 @@ metatask_GridStat_REFC_RETOP_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'MRMS'
         ENSMEM_INDX: "#mem#"
-        FCST_THRESH: 'all'
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
       nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
       walltime: "{{ gridstat.execution.walltime }}"
@@ -156,7 +153,6 @@ metatask_PointStat:
         METPLUSTOOLNAME: 'POINTSTAT'
         OBTYPE: '#METAOBTYPE#'
         ENSMEM_INDX: "#mem#"
-        FCST_THRESH: 'all'
       memory: '{{  pointstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
       nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.execution.tasks_per_node }}'
       walltime: "{{ pointstat.execution.walltime }}"

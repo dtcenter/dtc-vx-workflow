@@ -30,7 +30,6 @@ def pcpcombine(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
     fcst_or_obs: str,
     ensmem_index: int,
 ) -> None:
@@ -52,8 +51,6 @@ def pcpcombine(
         Target accumulation period in hours.
     fcst_level : str
         METplus forecast level (e.g. A06).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     fcst_or_obs : str
         Whether this task processes forecast (``"FCST"``) or observation (``"OBS"``) data.
     ensmem_index : int
@@ -249,7 +246,6 @@ def pcpcombine(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "pcp_combine_method": pcp_combine_method,
         "pcp_combine_command": pcp_combine_command,
     }
@@ -286,8 +282,6 @@ if __name__ == "__main__":
         help="Target accumulation period in hours")
     parser.add_argument("--fcst_level", default="", type=str,
         help="METplus forecast level (e.g. A06)")
-    parser.add_argument("--fcst_thresh", default="", type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("--fcst_or_obs", required=True, type=str,
         help="Whether processing forecast (FCST) or observation (OBS) data")
     parser.add_argument("--ensmem_index", type=int, default=0,
@@ -301,6 +295,6 @@ if __name__ == "__main__":
 
     pcpcombine(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
         args.fcst_or_obs, args.ensmem_index,
     )
