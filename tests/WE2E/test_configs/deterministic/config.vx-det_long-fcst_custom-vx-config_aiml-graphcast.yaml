@@ -54,14 +54,20 @@ verification:
   VX_FIELD_GROUPS: [ "SFC" ]
 fields:
   SFC:
-    TMP:
-      Z2: []
-    UGRD:
-      Z10: ['ge2.572']
-    VGRD:
-      Z10: ['ge2.572']
-    WIND:
-      Z10: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
-    PRES%%PRMSL:
-      Z0: []
+    - fcst_name: TMP
+      fcst_levels: [Z2]
+      fcst_thresholds: []
+    - fcst_name: UGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+    - fcst_name: VGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+    - fcst_name: WIND
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+    - fcst_name: PRES
+      obs_name: PRMSL
+      fcst_levels: [Z0]
+      fcst_thresholds: []
 
