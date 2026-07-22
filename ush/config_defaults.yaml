@@ -1244,7 +1244,7 @@ tcrmw:
   OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
 
 #
-# The field: section the field groups (e.g. APCP, fields, levels,
+# The fields: section the field groups (e.g. APCP, fields, levels,
 # and thresholds to use for DETERMINISTIC verification.  The format is
 # as follows:
 #
@@ -1280,7 +1280,7 @@ tcrmw:
 # are the same, then a single key is used as above. But if there is a
 # difference between the two, either in field name, level, or threshold,
 # then the forecast value will be specified by the additional key
-# `fcst_field_name:`, `fcst_level_name:`, or `fcst_thresholds` at the
+# `obs_field_name:`, `obs_level_name:`, or `obs_thresholds` at the
 # appropriate level.
 #
 # For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary
@@ -1306,16 +1306,16 @@ fields:
       A24: 
         thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
   REFC:
-    MergedReflectivityQCComposite:
-      fcst_field_name: REFC
-      Z500: 
-        fcst_level_name: L0
+    REFC:
+      obs_field_name: MergedReflectivityQCComposite
+      L0: 
+        obs_level_name: Z500
         thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
   RETOP:
-    EchoTop18:
-      fcst_field_name: RETOP
-      Z500:
-        fcst_level_name: L0
+    RETOP:
+      obs_field_name: EchoTop18
+      L0:
+        obs_level_name: Z500
         thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
   SFC:
     TMP:
@@ -1340,7 +1340,7 @@ fields:
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     WIND:
       Z10: 
-        options: 'GRIB2_pdt = 0;' # Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+        obs_options: 'GRIB2_pdt = 0;' # Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
         thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB2_pdt = 0;'
     PRMSL:
@@ -1353,51 +1353,51 @@ fields:
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
     VIS:
       L0: 
-        options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        obs_options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
         thresholds: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
     GUST:
       Z0: 
         thresholds: []
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    CEILING:
-      fcst_field_name: HGT
+    HGT:
+      obs_field_name: CEILING
       L0: 
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 215; desc = "CEILING";'
-        options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        obs_options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
         thresholds: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
     SPFH:
       Z2: 
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: []
-    PRWE:
-      fcst_field_name: CRAIN
-      Z0: 
-        fcst_level_name: L0
+    CRAIN:
+      obs_field_name: PRWE
+      L0: 
+        obs_level_name: Z0
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-        thresholds: ['ge161&&le163']
-        fcst_thresholds: ['ge1.0']
-    PRWE:
-      fcst_field_name: CSNOW
-      Z0: 
-        fcst_level_name: L0
+        obs_thresholds: ['ge161&&le163']
+        thresholds: ['ge1.0']
+    CSNOW:
+      obs_field_name: PRWE
+      L0: 
+        obs_level_name: Z0
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-        thresholds: ['ge171&&le173']
-        fcst_thresholds: ['ge1.0']
-    PRWE:
-      fcst_field_name: CFRZR
-      Z0: 
-        fcst_level_name: L0
+        obs_thresholds: ['ge171&&le173']
+        thresholds: ['ge1.0']
+    CFRZR:
+      obs_field_name: PRWE
+      L0: 
+        obs_level_name: Z0
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-        thresholds: ['ge164&&le166']
-        fcst_thresholds: ['ge1.0']
-    PRWE:
-      fcst_field_name: CICEP
-      Z0: 
-        fcst_level_name: L0
+        obs_thresholds: ['ge164&&le166']
+        thresholds: ['ge1.0']
+    CICEP:
+      obs_field_name: PRWE
+      L0: 
+        obs_level_name: Z0
         fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-        thresholds: ['ge174&&le176']
-        fcst_thresholds: ['ge1.0']
+        obs_thresholds: ['ge174&&le176']
+        thresholds: ['ge1.0']
   UPA:
     TMP:
       P1000: &adpupa_tmpg
@@ -1429,6 +1429,7 @@ fields:
       P250: *adpupa_rhg
     DPT:
       P1000: &adpupa_dptg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: []
       P925: *adpupa_dptg
       P850: *adpupa_dptg
@@ -1438,6 +1439,7 @@ fields:
       P300: *adpupa_dptg
     UGRD:
       P1000: &adpupa_ugrdg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: ['ge2.572']
       P925: *adpupa_ugrdg
       P850: *adpupa_ugrdg
@@ -1454,6 +1456,7 @@ fields:
       P10: *adpupa_ugrdg
     VGRD:
       P1000: &adpupa_vgrdg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: ['ge2.572']
       P925: *adpupa_vgrdg
       P850: *adpupa_vgrdg
@@ -1470,6 +1473,7 @@ fields:
       P10: *adpupa_vgrdg
     WIND:
       P1000: &adpupa_windg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
       P925: *adpupa_windg
       P850: *adpupa_windg
@@ -1486,6 +1490,7 @@ fields:
       P10: *adpupa_windg
     HGT:
       P1000: &adpupa_hgtg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: []
       P950: *adpupa_hgtg
       P925: *adpupa_hgtg
@@ -1503,6 +1508,7 @@ fields:
       P10: *adpupa_hgtg
     SPFH:
       P1000: &adpupa_spfhg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
         thresholds: []
       P850: *adpupa_spfhg
       P700: *adpupa_spfhg
@@ -1510,42 +1516,51 @@ fields:
       P400: *adpupa_spfhg
       P300: *adpupa_spfhg
     CAPE:
-      L0-100000: 
-        fcst_level_name: L0
+      L0: 
+        obs_level_name: L0-100000
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
         thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
-    PBL:
-      fcst_field_name: HPBL
-      L0: 
-        fcst_level_name: Z0
+    HPBL:
+      obs_field_name: PBL
+      Z0: 
+        obs_options: 'desc = "TKE";'
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
+        obs_level_name: L0
         thresholds: []
-    PBL:
-      fcst_field_name: HGT
+    HGT:
+      obs_field_name: PBL
       L0: 
+        obs_options: 'desc = "RI";'
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 220;'
         thresholds: []
-    MLCAPE:
-      fcst_field_name: CAPE
-      L0: 
-        fcst_level_name: L0-90
+    CAPE:
+      obs_field_name: MLCAPE
+      L0:
+        obs_level_name: L0-90
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
         thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
   AOD:
-    AOD:
-      fcst_field_name: AOTK
-      L550:
-        fcst_level_name: L0
+    AOTK:
+      obs_field_name: AOD
+      L0:
+        obs_level_name: L550
+        obs_options: 'censor_thresh = <0; censor_val = -9999;'
         thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
   PM25:
     PM25:
-      A1: 
-        fcst_level_name: Z8
+      Z8:
+        obs_level_name: A1
         thresholds: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
   PM10:
     PM10:
-      A1: 
-        fcst_level_name: Z8
+      Z8:
+        obs_level_name: A1
         thresholds: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
   GOESAOD:
-    AOD:
-      fcst_field_name: AOTK
-      L550: 
-        fcst_level_name: L0
+    AOTK:
+      obs_field_name: AOD
+      L0: 
+        obs_level_name: L550
         thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
