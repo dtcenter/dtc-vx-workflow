@@ -8,92 +8,91 @@ from jinja2 import Environment, FileSystemLoader
 
 
 def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
-    """Renders two multi-line strings representing the list of forecast and observation variables
-    (respectively) as expected by METplus in a .conf file. For each field group, the variables are
-    read from the provided dictionary (read in from dtc-vx-workflow/parm/metplus/vx_configs/*yaml)
-    and each key is a string separated by a special delimiter string (delim_str) that can be
-    optionally split into the variable name for the forecast and observation files respectively.
-    In addition, the value corresponding to each key is a dictionary with a key for each variable
-    (again optionally split with delim_str) with a value that is a list representing threshold
-    values for METplus to verify against.
+    """Renders a multi-line string representing the list of forecast and observation variables
+    as expected by METplus in a .conf file. For each field group, ``vx_config_dict[field_group]``
+    is a LIST of field entries; each entry becomes one ``FCST_VARn`` / ``OBS_VARn`` block. Using a
+    list (rather than a dict keyed by forecast field name) allows the same forecast field to appear
+    more than once in a group (e.g. surface CAPE and MLCAPE, both with forecast name ``CAPE``).
 
-    The output will be two multiline strings representing the list of forecast and obs variables,
-    levels, and (optionally) thresholds.
+    Each entry is a dictionary with the following keys:
+
+      name          (str) : Forecast field name (required).
+      obs_name      (str) : Observation field name (optional; defaults to ``name``).
+      levels       (list) : Forecast levels (required).
+      obs_levels   (list) : Observation levels (optional; defaults to ``levels``; must be the
+                            same length as ``levels`` when provided).
+      thresholds   (list) : Forecast thresholds (optional).
+      obs_thresholds(list): Observation thresholds (optional; defaults to ``thresholds``).
+      fcst_options  (str) : Extra METplus options for the forecast field (optional).
+      obs_options   (str) : Extra METplus options for the observation field (optional).
+
+    The output is a multiline string representing the list of forecast and obs variables,
+    levels, and (optionally) thresholds and options.
 
     Example:
 
       vx_config_dict entry:
 
       SFC:
-          TMP:
-              Z2: []
-          DPT:
-              Z2: []
+        - name: TMP
+          levels: [Z2]
+        - name: DPT
+          levels: [Z2]
 
       var_list:
 
       FCST_VAR1_NAME = TMP
       FCST_VAR1_LEVELS = Z2
-      FCST_VAR2_NAME = DPT
-      FCST_VAR2_LEVELS = Z2
-
       OBS_VAR1_NAME = TMP
       OBS_VAR1_LEVELS = Z2
+
+      FCST_VAR2_NAME = DPT
+      FCST_VAR2_LEVELS = Z2
       OBS_VAR2_NAME = DPT
       OBS_VAR2_LEVELS = Z2
     """
     lgr = logging.getLogger(__name__)
 
     if field_group not in vx_config_dict:
-        raise ValueError("Provided field group {field_group} is not in defined level dictionary {vx_config_dict}")
+        raise ValueError(f"Provided field group {field_group} is not in field config dictionary")
 
-    i=1
     var_list=''
-    for fcstvar,levdic in vx_config_dict[field_group].items():
-        fcstlevels=obslevels=''
-        for lev in levdic:
-            if lev == 'obs_field_name':
-                continue
-            # Alias dictionary of remaining options for convenience
-            ld=levdic[lev]
-            lgr.debug(f"{levdic=}")
-            lgr.debug(f"{lev=}")
-            lgr.debug(f"{ld=}")
-            fcstlevels=f"{lev}, {fcstlevels}"
-            if ld.get("obs_level_name"):
-                obslevels=f"{ld.get('obs_level_name')}, {obslevels}"
-            else:
-                obslevels=f"{lev}, {obslevels}"
+    for i, entry in enumerate(vx_config_dict[field_group], start=1):
+        lgr.debug(f"{entry=}")
+        fcstvar = entry["name"]
+        obsvar = entry.get("obs_name", fcstvar)
 
-        obsvar=fcstvar
-        if levdic.get("obs_field_name"):
-            obsvar=levdic["obs_field_name"]
-  
+        fcst_levels = list(entry["levels"])
+        obs_levels = list(entry.get("obs_levels", fcst_levels))
+        if len(obs_levels) != len(fcst_levels):
+            raise ValueError(
+                f"For field '{fcstvar}' in group '{field_group}', 'obs_levels' "
+                f"(length {len(obs_levels)}) must be the same length as 'levels' "
+                f"(length {len(fcst_levels)})")
+
         # Some variables need special treatment
         if field_group == "APCP":
             # Remove zeros from level names for precipitation accumulations
-            fcstlev=fcstlev.replace('0','')
+            fcst_levels = [lev.replace('0','') for lev in fcst_levels]
 
         fcst_var_list=f"FCST_VAR{i}_NAME = {fcstvar}\n"
-        fcst_var_list+=f"FCST_VAR{i}_LEVELS = {fcstlevels}\n"
+        fcst_var_list+=f"FCST_VAR{i}_LEVELS = {', '.join(fcst_levels)}\n"
         if field_group == "APCP" or field_group == "ASNOW":
             obs_var_list=f"OBS_VAR{i}_NAME = {obsvar}_{accum}\n"
         else:
             obs_var_list=f"OBS_VAR{i}_NAME = {obsvar}\n"
-        obs_var_list+=f"OBS_VAR{i}_LEVELS = {obslevels}\n"
+        obs_var_list+=f"OBS_VAR{i}_LEVELS = {', '.join(obs_levels)}\n"
 
         # Set threshold variables unless thresh has been set to "none" (or thresholds is an empty list or missing)
-        if thresh != "none" and ld.get("thresholds"):
-            obs_threshlist = threshlist = ', '.join(ld["thresholds"])
-            fcst_var_list+=f"FCST_VAR{i}_THRESH = {threshlist}\n"
-            if ld.get("obs_thresholds"):
-                obs_threshlist = ', '.join(ld["obs_thresholds"])
-
+        if thresh != "none" and entry.get("thresholds"):
+            fcst_threshlist = ', '.join(entry["thresholds"])
+            obs_threshlist = ', '.join(entry.get("obs_thresholds", entry["thresholds"]))
+            fcst_var_list+=f"FCST_VAR{i}_THRESH = {fcst_threshlist}\n"
             obs_var_list+=f"OBS_VAR{i}_THRESH = {obs_threshlist}\n"
 
-        if opt:=ld.get("fcst_options"):
+        if opt:=entry.get("fcst_options"):
             fcst_var_list+=f"FCST_VAR{i}_OPTIONS = {opt}\n"
-        if opt:=ld.get("obs_options"):
+        if opt:=entry.get("obs_options"):
             obs_var_list+=f"OBS_VAR{i}_OPTIONS = {opt}\n"
         var_list+=fcst_var_list
         var_list+=obs_var_list
@@ -102,7 +101,6 @@ def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
         lgr.debug(f"{fcst_var_list=}")
         lgr.debug(f"{obs_var_list=}")
         lgr.debug(f"{var_list=}")
-        i+=1
 
     return var_list
 
