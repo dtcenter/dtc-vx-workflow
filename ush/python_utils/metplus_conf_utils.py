@@ -49,25 +49,25 @@ def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
 
     i=1
     var_list=''
-    for obsvar,levdic in vx_config_dict[field_group].items():
-        obslevels=fcstlevels=''
+    for fcstvar,levdic in vx_config_dict[field_group].items():
+        fcstlevels=obslevels=''
         for lev in levdic:
-            if lev == 'fcst_field_name':
+            if lev == 'obs_field_name':
                 continue
             # Alias dictionary of remaining options for convenience
             ld=levdic[lev]
             lgr.debug(f"{levdic=}")
             lgr.debug(f"{lev=}")
             lgr.debug(f"{ld=}")
-            obslevels=f"{lev}, {obslevels}"
-            if ld.get("fcst_level_name"):
-                fcstlevels=f"{ld.get('fcst_level_name')}, {fcstlevels}"
+            fcstlevels=f"{lev}, {fcstlevels}"
+            if ld.get("obs_level_name"):
+                obslevels=f"{ld.get('obs_level_name')}, {obslevels}"
             else:
-                fcstlevels=f"{lev}, {fcstlevels}"
+                obslevels=f"{lev}, {obslevels}"
 
-        fcstvar=obsvar
-        if levdic.get("fcst_field_name"):
-            fcstvar=levdic["fcst_field_name"]
+        obsvar=fcstvar
+        if levdic.get("obs_field_name"):
+            obsvar=levdic["obs_field_name"]
   
         # Some variables need special treatment
         if field_group == "APCP":
@@ -84,16 +84,20 @@ def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
 
         # Set threshold variables unless thresh has been set to "none" (or thresholds is an empty list or missing)
         if thresh != "none" and ld.get("thresholds"):
-            threshlist = ', '.join(ld["thresholds"])
+            obs_threshlist = threshlist = ', '.join(ld["thresholds"])
             fcst_var_list+=f"FCST_VAR{i}_THRESH = {threshlist}\n"
-            obs_var_list+=f"OBS_VAR{i}_THRESH = {threshlist}\n"
+            if ld.get("obs_thresholds"):
+                obs_threshlist = ', '.join(ld["obs_thresholds"])
 
-        if opt:=ld.get("options"):
-            obs_var_list+=f"OBS_VAR{i}_OPTIONS = {opt}\n"
+            obs_var_list+=f"OBS_VAR{i}_THRESH = {obs_threshlist}\n"
+
         if opt:=ld.get("fcst_options"):
             fcst_var_list+=f"FCST_VAR{i}_OPTIONS = {opt}\n"
+        if opt:=ld.get("obs_options"):
+            obs_var_list+=f"OBS_VAR{i}_OPTIONS = {opt}\n"
         var_list+=fcst_var_list
         var_list+=obs_var_list
+        var_list+="\n"
 
         lgr.debug(f"{fcst_var_list=}")
         lgr.debug(f"{obs_var_list=}")
