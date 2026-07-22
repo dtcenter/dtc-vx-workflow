@@ -3,7 +3,7 @@ Common utilities for creating/handling METplus configuration files
 """
 import logging
 
-def make_var_lists(vx_config_dict,field_group):
+def make_var_list(vx_config_dict,field_group,level,thresh,accum=0):
     """Renders two multi-line strings representing the list of forecast and observation variables
     (respectively) as expected by METplus in a .conf file. For each field group, the variables are
     read from the provided dictionary (read in from dtc-vx-workflow/parm/metplus/vx_configs/*yaml)
@@ -26,14 +26,12 @@ def make_var_lists(vx_config_dict,field_group):
           DPT:
               Z2: []
 
-      fcst_var_list:
+      var_list:
 
       FCST_VAR1_NAME = TMP
       FCST_VAR1_LEVELS = Z2
       FCST_VAR2_NAME = DPT
       FCST_VAR2_LEVELS = Z2
-
-      obs_var_list:
 
       OBS_VAR1_NAME = TMP
       OBS_VAR1_LEVELS = Z2
@@ -42,43 +40,63 @@ def make_var_lists(vx_config_dict,field_group):
     """
     lgr = logging.getLogger(__name__)
 
-    delim_str="%%"
+    if field_group not in vx_config_dict:
+        raise ValueError("Provided field group {field_group} is not in defined level dictionary {vx_config_dict}")
 
     i=1
-    fcst_var_list=''
-    obs_var_list=''
-    for var,levdic in vx_config_dict[field_group].items():
+    var_list=''
+    for obsvar,levdic in vx_config_dict[field_group].items():
+        obslevels=fcstlevels=''
         for lev in levdic:
-          print(f"{var=}")
-          print(f"{levdic=}")
-          print(f"{lev=}")
-          split=var.split(delim_str)
-          if len(split)==2:
-              fcstvar=split[0]
-              obsvar=split[1]
-          elif len(split)==2:
-              fcstvar=obsvar=split[0]
-          else:
-              raise ValueError("vx config dict entry {var} in field group {field_group} is malformed, maybe too many %% entries?")
-  
-          split=lev.split(delim_str)
-          if len(split)==2:
-              fcstlev=split[0]
-              obslev=split[1]
-          elif len(split)==2:
-              fcstlev=obslev=split[0]
-          else:
-              raise ValueError("vx config dict entry {lev} in field group {field_group} is malformed, maybe too many %% entries?")
-  
-          fcst_var_list+=f"FCST_VAR{i}_NAME = {fcstvar}\n"
-          fcst_var_list+=f"FCST_VAR{i}_LEVELS = {fcstlev}\n"
-          obs_var_list+=f"OBS_VAR{i}_NAME = {obsvar}\n"
-          obs_var_list+=f"OBS_VAR{i}_LEVELS = {obslev}\n"
-          lgr.debug(f"{fcst_var_list=}")
-          lgr.debug(f"{obs_var_list=}")
-          i+=1
+            if lev == 'fcst_field_name':
+                continue
+            # Alias dictionary of remaining options for convenience
+            ld=levdic[lev]
+            lgr.debug(f"{levdic=}")
+            lgr.debug(f"{lev=}")
+            lgr.debug(f"{ld=}")
+            obslevels=f"{lev}, {obslevels}"
+            if ld.get("fcst_level_name"):
+                fcstlevels=f"{ld.get('fcst_level_name')}, {fcstlevels}"
+            else:
+                fcstlevels=f"{lev}, {fcstlevels}"
 
-    return fcst_var_list,obs_var_list
+        fcstvar=obsvar
+        if levdic.get("fcst_field_name"):
+            fcstvar=levdic["fcst_field_name"]
+  
+        # Some variables need special treatment
+        if field_group == "APCP":
+            # Remove zeros from level names for precipitation accumulations
+            fcstlev=fcstlev.replace('0','')
+
+        fcst_var_list=f"FCST_VAR{i}_NAME = {fcstvar}\n"
+        fcst_var_list+=f"FCST_VAR{i}_LEVELS = {fcstlevels}\n"
+        if field_group == "APCP" or field_group == "ASNOW":
+            obs_var_list=f"OBS_VAR{i}_NAME = {obsvar}_{accum}\n"
+        else:
+            obs_var_list=f"OBS_VAR{i}_NAME = {obsvar}\n"
+        obs_var_list+=f"OBS_VAR{i}_LEVELS = {obslevels}\n"
+
+        # Set threshold variables unless thresh has been set to "none" (or thresholds is an empty list or missing)
+        if thresh != "none" and ld.get("thresholds"):
+            threshlist = ', '.join(ld["thresholds"])
+            fcst_var_list+=f"FCST_VAR{i}_THRESH = {threshlist}\n"
+            obs_var_list+=f"OBS_VAR{i}_THRESH = {threshlist}\n"
+
+        if opt:=ld.get("options"):
+            obs_var_list+=f"OBS_VAR{i}_OPTIONS = {opt}\n"
+        if opt:=ld.get("fcst_options"):
+            fcst_var_list+=f"FCST_VAR{i}_OPTIONS = {opt}\n"
+        var_list+=fcst_var_list
+        var_list+=obs_var_list
+
+        lgr.debug(f"{fcst_var_list=}")
+        lgr.debug(f"{obs_var_list=}")
+        lgr.debug(f"{var_list=}")
+        i+=1
+
+    return var_list
 
 def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=None):
     """Renders metplus conf files from the appropriate template and user settings.
