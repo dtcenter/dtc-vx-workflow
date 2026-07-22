@@ -1290,184 +1290,193 @@ tcrmw:
 #
 fields:
   APCP:
-    - name: APCP
-      levels: [A1]
-      thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54']
-    - name: APCP
-      levels: [A3]
-      thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350']
-    - name: APCP
-      levels: [A6]
-      thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700']
-    - name: APCP
-      levels: [A24]
-      thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700', 'ge25.400']
+    - fcst_name: APCP_01
+      fcst_levels: [A1]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_03
+      fcst_levels: [A3]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_06
+      fcst_levels: [A6]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_24
+      fcst_levels: [A24]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700', 'ge25.400']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
   ASNOW:
-    - name: ASNOW
-      levels: [A6]
-      thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
-    - name: ASNOW
-      levels: [A24]
-      thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+    - fcst_name: ASNOW_06
+      fcst_levels: [A6]
+      fcst_thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: ASNOW_24
+      fcst_levels: [A24]
+      fcst_thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
   REFC:
-    - name: REFC
+    - fcst_name: REFC
       obs_name: MergedReflectivityQCComposite
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z500]
-      thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+      obs_options: 'censor_thresh = [eq-999, <-20]; censor_val = [-9999, -20]; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
   RETOP:
-    - name: RETOP
+    - fcst_name: RETOP
       obs_name: EchoTop18
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z500]
-      thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; convert(x) = x * 3.28084 * 0.001; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+      obs_options: 'convert(x) = x * 3280.84 * 0.001; censor_thresh = [<=-9.84252,eq-3.28084]; censor_val = [-9999,-16.4042]; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
   SFC:
-    - name: TMP
-      levels: [Z2]
+    - fcst_name: TMP
+      fcst_levels: [Z2]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: DPT
-      levels: [Z2]
+    - fcst_name: DPT
+      fcst_levels: [Z2]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: RH
-      levels: [Z2]
+    - fcst_name: RH
+      fcst_levels: [Z2]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: UGRD
-      levels: [Z10]
-      thresholds: ['ge2.572']
+    - fcst_name: UGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: VGRD
-      levels: [Z10]
-      thresholds: ['ge2.572']
+    - fcst_name: VGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: WIND
-      levels: [Z10]
-      # Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
-      thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
-      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB2_pdt = 0;'
+    - fcst_name: WIND
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
       obs_options: 'GRIB2_pdt = 0;'
-    - name: PRMSL
-      levels: [Z0]
+    - fcst_name: PRMSL
+      fcst_levels: [Z0]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: TCDC
-      levels: [L0]
+    - fcst_name: TCDC
+      fcst_levels: [L0]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
-    - name: VIS
-      levels: [L0]
-      thresholds: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
+    - fcst_name: VIS
+      fcst_levels: [L0]
+      fcst_thresholds: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
       obs_options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
-    - name: GUST
-      levels: [Z0]
+    - fcst_name: GUST
+      fcst_levels: [Z0]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: HGT
+    - fcst_name: HGT
       obs_name: CEILING
-      levels: [L0]
-      thresholds: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
+      fcst_levels: [L0]
+      fcst_thresholds: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 215; desc = "CEILING";'
       obs_options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
-    - name: SPFH
-      levels: [Z2]
+    - fcst_name: SPFH
+      fcst_levels: [Z2]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: CRAIN
+    - fcst_name: CRAIN
       obs_name: PRWE
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z0]
-      thresholds: ['ge1.0']
+      fcst_thresholds: ['ge1.0']
       obs_thresholds: ['ge161&&le163']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: CSNOW
+    - fcst_name: CSNOW
       obs_name: PRWE
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z0]
-      thresholds: ['ge1.0']
+      fcst_thresholds: ['ge1.0']
       obs_thresholds: ['ge171&&le173']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: CFRZR
+    - fcst_name: CFRZR
       obs_name: PRWE
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z0]
-      thresholds: ['ge1.0']
+      fcst_thresholds: ['ge1.0']
       obs_thresholds: ['ge164&&le166']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: CICEP
+    - fcst_name: CICEP
       obs_name: PRWE
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [Z0]
-      thresholds: ['ge1.0']
+      fcst_thresholds: ['ge1.0']
       obs_thresholds: ['ge174&&le176']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
   UPA:
-    - name: TMP
-      levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+    - fcst_name: TMP
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: RH
-      levels: [P1000, P925, P850, P700, P500, P400, P300, P250]
+    - fcst_name: RH
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: DPT
-      levels: [P1000, P925, P850, P700, P500, P400, P300]
+    - fcst_name: DPT
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: UGRD
-      levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
-      thresholds: ['ge2.572']
+    - fcst_name: UGRD
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: VGRD
-      levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
-      thresholds: ['ge2.572']
+    - fcst_name: VGRD
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: WIND
-      levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
-      thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
+    - fcst_name: WIND
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: HGT
-      levels: [P1000, P950, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+    - fcst_name: HGT
+      fcst_levels: [P1000, P950, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: SPFH
-      levels: [P1000, P850, P700, P500, P400, P300]
+    - fcst_name: SPFH
+      fcst_levels: [P1000, P850, P700, P500, P400, P300]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
-    - name: CAPE
-      levels: [L0]
+    - fcst_name: CAPE
+      fcst_levels: [L0]
       obs_levels: [L0-100000]
-      thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+      fcst_thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
       obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
-    - name: HPBL
+    - fcst_name: HPBL
       obs_name: PBL
-      levels: [Z0]
+      fcst_levels: [Z0]
       obs_levels: [L0]
-      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"'
       obs_options: 'desc = "TKE";'
-    - name: HGT
+    - fcst_name: HGT
       obs_name: PBL
-      levels: [L0]
+      fcst_levels: [L0]
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 220;'
       obs_options: 'desc = "RI";'
-    - name: CAPE
+    - fcst_name: CAPE
       obs_name: MLCAPE
-      levels: [L0]
-      obs_levels: [L0-90]
-      thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+      fcst_levels: [L0-90]
+      obs_levels: [L0]
+      fcst_thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
       fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
       obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
   AOD:
-    - name: AOTK
+    - fcst_name: AOTK
       obs_name: AOD
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [L550]
-      thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
+      fcst_thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
       obs_options: 'censor_thresh = <0; censor_val = -9999;'
   PM25:
-    - name: PM25
-      levels: [Z8]
+    - fcst_name: PM25
+      fcst_levels: [Z8]
       obs_levels: [A1]
-      thresholds: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
+      fcst_thresholds: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
   PM10:
-    - name: PM10
-      levels: [Z8]
+    - fcst_name: PM10
+      fcst_levels: [Z8]
       obs_levels: [A1]
-      thresholds: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
+      fcst_thresholds: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
   GOESAOD:
-    - name: AOTK
+    - fcst_name: AOTK
       obs_name: AOD
-      levels: [L0]
+      fcst_levels: [L0]
       obs_levels: [L550]
-      thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
+      fcst_thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
