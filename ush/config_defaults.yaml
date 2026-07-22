@@ -1275,16 +1275,13 @@ tcrmw:
 # If the threshold list for a given combination of field group, field,
 # and level is set to the empty string ([]), then all values of that
 # field will be included in the verification.
-#
-# Both the keys that represent field groups, fields, and levels and the
-# strings in the list of thresholds may contain the separator string "%%"
-# that separates the value of the quantity for the forecast from that for
-# the observations.  For example, if a field is set to
-#
-#   RETOP%%EchoTop18
-#
-# it means the name of the field in the forecast data is RETOP while its
-# name in the observations is EchoTop18.
+# 
+# For each level of the dictionary, if the value for both forecast and obs
+# are the same, then a single key is used as above. But if there is a
+# difference between the two, either in field name, level, or threshold,
+# then the forecast value will be specified by the additional key
+# `fcst_field_name:`, `fcst_level_name:`, or `fcst_thresholds` at the
+# appropriate level.
 #
 # For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary
 # found in the ensemble: section will be used (see above). You can also 
@@ -1294,179 +1291,261 @@ tcrmw:
 fields:
   APCP:
     APCP:
-      A1: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54']
-      A3: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350']
-      A6: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700']
-      A24: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700', 'ge25.400']
+      A1:
+        thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54']
+      A3: 
+        thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350']
+      A6: 
+        thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700']
+      A24: 
+        thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700', 'ge25.400']
   ASNOW:
     ASNOW:
-      A6: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
-      A24: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+      A6: 
+        thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
+      A24: 
+        thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
   REFC:
-    REFC%%MergedReflectivityQCComposite:
-      L0%%Z500: ['ge20', 'ge30', 'ge40', 'ge50']
+    MergedReflectivityQCComposite:
+      fcst_field_name: REFC
+      Z500: 
+        fcst_level_name: L0
+        thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
   RETOP:
-    RETOP%%EchoTop18:
-      L0%%Z500: ['ge20', 'ge30', 'ge40', 'ge50']
+    EchoTop18:
+      fcst_field_name: RETOP
+      Z500:
+        fcst_level_name: L0
+        thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
   SFC:
     TMP:
-      Z2: []
+      Z2: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     DPT:
-      Z2: []
+      Z2: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     RH:
-      Z2: []
+      Z2: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     UGRD:
-      Z10: ['ge2.572']
+      Z10: 
+        thresholds: ['ge2.572']
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     VGRD:
-      Z10: ['ge2.572']
+      Z10: 
+        thresholds: ['ge2.572']
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     WIND:
-      Z10: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+      Z10: 
+        options: 'GRIB2_pdt = 0;' # Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+        thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB2_pdt = 0;'
     PRMSL:
-      Z0: []
+      Z0: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
     TCDC:
-      L0: []
+      L0: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
     VIS:
-      L0: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
+      L0: 
+        options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        thresholds: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
     GUST:
-      Z0: []
-    HGT%%CEILING:
-      L0: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
+      Z0: 
+        thresholds: []
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    CEILING:
+      fcst_field_name: HGT
+      L0: 
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 215; desc = "CEILING";'
+        options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        thresholds: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
     SPFH:
-      Z2: []
-    CRAIN%%PRWE:
-      L0%%Z0: ['ge1.0%%ge161&&le163']
-    CSNOW%%PRWE:
-      L0%%Z0: ['ge1.0%%ge171&&le173']
-    CFRZR%%PRWE:
-      L0%%Z0: ['ge1.0%%ge164&&le166']
-    CICEP%%PRWE:
-      L0%%Z0: ['ge1.0%%ge174&&le176']
+      Z2: 
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: []
+    PRWE:
+      fcst_field_name: CRAIN
+      Z0: 
+        fcst_level_name: L0
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: ['ge161&&le163']
+        fcst_thresholds: ['ge1.0']
+    PRWE:
+      fcst_field_name: CSNOW
+      Z0: 
+        fcst_level_name: L0
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: ['ge171&&le173']
+        fcst_thresholds: ['ge1.0']
+    PRWE:
+      fcst_field_name: CFRZR
+      Z0: 
+        fcst_level_name: L0
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: ['ge164&&le166']
+        fcst_thresholds: ['ge1.0']
+    PRWE:
+      fcst_field_name: CICEP
+      Z0: 
+        fcst_level_name: L0
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: ['ge174&&le176']
+        fcst_thresholds: ['ge1.0']
   UPA:
     TMP:
-      P1000: &adpupa_tmp_threshes
-             []
-      P925: *adpupa_tmp_threshes
-      P850: *adpupa_tmp_threshes
-      P700: *adpupa_tmp_threshes
-      P500: *adpupa_tmp_threshes
-      P400: *adpupa_tmp_threshes
-      P300: *adpupa_tmp_threshes
-      P250: *adpupa_tmp_threshes
-      P200: *adpupa_tmp_threshes
-      P150: *adpupa_tmp_threshes
-      P100: *adpupa_tmp_threshes
-      P50: *adpupa_tmp_threshes
-      P20: *adpupa_tmp_threshes
-      P10: *adpupa_tmp_threshes
+      P1000: &adpupa_tmpg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: []
+      P925: *adpupa_tmpg
+      P850: *adpupa_tmpg
+      P700: *adpupa_tmpg
+      P500: *adpupa_tmpg
+      P400: *adpupa_tmpg
+      P300: *adpupa_tmpg
+      P250: *adpupa_tmpg
+      P200: *adpupa_tmpg
+      P150: *adpupa_tmpg
+      P100: *adpupa_tmpg
+      P50: *adpupa_tmpg
+      P20: *adpupa_tmpg
+      P10: *adpupa_tmpg
     RH:
-      P1000: &adpupa_rh_threshes
-             []
-      P925: *adpupa_rh_threshes
-      P850: *adpupa_rh_threshes
-      P700: *adpupa_rh_threshes
-      P500: *adpupa_rh_threshes
-      P400: *adpupa_rh_threshes
-      P300: *adpupa_rh_threshes
-      P250: *adpupa_rh_threshes
+      P1000: &adpupa_rhg
+        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+        thresholds: []
+      P925: *adpupa_rhg
+      P850: *adpupa_rhg
+      P700: *adpupa_rhg
+      P500: *adpupa_rhg
+      P400: *adpupa_rhg
+      P300: *adpupa_rhg
+      P250: *adpupa_rhg
     DPT:
-      P1000: &adpupa_dpt_threshes
-             []
-      P925: *adpupa_dpt_threshes
-      P850: *adpupa_dpt_threshes
-      P700: *adpupa_dpt_threshes
-      P500: *adpupa_dpt_threshes
-      P400: *adpupa_dpt_threshes
-      P300: *adpupa_dpt_threshes
+      P1000: &adpupa_dptg
+        thresholds: []
+      P925: *adpupa_dptg
+      P850: *adpupa_dptg
+      P700: *adpupa_dptg
+      P500: *adpupa_dptg
+      P400: *adpupa_dptg
+      P300: *adpupa_dptg
     UGRD:
-      P1000: &adpupa_ugrd_threshes
-             ['ge2.572']
-      P925: *adpupa_ugrd_threshes
-      P850: *adpupa_ugrd_threshes
-      P700: *adpupa_ugrd_threshes
-      P500: *adpupa_ugrd_threshes
-      P400: *adpupa_ugrd_threshes
-      P300: *adpupa_ugrd_threshes
-      P250: *adpupa_ugrd_threshes
-      P200: *adpupa_ugrd_threshes
-      P150: *adpupa_ugrd_threshes
-      P100: *adpupa_ugrd_threshes
-      P50: *adpupa_ugrd_threshes
-      P20: *adpupa_ugrd_threshes
-      P10: *adpupa_ugrd_threshes
+      P1000: &adpupa_ugrdg
+        thresholds: ['ge2.572']
+      P925: *adpupa_ugrdg
+      P850: *adpupa_ugrdg
+      P700: *adpupa_ugrdg
+      P500: *adpupa_ugrdg
+      P400: *adpupa_ugrdg
+      P300: *adpupa_ugrdg
+      P250: *adpupa_ugrdg
+      P200: *adpupa_ugrdg
+      P150: *adpupa_ugrdg
+      P100: *adpupa_ugrdg
+      P50: *adpupa_ugrdg
+      P20: *adpupa_ugrdg
+      P10: *adpupa_ugrdg
     VGRD:
-      P1000: &adpupa_vgrd_threshes
-             ['ge2.572']
-      P925: *adpupa_vgrd_threshes
-      P850: *adpupa_vgrd_threshes
-      P700: *adpupa_vgrd_threshes
-      P500: *adpupa_vgrd_threshes
-      P400: *adpupa_vgrd_threshes
-      P300: *adpupa_vgrd_threshes
-      P250: *adpupa_vgrd_threshes
-      P200: *adpupa_vgrd_threshes
-      P150: *adpupa_vgrd_threshes
-      P100: *adpupa_vgrd_threshes
-      P50: *adpupa_vgrd_threshes
-      P20: *adpupa_vgrd_threshes
-      P10: *adpupa_vgrd_threshes
+      P1000: &adpupa_vgrdg
+        thresholds: ['ge2.572']
+      P925: *adpupa_vgrdg
+      P850: *adpupa_vgrdg
+      P700: *adpupa_vgrdg
+      P500: *adpupa_vgrdg
+      P400: *adpupa_vgrdg
+      P300: *adpupa_vgrdg
+      P250: *adpupa_vgrdg
+      P200: *adpupa_vgrdg
+      P150: *adpupa_vgrdg
+      P100: *adpupa_vgrdg
+      P50: *adpupa_vgrdg
+      P20: *adpupa_vgrdg
+      P10: *adpupa_vgrdg
     WIND:
-      P1000: &adpupa_wind_threshes
-             ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
-      P925: *adpupa_wind_threshes
-      P850: *adpupa_wind_threshes
-      P700: *adpupa_wind_threshes
-      P500: *adpupa_wind_threshes
-      P400: *adpupa_wind_threshes
-      P300: *adpupa_wind_threshes
-      P250: *adpupa_wind_threshes
-      P200: *adpupa_wind_threshes
-      P150: *adpupa_wind_threshes
-      P100: *adpupa_wind_threshes
-      P50: *adpupa_wind_threshes
-      P20: *adpupa_wind_threshes
-      P10: *adpupa_wind_threshes
+      P1000: &adpupa_windg
+        thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
+      P925: *adpupa_windg
+      P850: *adpupa_windg
+      P700: *adpupa_windg
+      P500: *adpupa_windg
+      P400: *adpupa_windg
+      P300: *adpupa_windg
+      P250: *adpupa_windg
+      P200: *adpupa_windg
+      P150: *adpupa_windg
+      P100: *adpupa_windg
+      P50: *adpupa_windg
+      P20: *adpupa_windg
+      P10: *adpupa_windg
     HGT:
-      P1000: &adpupa_hgt_threshes
-             []
-      P950: *adpupa_hgt_threshes
-      P925: *adpupa_hgt_threshes
-      P850: *adpupa_hgt_threshes
-      P700: *adpupa_hgt_threshes
-      P500: *adpupa_hgt_threshes
-      P400: *adpupa_hgt_threshes
-      P300: *adpupa_hgt_threshes
-      P250: *adpupa_hgt_threshes
-      P200: *adpupa_hgt_threshes
-      P150: *adpupa_hgt_threshes
-      P100: *adpupa_hgt_threshes
-      P50: *adpupa_hgt_threshes
-      P20: *adpupa_hgt_threshes
-      P10: *adpupa_hgt_threshes
+      P1000: &adpupa_hgtg
+        thresholds: []
+      P950: *adpupa_hgtg
+      P925: *adpupa_hgtg
+      P850: *adpupa_hgtg
+      P700: *adpupa_hgtg
+      P500: *adpupa_hgtg
+      P400: *adpupa_hgtg
+      P300: *adpupa_hgtg
+      P250: *adpupa_hgtg
+      P200: *adpupa_hgtg
+      P150: *adpupa_hgtg
+      P100: *adpupa_hgtg
+      P50: *adpupa_hgtg
+      P20: *adpupa_hgtg
+      P10: *adpupa_hgtg
     SPFH:
-      P1000: &adpupa_spfh_threshes
-             []
-      P850: *adpupa_spfh_threshes
-      P700: *adpupa_spfh_threshes
-      P500: *adpupa_spfh_threshes
-      P400: *adpupa_spfh_threshes
-      P300: *adpupa_spfh_threshes
+      P1000: &adpupa_spfhg
+        thresholds: []
+      P850: *adpupa_spfhg
+      P700: *adpupa_spfhg
+      P500: *adpupa_spfhg
+      P400: *adpupa_spfhg
+      P300: *adpupa_spfhg
     CAPE:
-      L0%%L0-100000: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
-    HPBL%%PBL:
-      Z0%%L0: []
-    HGT%%PBL:
-      L0: []
-    CAPE%%MLCAPE:
-      L0-90%%L0: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+      L0-100000: 
+        fcst_level_name: L0
+        thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+    PBL:
+      fcst_field_name: HPBL
+      L0: 
+        fcst_level_name: Z0
+        thresholds: []
+    PBL:
+      fcst_field_name: HGT
+      L0: 
+        thresholds: []
+    MLCAPE:
+      fcst_field_name: CAPE
+      L0: 
+        fcst_level_name: L0-90
+        thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
   AOD:
-    AOTK%%AOD:
-      L0%%L550: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
+    AOD:
+      fcst_field_name: AOTK
+      L550:
+        fcst_level_name: L0
+        thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
   PM25:
-    PM25%%PM25:
-      Z8%%A1: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
+    PM25:
+      A1: 
+        fcst_level_name: Z8
+        thresholds: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
   PM10:
-    PM10%%PM10:
-      Z8%%A1: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
+    PM10:
+      A1: 
+        fcst_level_name: Z8
+        thresholds: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
   GOESAOD:
-    AOTK%%AOD:
-      L0%%L550: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
+    AOD:
+      fcst_field_name: AOTK
+      L550: 
+        fcst_level_name: L0
+        thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']

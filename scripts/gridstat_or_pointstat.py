@@ -18,7 +18,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import setup_logging, render_metplus_confs, make_var_list
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -250,6 +250,10 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     if taskcfg.get("fields"):
         vx_config_dict = taskcfg.get("fields")
 
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+
+    var_list=make_var_list(vx_config_dict,field_group,fcst_level,fcst_thresh)
+
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
                'metplus_tool_name': metplus_tool_name,
@@ -282,8 +286,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'accum_no_pad': accum_hh,
                'metplus_templates_dir': cfg['user']['METPLUS_CONF'],
                'input_field_group': field_group,
-               'input_level_fcst': fcst_level,
-               'input_thresh_fcst': fcst_thresh,
+               # Variable list
+               'var_list': var_list,
                # Verification mask settings
                'vx_mask': ', '.join(vx_mask_files),
                # Rest of settings from yaml file
