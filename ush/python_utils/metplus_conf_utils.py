@@ -25,27 +25,41 @@ def merge_field_configs(base, override):
     merging (per-variable omission). This lets a task drop a variable it does not need without
     re-listing the rest of the group.
 
+    Matching: an override entry is matched to base entries by ``fcst_name``, AND, if the override
+    entry also specifies ``fcst_levels``, by ``fcst_levels`` as well. The extra key disambiguates
+    groups that hold several entries with the same ``fcst_name`` at different levels (e.g. UPA
+    ``TMP`` at P850/P700/P500) -- without it, an override for ``TMP`` would clobber every ``TMP``
+    entry. A minimal override that lists only ``fcst_name`` (plus the key being changed) still works
+    for field names that are unique within their group.
+
     Groups absent from ``override`` are carried through from ``base`` unchanged. ``base`` is not
     mutated (a deep copy is returned).
 
-    Note: if the base group contains more than one entry with the same ``fcst_name`` (e.g. the two
-    UPA ``CAPE`` entries), an override (or omission) for that name is applied to ALL of them. To
-    target just one, override the whole group by listing all of its entries explicitly.
+    Note: if the base group still contains more than one entry that the override cannot tell apart
+    (same ``fcst_name`` AND same ``fcst_levels``, e.g. the two UPA ``CAPE`` entries that differ only
+    by ``obs_name``), the override (or omission) is applied to ALL of them.
     """
+    def matches(base_entry, ov):
+        if base_entry.get("fcst_name") != ov.get("fcst_name"):
+            return False
+        # If the override names levels, use them to disambiguate duplicate field names
+        if "fcst_levels" in ov and base_entry.get("fcst_levels") != ov.get("fcst_levels"):
+            return False
+        return True
+
     merged = copy.deepcopy(base) if base else {}
     for field_group, override_entries in (override or {}).items():
         group = merged.setdefault(field_group, [])
         for override_entry in override_entries:
-            name = override_entry.get("fcst_name")
             if override_entry.get("omit"):
-                # Per-variable omission: drop all entries in this group with this fcst_name
-                group[:] = [e for e in group if e.get("fcst_name") != name]
+                # Per-variable omission: drop matching entries from this group
+                group[:] = [e for e in group if not matches(e, override_entry)]
                 continue
             # Strip the 'omit' directive so it never leaks into the field entry
             ov = {k: v for k, v in override_entry.items() if k != "omit"}
-            matches = [e for e in group if e.get("fcst_name") == name]
-            if matches:
-                for match in matches:
+            found = [e for e in group if matches(e, ov)]
+            if found:
+                for match in found:
                     match.update(ov)
             else:
                 group.append(copy.deepcopy(ov))
