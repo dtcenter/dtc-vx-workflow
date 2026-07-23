@@ -116,8 +116,8 @@ def gridstat_or_pointstat_ensprob(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
-    # Need to load "gridstat_ens" or "pointstat_ens" config section depending on what we're running
-    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ens"]
+    # Need to load "gridstat_ensprob" or "pointstat_ensprob" config section depending on what we're running
+    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ensprob"]
 
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensprob")
     staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}_ensprob")
@@ -178,13 +178,14 @@ def gridstat_or_pointstat_ensprob(
         fcst_level=f"A{accum_hh}"
     else:
         fcst_level="all"
-    # Ensemble-probability verification: one FCST/OBS pair per threshold, in two passes
+    # Ensemble-probability verification: one FCST/OBS pair per threshold, in two passes for GridStat
     # (probabilistic then scalar+neighborhood). The probability bin width is 1/NUM_ENS_MEMBERS;
     # it is used both per-variable (inside make_ensprob_var_list) and for the tool-level
     # FCST_<tool>_PROB_THRESH setting, so compute it once here.
     prob_thresh=ensprob_bin_width(enscfg["NUM_ENS_MEMBERS"])
     var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
-                                   prob_thresh=prob_thresh)
+                                   prob_thresh=prob_thresh,
+                                   neighborhood=(metplus_tool_camel_case == "GridStat"))
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
