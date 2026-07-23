@@ -17,7 +17,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensprob_var_list, ensprob_bin_width, merge_field_configs
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensprob_var_list, merge_field_configs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -179,7 +179,7 @@ def gridstat_or_pointstat_ensprob(
     # (probabilistic then scalar+neighborhood). The probability bin width is 1/NUM_ENS_MEMBERS;
     # it is used both per-variable (inside make_ensprob_var_list) and for the tool-level
     # FCST_<tool>_PROB_THRESH setting, so compute it once here.
-    prob_thresh=ensprob_bin_width(enscfg["NUM_ENS_MEMBERS"])
+    prob_thresh=f"=={enscfg['ENS_BIN_WIDTH']}"
     var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
                                    prob_thresh=prob_thresh,
                                    neighborhood=(metplus_tool_camel_case == "GridStat"))
