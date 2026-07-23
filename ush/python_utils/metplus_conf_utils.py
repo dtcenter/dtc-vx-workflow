@@ -240,18 +240,6 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
     return outconfs
 
 
-def ensprob_bin_width(num_ens_members):
-    """Return the METplus probability-bin-width threshold string for an N-member ensemble.
-
-    An N-member ensemble can only produce ensemble relative frequencies of k/N (k = 0..N), so the
-    natural probability bin width is 1/N (e.g. N=10 -> '==0.1', N=20 -> '==0.05'). This is used
-    both for the per-variable FCST_VARn_THRESH and for the tool-level FCST_<tool>_PROB_THRESH.
-    """
-    if not num_ens_members:
-        raise ValueError("num_ens_members must be a positive integer")
-    return f"=={1.0 / num_ens_members:g}"
-
-
 def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
                           level="all", thresh="all", prob_thresh=None, neighborhood=True):
     """Render the FCST/OBS variable list for ensemble-probability (ensprob) verification of the

@@ -17,6 +17,7 @@ workflow:
 ensemble:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 2
+  ENS_BIN_WIDTH: 0.1
 
 verification:
   VX_FCST_MODEL_NAME: RRFS
