@@ -54,13 +54,16 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
 
     var_list=''
     ens_var_list=''
-    for i, entry in enumerate(vx_config_dict[field_group], start=1):
+    i=1
+
+    for entry in vx_config_dict[field_group]:
         lgr.debug(f"{entry=}")
         fcstvar = entry["fcst_name"]
         obsvar = entry.get("obs_name", fcstvar)
         lgr.debug(f"{level=}")
         if level != "all":
             if level not in entry["fcst_levels"]:
+                lgr.debug("SKIPPING BAD LEVEL")
                 continue
         fcst_levels = list(entry["fcst_levels"])
         obs_levels = list(entry.get("obs_levels", fcst_levels))
@@ -79,6 +82,7 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
             if opt:=entry.get("fcst_options"):
                 ens_var_list+=f"ENS_VAR{i}_OPTIONS = {opt}\n"
             lgr.debug(f"{ens_var_list}")
+            i+=1
             continue
 
         fcst_var_list=f"FCST_VAR{i}_NAME = {fcstvar}\n"
@@ -104,6 +108,7 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
         lgr.debug(f"{fcst_var_list=}")
         lgr.debug(f"{obs_var_list=}")
         lgr.debug(f"{var_list=}")
+        i+=1
 
     lgr.debug(f"Ending {ens_var_list}")
 
@@ -208,7 +213,7 @@ def ensprob_bin_width(num_ens_members):
 
 
 def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
-                          level="all", thresh="all", prob_thresh=None):
+                          level="all", thresh="all", prob_thresh=None, neighborhood=True):
     """Render the FCST/OBS variable list for ensemble-probability (ensprob) verification of the
     ensemble relative-frequency fields produced by GenEnsProd.
 
@@ -219,7 +224,9 @@ def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
       1. Probabilistic pass: the GenEnsProd frequency field is verified as a probability (yields
          Brier/reliability/ROC via the PCT/PSTD/PJC line types).
       2. Scalar pass: the same field is verified as a scalar (``prob = FALSE``) using neighborhood
-         methods (yields NBRCNT/NBRCTC).
+         methods (yields NBRCNT/NBRCTC). This pass is emitted only when ``neighborhood`` is True
+         (i.e. gridded verification / GridStat); for point verification / PointStat, where
+         neighborhood methods do not apply, pass ``neighborhood=False`` to emit only pass 1.
 
     All probabilistic pairs are emitted first, then all scalar pairs, matching MET's expectation.
     A single running counter drives the ``VARn`` index so it stays contiguous starting at 1 even
@@ -261,9 +268,10 @@ def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
 
     var_list = ''
     i = 0
-    # Loop over each field twice: first treating the forecast field as probabilistic, then as a
-    # scalar (with prob=FALSE and neighborhood options).
-    for treat_as_prob in (True, False):
+    # The probabilistic pass always runs; the scalar+neighborhood pass runs only when neighborhood
+    # methods apply (gridded verification / GridStat, not point verification / PointStat).
+    passes = (True, False) if neighborhood else (True,)
+    for treat_as_prob in passes:
         for entry in vx_config_dict[field_group]:
             lgr.debug(f"{entry=}")
             fcstvar = entry["fcst_name"]

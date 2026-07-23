@@ -115,8 +115,8 @@ def gridstat_or_pointstat_ensmean(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
-    # Need to load "gridstat_ens" or "pointstat_ens" config section depending on what we're running
-    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ens"]
+    # Need to load "gridstat_ensmean" or "pointstat_ensmean" config section depending on what we're running
+    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ensmean"]
 
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensmean")
     staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}_ensmean")
