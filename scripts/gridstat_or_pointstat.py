@@ -239,11 +239,11 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
-    # use the top-level fields: section
-    vx_config_dict = cfg.get("fields")
-    if taskcfg.get("fields"):
-        vx_config_dict = taskcfg.get("fields")
+    # Field config for this task: start from the top-level fields: section, then let this task's
+    # fields: section override individual field GROUPS (only listed groups are replaced; all other
+    # groups are inherited from the base).
+    vx_config_dict = {**(cfg.get("fields") or {}),
+                      **(taskcfg.get("fields") or {})}
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
