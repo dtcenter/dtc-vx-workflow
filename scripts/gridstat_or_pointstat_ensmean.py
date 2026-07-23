@@ -163,14 +163,11 @@ def gridstat_or_pointstat_ensmean(
         f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}_ensmean.0"
     )
 
-    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
-    # if there's a fields: section in the ensemble: section, use the thresholds defined there.
-    # Otherwise, use the top-level fields: section
-    vx_config_dict = cfg.get("fields")
-    if fields:=taskcfg.get("fields"):
-        vx_config_dict = fields
-    elif fields:=enscfg.get("fields"):
-        vx_config_dict = fields
+    # Field config for this task: start from the shared ensemble: fields: section (falling back to
+    # the top-level fields:), then let this task's fields: section override individual field GROUPS.
+    # Only the groups a task lists are replaced; all other groups are inherited from the base.
+    vx_config_dict = {**(enscfg.get("fields") or cfg.get("fields") or {}),
+                      **(taskcfg.get("fields") or {})}
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
