@@ -18,7 +18,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, make_var_list
+from python_utils import setup_logging, render_metplus_confs, make_var_list, merge_field_configs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -239,11 +239,9 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Field config for this task: start from the top-level fields: section, then let this task's
-    # fields: section override individual field GROUPS (only listed groups are replaced; all other
-    # groups are inherited from the base).
-    vx_config_dict = {**(cfg.get("fields") or {}),
-                      **(taskcfg.get("fields") or {})}
+    # Field config for this task: start from the top-level fields: section, then apply this task's
+    # fields: section as per-variable overrides (entries merged by fcst_name; see merge_field_configs).
+    vx_config_dict = merge_field_configs(cfg.get("fields") or {}, taskcfg.get("fields"))
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:

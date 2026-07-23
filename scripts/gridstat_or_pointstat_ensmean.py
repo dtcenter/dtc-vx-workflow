@@ -16,7 +16,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensmean_var_list
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensmean_var_list, merge_field_configs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -164,10 +164,10 @@ def gridstat_or_pointstat_ensmean(
     )
 
     # Field config for this task: start from the shared ensemble: fields: section (falling back to
-    # the top-level fields:), then let this task's fields: section override individual field GROUPS.
-    # Only the groups a task lists are replaced; all other groups are inherited from the base.
-    vx_config_dict = {**(enscfg.get("fields") or cfg.get("fields") or {}),
-                      **(taskcfg.get("fields") or {})}
+    # the top-level fields:), then apply this task's fields: section as per-variable overrides
+    # (entries merged by fcst_name; see merge_field_configs).
+    vx_config_dict = merge_field_configs(enscfg.get("fields") or cfg.get("fields") or {},
+                                         taskcfg.get("fields"))
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
