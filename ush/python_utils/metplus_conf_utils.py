@@ -331,3 +331,73 @@ def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
 
     return var_list
 
+
+def make_ensmean_var_list(vx_config_dict, field_group, level="all"):
+    """Render the FCST/OBS variable list for ensemble-mean verification of the ensemble-mean
+    fields produced by GenEnsProd.
+
+    Like the deterministic make_var_list() this emits one FCST/OBS pair per variable with the
+    thresholds comma-joined, EXCEPT it expands one pair PER LEVEL rather than collapsing all of a
+    field's levels into a single VARn. This is required because GenEnsProd names each ensemble-mean
+    field with its level embedded:
+
+        {fcst_name}_{level}_ENS_MEAN
+
+    so e.g. TMP at P1000 and P925 are the distinct variables TMP_P1000_ENS_MEAN and
+    TMP_P925_ENS_MEAN and cannot share one FCST_VARn_NAME. The observation side is the plain
+    field/level (no suffix). A single running counter drives the VARn index so it stays contiguous
+    starting at 1 even when the level filter skips entries.
+
+    For accumulated fields the accumulation period is expected to be part of fcst_name already
+    (e.g. 'APCP_06'), so no special-casing is required here.
+
+    Note that the entry's fcst_options are intentionally NOT applied: they describe the raw
+    deterministic forecast (e.g. set_attr_lead), not the GenEnsProd ENS_MEAN product. The obs
+    side does use the entry's obs_options. (Any field-specific forecast-side options for the mean
+    would need a dedicated config key; none is used yet.)
+    """
+    lgr = logging.getLogger(__name__)
+
+    if field_group not in vx_config_dict:
+        raise ValueError(f"Provided field group {field_group} is not in field config dictionary")
+
+    var_list = ''
+    i = 0
+    for entry in vx_config_dict[field_group]:
+        lgr.debug(f"{entry=}")
+        fcstvar = entry["fcst_name"]
+        obsvar = entry.get("obs_name", fcstvar)
+        fcst_levels = list(entry["fcst_levels"])
+        obs_levels = list(entry.get("obs_levels", fcst_levels))
+        if len(obs_levels) != len(fcst_levels):
+            raise ValueError(
+                f"For field '{fcstvar}' in group '{field_group}', 'obs_levels' "
+                f"(length {len(obs_levels)}) must be the same length as 'fcst_levels' "
+                f"(length {len(fcst_levels)})")
+        fcst_threshes = entry.get("fcst_thresholds", [])
+        obs_threshes = entry.get("obs_thresholds", fcst_threshes)
+        obs_opts = entry.get("obs_options")
+
+        for li, level_fcst in enumerate(fcst_levels):
+            if level != "all" and level != level_fcst:
+                continue
+            # Increment only after passing the skip check so VARn stays contiguous
+            i += 1
+            fcst_var = f"FCST_VAR{i}_NAME = {fcstvar}_{level_fcst}_ENS_MEAN\n"
+            fcst_var += f"FCST_VAR{i}_LEVELS = {level_fcst}\n"
+            obs_var = f"OBS_VAR{i}_NAME = {obsvar}\n"
+            obs_var += f"OBS_VAR{i}_LEVELS = {obs_levels[li]}\n"
+
+            if fcst_threshes:
+                fcst_var += f"FCST_VAR{i}_THRESH = {', '.join(fcst_threshes)}\n"
+                obs_var += f"OBS_VAR{i}_THRESH = {', '.join(obs_threshes)}\n"
+
+            if obs_opts:
+                obs_var += f"OBS_VAR{i}_OPTIONS = {obs_opts}\n"
+
+            var_list += fcst_var + obs_var + "\n"
+            lgr.debug(f"{fcst_var=}")
+            lgr.debug(f"{obs_var=}")
+
+    return var_list
+
