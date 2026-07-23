@@ -230,7 +230,7 @@ metatask_GridStat_APCP_all_accums_ensmean:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ gridstat_ens.execution.tries }}"
+      maxtries: !int "{{ gridstat_ensmean.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
     envars:
       <<: *default_vars
@@ -241,9 +241,9 @@ metatask_GridStat_APCP_all_accums_ensmean:
       ACCUM_HH: '#ACCUM_HH#'
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
-    memory: '{{ gridstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ gridstat_ens.execution.walltime }}"
+    memory: '{{ gridstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensmean.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_ccpa:
@@ -259,7 +259,7 @@ metatask_GridStat_APCP_all_accums_ensprob:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ gridstat_ens.execution.tries }}"
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
@@ -270,9 +270,9 @@ metatask_GridStat_APCP_all_accums_ensprob:
       ACCUM_HH: '#ACCUM_HH#'
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
-    memory: '{{ gridstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ gridstat_ens.execution.walltime }}"
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_ccpa:
@@ -289,7 +289,7 @@ metatask_GridStat_ASNOW_all_accums_ensmean:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ gridstat_ens.execution.tries }}"
+      maxtries: !int "{{ gridstat_ensmean.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
     envars:
       <<: *default_vars
@@ -300,9 +300,9 @@ metatask_GridStat_ASNOW_all_accums_ensmean:
       ACCUM_HH: '#ACCUM_HH#'
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
-    memory: '{{ gridstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ gridstat_ens.execution.walltime }}"
+    memory: '{{ gridstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensmean.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_nohrsc:
@@ -318,7 +318,7 @@ metatask_GridStat_ASNOW_all_accums_ensprob:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ gridstat_ens.execution.tries }}"
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
@@ -329,9 +329,9 @@ metatask_GridStat_ASNOW_all_accums_ensprob:
       ACCUM_HH: '#ACCUM_HH#'
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
-    memory: '{{ gridstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ gridstat_ens.execution.walltime }}"
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
         taskdep_pcpcombine_obs_nohrsc:
@@ -348,7 +348,7 @@ metatask_GridStat_REFC_RETOP_ensprob:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ gridstat_ens.execution.tries }}"
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
@@ -359,9 +359,9 @@ metatask_GridStat_REFC_RETOP_ensprob:
       OBTYPE: 'MRMS'
       FCST_LEVEL: 'L0'
       OMP_NUM_THREADS: 4
-    memory: '{{ gridstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ gridstat_ens.execution.walltime }}"
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
         sh_all_get_obs_mrms_complete:
@@ -377,7 +377,7 @@ metatask_PointStat_SFC_UPA_ensmean:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ pointstat_ens.execution.tries }}"
+      maxtries: !int "{{ pointstat_ensmean.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
     envars:
       <<: *default_vars
@@ -387,9 +387,9 @@ metatask_PointStat_SFC_UPA_ensmean:
       OBTYPE: 'NDAS'
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
-    memory: '{{ pointstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ pointstat_ens.execution.walltime }}"
+    memory: '{{ pointstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ pointstat_ensmean.execution.walltime }}"
     dependency:
       and:
         sh_all_pb2nc_obs_ndas_complete:
@@ -406,7 +406,7 @@ metatask_PointStat_SFC_UPA_ensprob:
     <<: *default_task_verify_ens
     attrs:
       <<: *default_ens_attrs
-      maxtries: !int "{{ pointstat_ens.execution.tries }}"
+      maxtries: !int "{{ pointstat_ensprob.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
@@ -416,9 +416,9 @@ metatask_PointStat_SFC_UPA_ensprob:
       OBTYPE: 'NDAS'
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
-    memory: '{{ pointstat_ens.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ens.execution.tasks_per_node }}'
-    walltime: "{{ pointstat_ens.execution.walltime }}"
+    memory: '{{ pointstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ pointstat_ensprob.execution.walltime }}"
     dependency:
       and:
         sh_all_pb2nc_obs_ndas_complete:

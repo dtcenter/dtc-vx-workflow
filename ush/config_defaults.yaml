@@ -1128,24 +1128,44 @@ pointstat:
   # Number of POINTSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
-gridstat_ens:
+gridstat_ensmean:
   # Runtime settings for ensemble mean GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat_ens.TASKS }}'
+    tasks_per_node: '{{ gridstat_ensmean.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * gridstat_ens.TASKS }}G'
+    memory: '{{ 2 * gridstat_ensmean.TASKS }}G'
+    tries: 1
+  # Number of instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+gridstat_ensprob:
+  # Runtime settings for ensemble prob GRIDSTAT jobs
+  execution:
+    tasks_per_node: '{{ gridstat_ensprob.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat_ensprob.TASKS }}G'
     tries: 1
   # Number of ensemble GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
-pointstat_ens:
+pointstat_ensmean:
   # Runtime settings for ensemble mean POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat_ens.TASKS }}'
+    tasks_per_node: '{{ pointstat_ensmean.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * pointstat_ens.TASKS }}G'
+    memory: '{{ 2 * pointstat_ensmean.TASKS }}G'
     tries: 1
-  # Number of ensemble POINTSTAT instances to run in parallel
+  # Number of instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+pointstat_ensprob:
+  # Runtime settings for ensemble prob POINTSTAT jobs
+  execution:
+    tasks_per_node: '{{ pointstat_ensprob.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat_ensprob.TASKS }}G'
+    tries: 1
+  # Number of instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 point2grid:
