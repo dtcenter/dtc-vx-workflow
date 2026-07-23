@@ -1162,6 +1162,26 @@ pointstat_ensmean:
     tries: 1
   # Number of instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+  fields:
+    UPA:
+      - fcst_name: CAPE
+        fcst_levels: [L0]
+        obs_levels: [L0-100000]
+        fcst_thresholds: ['le1000', 'gt1000&&lt2500', 'ge2500&&lt4000', 'ge2500']
+        fcst_options: 'cnt_thresh = [ >0 ];'
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+    SFC:
+      - fcst_name: WIND
+        fcst_levels: [Z10]
+        fcst_thresholds:  ['ge5', 'ge10', 'ge15']
+        fcst_options: 'GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+      - fcst_name: TCDC
+        omit: True
+      - fcst_name: VIS
+        omit: True
+      - fcst_name: HGT
+        omit: True
+        obs_name: CEILING
 
 pointstat_ensprob:
   # Runtime settings for ensemble prob POINTSTAT jobs
@@ -1268,7 +1288,7 @@ ensemblestat:
         obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
       - fcst_name: DPT
         fcst_levels: [Z2]
-        fcst_thresholds: ['ge263', 'ge268', 'ge273', 'ge278', 'ge293', 'ge298']
+        fcst_thresholds: ['ge263', 'ge268', 'ge273', 'ge288', 'ge293', 'ge298']
         obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
       - fcst_name: WIND
         fcst_levels: [Z10]
@@ -1277,7 +1297,7 @@ ensemblestat:
         obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
       - fcst_name: TCDC
         fcst_levels: [L0]
-        fcst_thresholds: ['lt25', 'lt75']
+        fcst_thresholds: ['lt25', 'gt75']
         fcst_options: 'GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
       - fcst_name: VIS
         fcst_levels: [L0]
