@@ -1143,12 +1143,15 @@ gridstat_ensprob:
   # Number of ensemble GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
   # Per-task field override: entries are merged onto the shared ensemble: fields: section by
-  # fcst_name, so only the keys listed here are overridden. RETOP needs different obs censoring
-  # for ensprob; everything else is inherited from the shared RETOP entry.
+  # fcst_name, so only the keys listed here are overridden. RETOP and REFC need different obs censoring
+  # for ensprob; everything else is inherited from the shared ensemble: entry.
   fields:
     RETOP:
       - fcst_name: RETOP
         obs_options: 'censor_thresh = lt-20.0; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION; convert(x) = x * 3280.84 * 0.001;'
+    REFC:
+      - fcst_name: REFC
+        obs_options: 'censor_thresh = lt-20; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
 
 pointstat_ensmean:
   # Runtime settings for ensemble mean POINTSTAT jobs
@@ -1201,6 +1204,11 @@ genensprod:
   conf:
     #Verbosity of MET logging output.
     LOG_GEN_ENS_PROD_VERBOSITY: '{{ verification.METPLUS_VERBOSITY_LEVEL}}'
+  # Genensprod needs different options for VIS fields
+  fields:
+    SFC:
+      - fcst_name: VIS
+        fcst_options: 'interp = { type = [ { method = NEAREST; width = 1; } ]; }'
 
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
