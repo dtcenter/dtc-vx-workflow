@@ -16,7 +16,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_var_list
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensmean_var_list
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -177,7 +177,9 @@ def gridstat_or_pointstat_ensmean(
         fcst_level=f"A{accum_hh}"
     else:
         fcst_level="all"
-    var_list=make_var_list(vx_config_dict,field_group,fcst_level)
+    # Ensemble-mean verification: one FCST/OBS pair PER LEVEL, with the forecast field named
+    # {fcst_name}_{level}_ENS_MEAN to match GenEnsProd's ensemble-mean output.
+    var_list=make_ensmean_var_list(vx_config_dict, field_group, level=fcst_level)
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
