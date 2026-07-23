@@ -395,10 +395,10 @@ def make_ensmean_var_list(vx_config_dict, field_group, level="all"):
     For accumulated fields the accumulation period is expected to be part of fcst_name already
     (e.g. 'APCP_06'), so no special-casing is required here.
 
-    Note that the entry's fcst_options are intentionally NOT applied: they describe the raw
-    deterministic forecast (e.g. set_attr_lead), not the GenEnsProd ENS_MEAN product. The obs
-    side does use the entry's obs_options. (Any field-specific forecast-side options for the mean
-    would need a dedicated config key; none is used yet.)
+    The entry's fcst_options and obs_options are emitted as-is. Note that the ensemble field
+    config (unlike the deterministic one) omits raw-forecast options such as set_attr_lead from
+    fcst_options precisely because they do not apply to the GenEnsProd ENS_MEAN product; the ones
+    that remain (e.g. cnt_thresh for CAPE) are meant to be passed through.
     """
     lgr = logging.getLogger(__name__)
 
@@ -436,6 +436,8 @@ def make_ensmean_var_list(vx_config_dict, field_group, level="all"):
                 fcst_var += f"FCST_VAR{i}_THRESH = {', '.join(fcst_threshes)}\n"
                 obs_var += f"OBS_VAR{i}_THRESH = {', '.join(obs_threshes)}\n"
 
+            if opt := entry.get("fcst_options"):
+                fcst_var += f"FCST_VAR{i}_OPTIONS = {opt}\n"
             if obs_opts:
                 obs_var += f"OBS_VAR{i}_OPTIONS = {obs_opts}\n"
 
