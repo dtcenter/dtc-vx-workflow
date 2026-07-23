@@ -1156,18 +1156,13 @@ gridstat_ensprob:
     tries: 1
   # Number of ensemble GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
-  # Per-task field override: only the RETOP group is replaced here; all other groups are inherited
-  # from the shared ensemble: fields: section. RETOP needs different obs censoring for ensprob.
+  # Per-task field override: entries are merged onto the shared ensemble: fields: section by
+  # fcst_name, so only the keys listed here are overridden. RETOP needs different obs censoring
+  # for ensprob; everything else is inherited from the shared RETOP entry.
   fields:
     RETOP:
       - fcst_name: RETOP
-        obs_name: EchoTop18
-        fcst_levels: [L0]
-        obs_levels: [Z500]
-        fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
-        fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; convert(x) = x * 3.28084 * 0.001; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
         obs_options: 'censor_thresh = lt-20.0; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION; convert(x) = x * 3280.84 * 0.001;'
-        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
 
 pointstat_ensmean:
   # Runtime settings for ensemble mean POINTSTAT jobs
