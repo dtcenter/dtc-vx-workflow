@@ -82,7 +82,11 @@ genensprod:
     # Definitions for gaussian smoother applied to raw EAS probability values
     GEN_ENS_PROD_EAS_PROB_GAUSSIAN_DX: 81.27
     GEN_ENS_PROD_EAS_PROB_GAUSSIAN_RADIUS: 120
-gridstat_ens:
+gridstat_ensmean:
+  execution:
+    walltime: 02:00:00
+  TASKS: 30
+gridstat_ensprob:
   execution:
     walltime: 02:00:00
   TASKS: 30
