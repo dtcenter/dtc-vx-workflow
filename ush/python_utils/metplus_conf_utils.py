@@ -21,26 +21,34 @@ def merge_field_configs(base, override):
         variable;
       * a group present in ``override`` but not in ``base`` is added wholesale.
 
+    An override entry with ``omit: true`` REMOVES the matching entry(ies) from the group instead of
+    merging (per-variable omission). This lets a task drop a variable it does not need without
+    re-listing the rest of the group.
+
     Groups absent from ``override`` are carried through from ``base`` unchanged. ``base`` is not
     mutated (a deep copy is returned).
 
     Note: if the base group contains more than one entry with the same ``fcst_name`` (e.g. the two
-    UPA ``CAPE`` entries), an override for that name is applied to ALL of them. To target just one,
-    override the whole group by listing all of its entries explicitly.
+    UPA ``CAPE`` entries), an override (or omission) for that name is applied to ALL of them. To
+    target just one, override the whole group by listing all of its entries explicitly.
     """
     merged = copy.deepcopy(base) if base else {}
     for field_group, override_entries in (override or {}).items():
-        if field_group not in merged:
-            merged[field_group] = copy.deepcopy(override_entries)
-            continue
+        group = merged.setdefault(field_group, [])
         for override_entry in override_entries:
-            matches = [e for e in merged[field_group]
-                       if e.get("fcst_name") == override_entry.get("fcst_name")]
+            name = override_entry.get("fcst_name")
+            if override_entry.get("omit"):
+                # Per-variable omission: drop all entries in this group with this fcst_name
+                group[:] = [e for e in group if e.get("fcst_name") != name]
+                continue
+            # Strip the 'omit' directive so it never leaks into the field entry
+            ov = {k: v for k, v in override_entry.items() if k != "omit"}
+            matches = [e for e in group if e.get("fcst_name") == name]
             if matches:
                 for match in matches:
-                    match.update(override_entry)
+                    match.update(ov)
             else:
-                merged[field_group].append(dict(override_entry))
+                group.append(copy.deepcopy(ov))
     return merged
 
 
