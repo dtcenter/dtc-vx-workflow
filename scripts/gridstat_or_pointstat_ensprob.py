@@ -17,7 +17,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_var_list
+from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensprob_var_list, ensprob_bin_width
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -178,7 +178,13 @@ def gridstat_or_pointstat_ensprob(
         fcst_level=f"A{accum_hh}"
     else:
         fcst_level="all"
-    var_list=make_var_list(vx_config_dict,field_group,fcst_level)
+    # Ensemble-probability verification: one FCST/OBS pair per threshold, in two passes
+    # (probabilistic then scalar+neighborhood). The probability bin width is 1/NUM_ENS_MEMBERS;
+    # it is used both per-variable (inside make_ensprob_var_list) and for the tool-level
+    # FCST_<tool>_PROB_THRESH setting, so compute it once here.
+    prob_thresh=ensprob_bin_width(enscfg["NUM_ENS_MEMBERS"])
+    var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
+                                   prob_thresh=prob_thresh)
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -212,6 +218,8 @@ def gridstat_or_pointstat_ensprob(
         "input_level_fcst": fcst_level,
         "vx_mask": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
+        # Probability bin width for the tool-level FCST_<tool>_PROB_THRESH setting
+        "prob_thresh": prob_thresh,
         # Variable list
         'var_list': var_list,
     }
