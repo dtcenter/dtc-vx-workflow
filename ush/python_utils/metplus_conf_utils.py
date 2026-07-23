@@ -1,10 +1,47 @@
 """
 Common utilities for creating/handling METplus configuration files
 """
+import copy
 import logging
 import os
 import sys
 from jinja2 import Environment, FileSystemLoader
+
+
+def merge_field_configs(base, override):
+    """Merge per-task field overrides onto a base field configuration.
+
+    Both ``base`` and ``override`` are dictionaries keyed by field group (e.g. ``SFC``, ``UPA``,
+    ``REFC``), each mapping to a LIST of field entries. For every group present in ``override``:
+
+      * an override entry whose ``fcst_name`` matches one or more entries in the base group is
+        merged onto those entries key-by-key (the override's keys win), so listing a single key
+        overrides only that key and inherits the rest;
+      * an override entry whose ``fcst_name`` is not present in the base group is appended as a new
+        variable;
+      * a group present in ``override`` but not in ``base`` is added wholesale.
+
+    Groups absent from ``override`` are carried through from ``base`` unchanged. ``base`` is not
+    mutated (a deep copy is returned).
+
+    Note: if the base group contains more than one entry with the same ``fcst_name`` (e.g. the two
+    UPA ``CAPE`` entries), an override for that name is applied to ALL of them. To target just one,
+    override the whole group by listing all of its entries explicitly.
+    """
+    merged = copy.deepcopy(base) if base else {}
+    for field_group, override_entries in (override or {}).items():
+        if field_group not in merged:
+            merged[field_group] = copy.deepcopy(override_entries)
+            continue
+        for override_entry in override_entries:
+            matches = [e for e in merged[field_group]
+                       if e.get("fcst_name") == override_entry.get("fcst_name")]
+            if matches:
+                for match in matches:
+                    match.update(override_entry)
+            else:
+                merged[field_group].append(dict(override_entry))
+    return merged
 
 
 def make_var_list(vx_config_dict,field_group,level,ens=False):
