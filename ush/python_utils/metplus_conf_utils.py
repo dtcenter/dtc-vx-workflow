@@ -8,7 +8,7 @@ import sys
 from jinja2 import Environment, FileSystemLoader
 
 
-def merge_field_configs(base, override):
+def merge_field_configs(base, override, exclude=None):
     """Merge per-task field overrides onto a base field configuration.
 
     Both ``base`` and ``override`` are dictionaries keyed by field group (e.g. ``SFC``, ``UPA``,
@@ -34,6 +34,11 @@ def merge_field_configs(base, override):
 
     Groups absent from ``override`` are carried through from ``base`` unchanged. ``base`` is not
     mutated (a deep copy is returned).
+
+    ``exclude`` is an optional list of forecast field names (``fcst_name``) to drop from EVERY field
+    group after merging. This provides an experiment-wide "omit this variable everywhere" switch
+    (e.g. from ``verification: VX_FIELDS_EXCLUDE``), complementing the per-task ``omit`` directive.
+    All entries with a matching ``fcst_name`` are removed, regardless of level.
 
     Note: if the base group still contains more than one entry that the override cannot tell apart
     (same ``fcst_name`` AND same ``fcst_levels``, e.g. the two UPA ``CAPE`` entries that differ only
@@ -63,6 +68,14 @@ def merge_field_configs(base, override):
                     match.update(ov)
             else:
                 group.append(copy.deepcopy(ov))
+
+    # Experiment-wide exclusions: drop any entry whose fcst_name is excluded, from every group
+    if exclude:
+        exclude = set(exclude)
+        for field_group in merged:
+            merged[field_group] = [e for e in merged[field_group]
+                                   if e.get("fcst_name") not in exclude]
+
     return merged
 
 
