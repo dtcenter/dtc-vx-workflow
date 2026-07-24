@@ -451,9 +451,9 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 1 if DO_ENSEMBLE=True")
     if not do_ensemble and nummems > 1:
         raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) can not be > 1 if DO_ENSEMBLE=False")
-    ebw = ens_config["ENS_BIN_WIDTH"]
-    if ebw < 0.0 or ebw > 1.0:
-        raise ValueError(f"ENS_BIN_WIDTH ({ebw}) must be between 0 and 1; ideally 1/nummems")
+    nbins = int(ens_config["NUM_ENS_BINS"])
+    if do_ensemble and nbins < 2:
+        raise ValueError(f"NUM_ENS_BINS ({nbins}) must be > 1 for ensemble probability binning")
 
     #
     # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.

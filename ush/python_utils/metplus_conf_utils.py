@@ -275,7 +275,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
     return outconfs
 
 
-def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
+def make_ensprob_var_list(vx_config_dict, field_group,
                           level="all", thresh="all", prob_thresh=None, neighborhood=True):
     """Render the FCST/OBS variable list for ensemble-probability (ensprob) verification of the
     ensemble relative-frequency fields produced by GenEnsProd.
@@ -303,9 +303,9 @@ def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
     For accumulated fields the accumulation period is expected to be part of ``fcst_name`` already
     (e.g. ``APCP_06``), so no special-casing is required here.
 
-    The forecast THRESH is a probability bin width, NOT the physical threshold. By default it is
-    derived from the ensemble size as ``1/num_ens_members``, since an N-member ensemble can only
-    produce relative frequencies of k/N (k = 0..N); pass ``prob_thresh`` to override.
+    The forecast THRESH is a probability-bin threshold, NOT the physical threshold. ``prob_thresh``
+    is required and passed through verbatim, e.g. ``"==10"`` for a 10-member ensemble, which MET
+    12.0.0+ expands to 11 probability bins centered on n/10 for n = 0..10 (MET issue #2280).
 
     Per-entry keys used (in addition to those documented in make_var_list()):
 
@@ -322,11 +322,7 @@ def make_ensprob_var_list(vx_config_dict, field_group, num_ens_members=None,
         raise ValueError(f"Provided field group {field_group} is not in field config dictionary")
 
     if prob_thresh is None:
-        if not num_ens_members:
-            raise ValueError(
-                "make_ensprob_var_list requires num_ens_members (to derive the probability bin "
-                "width) unless prob_thresh is given explicitly")
-        prob_thresh = ensprob_bin_width(num_ens_members)
+        raise ValueError("make_ensprob_var_list requires prob_thresh (e.g. '==10')")
     lgr.debug(f"{prob_thresh=}")
 
     var_list = ''

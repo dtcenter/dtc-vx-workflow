@@ -494,9 +494,11 @@ ensemble:
   # For example, if this is set to 8, the member directories will be named 
   # mem1, mem2, ..., mem8. Not used if DO_ENSEMBLE is set to false.
   # 
-  # ENS_BIN_WIDTH:
-  # The width of the bins for ensprod tasks compared to the ensemble distribution.
-  # Ideally this should be the reciprocal of the number of ensemble members.
+  # NUM_ENS_BINS:
+  # The number of ensemble members used to define probability bins for ensemble
+  # probability (ensprob) verification. Passed to MET as the "==N" threshold, which
+  # (MET 12.0.0+, issue #2280) defines N+1 probability bins centered on n/N for
+  # n = 0..N. Should normally equal NUM_ENS_MEMBERS.
   #
   # ENS_TIME_LAG_HRS:
   # Time lag (in hours) to use for each ensemble member. For a deterministic
@@ -507,7 +509,7 @@ ensemble:
   #
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 1
-  ENS_BIN_WIDTH: !float '{{ 1 / ensemble.NUM_ENS_MEMBERS }}'
+  NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS }}'
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
   # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
