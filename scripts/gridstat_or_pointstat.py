@@ -241,7 +241,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
     # Field config for this task: start from the top-level fields: section, then apply this task's
     # fields: section as per-variable overrides (entries merged by fcst_name; see merge_field_configs).
-    vx_config_dict = merge_field_configs(cfg.get("fields") or {}, taskcfg.get("fields"))
+    vx_config_dict = merge_field_configs(cfg.get("fields") or {}, taskcfg.get("fields"),
+                                         exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
