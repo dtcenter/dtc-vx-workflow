@@ -177,10 +177,11 @@ def gridstat_or_pointstat_ensprob(
     else:
         fcst_level="all"
     # Ensemble-probability verification: one FCST/OBS pair per threshold, in two passes for GridStat
-    # (probabilistic then scalar+neighborhood). The probability bin width is 1/NUM_ENS_MEMBERS;
-    # it is used both per-variable (inside make_ensprob_var_list) and for the tool-level
+    # (probabilistic then scalar+neighborhood). The probability threshold is "==N" where N is
+    # NUM_ENS_BINS (normally the ensemble size), which MET expands to N+1 probability bins; it is
+    # used both per-variable (inside make_ensprob_var_list) and for the tool-level
     # FCST_<tool>_PROB_THRESH setting, so compute it once here.
-    prob_thresh=f"=={enscfg['ENS_BIN_WIDTH']}"
+    prob_thresh=f"=={enscfg['NUM_ENS_BINS']}"
     var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
                                    prob_thresh=prob_thresh,
                                    neighborhood=(metplus_tool_camel_case == "GridStat"))
