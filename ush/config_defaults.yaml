@@ -722,6 +722,16 @@ verification:
   #
   VX_FIELD_GROUPS: [ "APCP", "REFC", "RETOP", "SFC", "UPA" ]
   #
+  # VX_FIELDS_EXCLUDE:
+  # A list of forecast field names (fcst_name) to exclude from ALL verification
+  # tasks. This is an experiment-wide "omit this variable everywhere" switch: any
+  # field entry whose fcst_name appears here is dropped from every field group and
+  # every task (deterministic and ensemble). It is applied on top of the shared and
+  # per-task fields: settings. Leave empty to exclude nothing. For example, to skip
+  # total cloud cover everywhere, set: VX_FIELDS_EXCLUDE: [ "TCDC" ]
+  #
+  VX_FIELDS_EXCLUDE: []
+  #
   # VX_APCP_ACCUMS_HRS:
   # The accumulation intervals (in hours) to include in the verification of
   # accumulated precipitation (APCP).  If VX_FIELD_GROUPS contains "APCP",

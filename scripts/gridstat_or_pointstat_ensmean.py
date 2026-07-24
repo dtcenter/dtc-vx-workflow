@@ -167,7 +167,8 @@ def gridstat_or_pointstat_ensmean(
     # the top-level fields:), then apply this task's fields: section as per-variable overrides
     # (entries merged by fcst_name; see merge_field_configs).
     vx_config_dict = merge_field_configs(enscfg.get("fields") or cfg.get("fields") or {},
-                                         taskcfg.get("fields"))
+                                         taskcfg.get("fields"),
+                                         exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
 
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
