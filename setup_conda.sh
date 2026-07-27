@@ -88,14 +88,18 @@ fi
 
 conda activate
 
-# if first argument is vx_diff, create that environment
-# otherwise create vx_workflow
+# Select which conda environment to create/load based on the (optional) first argument:
+#   (none)   -> vx_workflow (main workflow environment)
+#   vx_diff  -> vx_diff      (regression-test diff utility)
+#   vcast    -> vcast        (VCasT plotting/statistics tool)
 ENV_NAME=$1
-ENV_YAML=${SCRIPT_DIR}/environment.yml
 if [ "${ENV_NAME}" == vx_diff ]; then
   ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
+elif [ "${ENV_NAME}" == vcast ]; then
+  ENV_YAML=${SCRIPT_DIR}/vcast_environment.yml
 else
   ENV_NAME=vx_workflow
+  ENV_YAML=${SCRIPT_DIR}/environment.yml
 fi
 
 if ! conda env list 2>/dev/null | grep -q "^${ENV_NAME}\s" ; then
