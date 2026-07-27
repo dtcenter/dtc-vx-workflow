@@ -1,0 +1,35 @@
+# Conda environment for VCasT (https://github.com/NOAA-GSL/VCasT).
+#
+# VCasT is distributed only as a pip-installable package from GitHub (no PyPI or
+# conda package). Its heavier dependencies (pygrib, netcdf4) require compiled C
+# libraries (ecCodes/GRIB, HDF5/netcdf-c); conda-forge ships these prebuilt, so we
+# install the full VCasT "[all]" dependency set from conda-forge and then pip-install
+# VCasT itself. Because the dependencies are already satisfied by conda, pip installs
+# only VCasT and does not try to build any binary dependency.
+#
+# Create/load via:  source setup_conda.sh vcast
+#
+name: vcast
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  # VCasT "[all]" dependencies (conda-forge provides prebuilt binaries)
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib-base
+  - xarray
+  - netcdf4
+  - zarr
+  - pygrib
+  - pip
+  - pip:
+      # VCasT itself. The [all] extras are already satisfied by the conda packages
+      # above. If pip ever tries to rebuild a binary dependency (e.g. a version-pin
+      # mismatch), add "--no-deps" as the first list entry below -- conda already
+      # provides every dependency.
+      #
+      # '@develop' tracks the development branch; pin a tag/commit for reproducibility,
+      # e.g. ...VCasT.git@v1.2.3#egg=vcast[all]
+      - "git+https://github.com/NOAA-GSL/VCasT.git@develop#egg=vcast[all]"
