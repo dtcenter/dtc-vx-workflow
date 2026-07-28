@@ -71,7 +71,7 @@ In directory:     \"${scrfunc_dir}\"
 #-----------------------------------------------------------------------
 #
 manifest=$( mktemp )
-python $SCRIPTSdir/vcast_reliability.py ${VERBOSE_FLAG} \
+python $SCRIPTSdir/vcast_reliability.py ${VERBOSE_FLAG} ${ACCUM_ARG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --field_group="${FIELD_GROUP}" \
   --manifest="${manifest}" || \
