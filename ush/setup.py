@@ -428,6 +428,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         date_first_cycl_dt, date_last_cycl_dt, cycl_intvl_dt, return_type="datetime"
     )
 
+    # Number of cycles in the experiment.  Exposed to the Rocoto XML (via jinja) so that
+    # dependencies can compute expected per-experiment file counts (e.g. GridStat ensprob
+    # stat files = forecast-output-times-per-cycle * NUM_CYCLES).
+    workflow_config["NUM_CYCLES"] = len(cycle_start_times)
+
     # Call function that runs the consistency checks on the vx parameters.
     vx_config, _ = check_temporal_consistency_cumul_fields(
         vx_config, cycle_start_times, fcst_len_dt, vx_fcst_output_intvl_dt

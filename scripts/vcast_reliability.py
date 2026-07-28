@@ -34,6 +34,12 @@ from python_utils import setup_logging, merge_field_configs
 # (SFC, UPA -> PointStat_ensprob) are not yet supported and are handled as a separate future case.
 GRID_FIELD_GROUPS = ("APCP", "ASNOW", "REFC", "RETOP")
 
+# Cumulative (accumulation) field groups. These are verified one accumulation interval at a time
+# (a separate task per accum), so vcast_reliability must be told which accumulation to process via
+# accum_hh. Their forecast output steps by the accumulation interval starting at that interval (no
+# f00), unlike instantaneous groups (REFC, RETOP) which step by VX_FCST_OUTPUT_INTVL_HRS from f00.
+CUMUL_FIELD_GROUPS = ("APCP", "ASNOW")
+
 # Default line-style palettes, cycled to match the number of plotted lead times when the config
 # does not specify them explicitly.
 _DEFAULT_COLORS = ["blue", "red", "green", "purple", "orange", "brown", "black", "cyan"]
@@ -59,8 +65,9 @@ def _line_styles(taskcfg, n):
         if vals:
             if len(vals) != n:
                 raise ValueError(
-                    f"vcast_reliability.{key} has {len(vals)} entries but PLOT_LEAD_HRS has {n}; "
-                    "line-style lists must have the same length as PLOT_LEAD_HRS.")
+                    f"vcast reliability config '{key}' has {len(vals)} entries but there are {n} "
+                    "plotted lead times; line-style lists must have one entry per plotted lead "
+                    "(i.e. per PLOT_LEAD_HRS value that is valid for this group/accumulation).")
             return list(vals)
         return _cycle_to_len(defaults, n)
 
@@ -77,7 +84,7 @@ def _write_yaml(path, data):
         yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
 
 
-def vcast_reliability(config_file, field_group, manifest_path=None):
+def vcast_reliability(config_file, field_group, accum_hh=None, manifest_path=None):
     """Generate the VCasT aggregation + plotting YAMLs for a grid field group, plus a manifest.
 
     Parameters
@@ -86,6 +93,10 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
         Path to the experiment YAML configuration file.
     field_group : str
         Grid field group to process (one of GRID_FIELD_GROUPS).
+    accum_hh : int, optional
+        Accumulation interval in hours. Required for cumulative groups (CUMUL_FIELD_GROUPS, e.g.
+        APCP/ASNOW), which are processed one accumulation at a time; ignored for instantaneous
+        groups (REFC/RETOP).
     manifest_path : str, optional
         Path to write the ordered list of generated YAMLs (one per line, aggregation first). If
         omitted, the manifest is written as ``vcast_run_manifest.txt`` in the working directory.
@@ -96,6 +107,12 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
         raise ValueError(
             f"field_group '{field_group}' is not a supported grid field group {GRID_FIELD_GROUPS}. "
             "Point-obs reliability (SFC/UPA via PointStat_ensprob) is not yet implemented.")
+
+    is_cumul = field_group in CUMUL_FIELD_GROUPS
+    if is_cumul and accum_hh is None:
+        raise ValueError(
+            f"field_group '{field_group}' is cumulative; accum_hh is required (one vcast task per "
+            "accumulation interval).")
 
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
@@ -116,17 +133,30 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
     if field_group not in vx_config_dict or not vx_config_dict[field_group]:
         raise ValueError(f"No field entries defined for field group '{field_group}'")
 
+    # For cumulative groups, select only the entry for the requested accumulation (identified by its
+    # fcst_levels, e.g. [A3] for accum_hh=3). Instantaneous groups use all of their entries.
+    entries = vx_config_dict[field_group]
+    if is_cumul:
+        want_level = f"A{accum_hh}"
+        entries = [e for e in entries
+                   if want_level in [str(lvl) for lvl in e.get("fcst_levels", [])]]
+        if not entries:
+            raise ValueError(
+                f"No '{field_group}' field entry has fcst_levels [{want_level}] "
+                f"(accum_hh={accum_hh}); check the fields: config for this group.")
+
     # Build the ENS_FREQ forecast-variable names so they match the FCST_VAR column of the
     # GridStat_ensprob .stat files: {fcst_name}_ENS_FREQ_{threshold}. fcst_name already carries the
     # accumulation for APCP/ASNOW (e.g. APCP_03). '&&'/'||' are substituted as MET does in names.
     fcst_vars = []
-    for entry in vx_config_dict[field_group]:
+    for entry in entries:
         fcst_name = entry["fcst_name"]
         for thresh in entry.get("fcst_thresholds", []):
             thr = thresh.replace("&&", ".and.").replace("||", ".or.")
             fcst_vars.append(f"{fcst_name}_ENS_FREQ_{thr}")
     if not fcst_vars:
-        raise ValueError(f"No fcst_thresholds defined for any entry in field group '{field_group}'")
+        raise ValueError(f"No fcst_thresholds defined for any selected entry in field group "
+                         f"'{field_group}'")
 
     # Date window: first cycle through (last cycle + forecast length)
     fmt_in, fmt_out = "%Y%m%d%H", "%Y-%m-%d_%H:%M:%S"
@@ -134,17 +164,27 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
     end_dt = (datetime.strptime(str(wfcfg["DATE_LAST_CYCL"]), fmt_in)
               + timedelta(hours=int(wfcfg["FCST_LEN_HRS"])))
 
-    # All forecast lead hours at the forecast output interval
+    # Forecast lead hours present in the stat files. Cumulative groups step by the accumulation
+    # interval starting at that interval (first bucket ends at lead=accum_hh, no f00); instantaneous
+    # groups step by the forecast output interval from f00.
+    fcst_len = int(wfcfg["FCST_LEN_HRS"])
     intvl = int(vxcfg["VX_FCST_OUTPUT_INTVL_HRS"])
-    leads = [_lead_str(h) for h in range(0, int(wfcfg["FCST_LEN_HRS"]) + 1, intvl)]
+    if is_cumul:
+        lead_hrs = list(range(accum_hh, fcst_len + 1, accum_hh))
+    else:
+        lead_hrs = list(range(0, fcst_len + 1, intvl))
+    leads = [_lead_str(h) for h in lead_hrs]
 
     vx_mask = list(vxcfg.get("VX_MASK") or [])
 
-    # Working directory + output filenames, prefixed by field group to avoid collisions with
-    # other simultaneously-running plotting tasks.
+    # Tag used to prefix output filenames so concurrently-running tasks (e.g. one per APCP
+    # accumulation) don't clobber each other. Cumulative groups append the accumulation.
+    group_tag = f"{field_group}_{accum_hh:02d}" if is_cumul else field_group
+
+    # Working directory + output filenames, prefixed by group_tag to avoid collisions.
     workdir = Path(exptdir, "metprd", "vcast", field_group)
     workdir.mkdir(parents=True, exist_ok=True)
-    agg_file = str(workdir / f"{field_group}_rel.data")
+    agg_file = str(workdir / f"{group_tag}_rel.data")
 
     # ---- Step 1: aggregation YAML + run ----
     pct_cfg = {
@@ -161,21 +201,31 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
         },
         "stat_vars": ["all_thresh"],
         "reformat_file": False,
-        "output_reformat_file": str(workdir / f"{field_group}_filtered.data"),
+        "output_reformat_file": str(workdir / f"{group_tag}_filtered.data"),
         "output_file": True,
-        "output_plot_file": str(workdir / f"{field_group}_vars.data"),
+        "output_plot_file": str(workdir / f"{group_tag}_vars.data"),
         "aggregate": True,
         "group_by": ["model", "fcst_var", "fcst_lead"],
         "output_agg_file": agg_file,
     }
     run_order = []
-    pct_yaml = workdir / f"pct_{field_group}.yaml"
+    pct_yaml = workdir / f"pct_{group_tag}.yaml"
     _write_yaml(pct_yaml, pct_cfg)
     run_order.append(pct_yaml)
     lgr.info(f"Wrote aggregation config {pct_yaml}")
 
     # ---- Step 2: one plotting YAML + run per forecast variable ----
-    plot_leads = [int(h) for h in taskcfg["PLOT_LEAD_HRS"]]
+    # Keep only the requested plot lead hours that actually exist for this group/accumulation;
+    # plotting a lead with no data would produce an empty reliability curve.
+    valid_leads = set(lead_hrs)
+    plot_leads = [int(h) for h in taskcfg["PLOT_LEAD_HRS"] if int(h) in valid_leads]
+    dropped = [int(h) for h in taskcfg["PLOT_LEAD_HRS"] if int(h) not in valid_leads]
+    if dropped:
+        lgr.warning(f"Dropping PLOT_LEAD_HRS {dropped} that are not valid forecast leads for "
+                    f"{group_tag} (valid leads: {sorted(valid_leads)})")
+    if not plot_leads:
+        raise ValueError(f"None of PLOT_LEAD_HRS {list(taskcfg['PLOT_LEAD_HRS'])} are valid "
+                         f"forecast leads for {group_tag} (valid leads: {sorted(valid_leads)})")
     styles = _line_styles(taskcfg, len(plot_leads))
     ncols = int(enscfg["NUM_ENS_MEMBERS"])
     mask_label = " ".join(vx_mask)
@@ -198,7 +248,7 @@ def vcast_reliability(config_file, field_group, manifest_path=None):
             "output_filename": str(workdir / f"{model}_{fcst_var}_reliability.png"),
             "grid": True,
         }
-        plot_yaml = workdir / f"plot_{field_group}_{fcst_var}.yaml"
+        plot_yaml = workdir / f"plot_{group_tag}_{fcst_var}.yaml"
         _write_yaml(plot_yaml, plot_cfg)
         run_order.append(plot_yaml)
         lgr.info(f"Wrote plot config {plot_yaml}")
@@ -219,6 +269,9 @@ if __name__ == "__main__":
                         help="Path to the experiment configuration file in YAML format")
     parser.add_argument("--field_group", required=True, type=str,
                         help=f"Grid field group to plot; one of {GRID_FIELD_GROUPS}")
+    parser.add_argument("--accum_hh", default=None, type=int,
+                        help=f"Accumulation interval in hours; required for cumulative groups "
+                             f"{CUMUL_FIELD_GROUPS}, ignored for instantaneous groups")
     parser.add_argument("--manifest", default=None, type=str,
                         help="Path to write the ordered list of generated VCasT YAMLs (one per "
                              "line, aggregation first) for jobs/VCAST_RELIABILITY.sh to run")
@@ -228,4 +281,5 @@ if __name__ == "__main__":
 
     setup_logging(debug=args.verbose)
 
-    vcast_reliability(args.config, args.field_group, manifest_path=args.manifest)
+    vcast_reliability(args.config, args.field_group, accum_hh=args.accum_hh,
+                      manifest_path=args.manifest)
