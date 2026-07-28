@@ -4,8 +4,8 @@
 # conda package). Its heavier dependencies (pygrib, netcdf4) require compiled C
 # libraries (ecCodes/GRIB, HDF5/netcdf-c); conda-forge ships these prebuilt, so we
 # install the full VCasT "[all]" dependency set from conda-forge and then pip-install
-# VCasT itself. Because the dependencies are already satisfied by conda, pip installs
-# only VCasT and does not try to build any binary dependency.
+# VCasT itself with --no-deps, so pip installs only VCasT and never tries to build a
+# dependency from source.
 #
 # Create/load via:  source setup_conda.sh vcast
 #
@@ -13,7 +13,11 @@ name: vcast
 channels:
   - conda-forge
 dependencies:
-  - python>=3.10
+  # VCasT needs Python 3.10+. Pin to 3.12 (a mature, fully conda-forge-supported
+  # release) rather than leaving it open: with "python>=3.10" conda selects the newest
+  # Python (e.g. 3.14), which pulls in dependency versions that conflict with VCasT's
+  # pins and forces pip to build them from source.
+  - python=3.12
   # VCasT "[all]" dependencies (conda-forge provides prebuilt binaries)
   - numpy
   - pandas
@@ -25,11 +29,18 @@ dependencies:
   - pygrib
   - pip
   - pip:
-      # VCasT itself. The [all] extras are already satisfied by the conda packages
-      # above. If pip ever tries to rebuild a binary dependency (e.g. a version-pin
-      # mismatch), add "--no-deps" as the first list entry below -- conda already
-      # provides every dependency.
+      # Install ONLY VCasT itself; all of its dependencies are provided by the conda
+      # packages above. Installing without dependencies is essential: otherwise pip
+      # re-resolves VCasT's pinned dependency versions, finds conda's versions don't
+      # match, and tries to BUILD the pinned versions from source (e.g. an older scipy),
+      # which fails here for lack of OpenBLAS and other build-time libraries.
       #
+      # NOTE: "--no-deps" cannot be listed here -- conda feeds this list to pip as a
+      # requirements file, which does not accept that option. Instead setup_conda.sh
+      # sets PIP_NO_DEPS=1 in the environment for the vcast build, which pip honors.
+      #
+      # PEP 508 direct-reference syntax ("name[extras] @ URL") is required; the older
+      # "URL#egg=vcast[all]" form is rejected by modern pip as an "invalid egg fragment".
       # '@develop' tracks the development branch; pin a tag/commit for reproducibility,
-      # e.g. ...VCasT.git@v1.2.3#egg=vcast[all]
-      - "git+https://github.com/NOAA-GSL/VCasT.git@develop#egg=vcast[all]"
+      # e.g. "vcast[all] @ git+https://github.com/NOAA-GSL/VCasT.git@v1.2.3"
+      - "vcast[all] @ git+https://github.com/NOAA-GSL/VCasT.git@develop"
