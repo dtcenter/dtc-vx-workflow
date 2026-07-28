@@ -1376,6 +1376,29 @@ ensemblestat:
         fcst_thresholds: ['lt500', 'lt1500', 'gt1500']
         obs_options: 'desc = "TKE";'
 
+vcast:
+  # Settings for VCasT plotting/aggregation tasks. Each plot type is its own subsection; add future
+  # VCasT plot types as sibling subsections here. VCasT is installed in its own conda environment
+  # (see vcast_environment.yml); run scripts invoke it via 'conda run -n vcast'.
+  reliability:
+    # For each grid field group, VCasT aggregates the GridStat_ensprob PCT stats across all cycles
+    # and draws one reliability diagram per forecast variable.
+    execution:
+      tasks_per_node: 1
+      walltime: 00:30:00
+      memory: 8G
+      tries: 1
+    # Lead hours (integers) to overlay as separate curves on each reliability diagram.
+    PLOT_LEAD_HRS: [1, 3, 5, 10, 18, 36]
+    # Optional line styling. If left empty, sensible defaults are cycled to match the number of
+    # entries in PLOT_LEAD_HRS. If specified, each list must have the same length as PLOT_LEAD_HRS.
+    line_color: []
+    line_marker: []
+    line_type: []
+    line_width: []
+    # Optional per-task fields: override, merged onto ensemble.fields the same way as the ensprob
+    # tasks (see merge_field_configs). Leave unset to use the shared ensemble field definitions.
+
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
   execution:
