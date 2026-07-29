@@ -12,7 +12,7 @@ workflow:
   - parm/wflow/preprocessing.yaml
   - parm/wflow/verify_det.yaml
   - parm/wflow/verify_ens.yaml
-  EXPT_SUBDIR: REFS_test_first_week
+  EXPT_SUBDIR: REFS_test2_first_week
   USE_CRON_TO_RELAUNCH: false
   VERBOSE: true
 ensemble:
@@ -27,6 +27,7 @@ verification:
   - RETOP
   - SFC
   - UPA
+  VX_FIELDS_EXCLUDE: [TCDC]
   VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/data/'
   VX_MASK:
   - CONUS
@@ -69,7 +70,7 @@ genensprod:
     # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
     # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
     # Set one of these to true to calculate EAS statistics
-    GEN_ENS_PROD_ENSEMBLE_FLAG_EAS: False
+    GEN_ENS_PROD_ENSEMBLE_FLAG_EAS: True
     GEN_ENS_PROD_ENSEMBLE_FLAG_EAS_WIDTH: False
     # A list of candidate widths (in number of gridpoints) in increasing order
     GEN_ENS_PROD_EAS_PROB_WIDTH: '[ 3, 5, 7, 9, 11, 13, 15 ]'

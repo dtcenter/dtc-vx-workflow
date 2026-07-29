@@ -514,9 +514,6 @@ ensemble:
 
     # Config file settings for these various metrics are described in the GenEnsProd chapter of the MET Users Guide:
     # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
-  # NEP (neighborhood ensemble probability) is always produced by GenEnsProd (ENSEMBLE_FLAG_NEP is
-  # hardcoded TRUE in parm/metplus/GenEnsProd.conf) and always verified, so it has no on/off flag.
-  # Its neighborhood size/shape/vld_thresh come from the genensprod: NBRHD_PROB_* keys.
   # NMEP settings
   NMEP:
     # Turns on NMEP calculations, Sets GEN_ENS_PROD_ENSEMBLE_FLAG_NMEP in GenEnsProd

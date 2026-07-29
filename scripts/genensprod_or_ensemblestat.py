@@ -206,6 +206,8 @@ def genensprod_or_ensemblestat(
     if nmepcfg.get("FLAG_NMEP"):
         for flag in nmepcfg:
             if flag == "FLAG_NMEP":
+                if nmepcfg["FLAG_NMEP"]:
+                    method_flags+=f"GEN_ENS_PROD_ENSEMBLE_FLAG_NMEP = TRUE\n"
                 continue
             method_flags+=f"GEN_ENS_PROD_NMEP_SMOOTH_{flag} = {nmepcfg[flag]}\n"
         method_flags+="\n"
@@ -214,6 +216,8 @@ def genensprod_or_ensemblestat(
     if eascfg.get("FLAG_EAS"):
         for flag in eascfg:
             if flag == "FLAG_EAS":
+                if eascfg["FLAG_EAS"]:
+                    method_flags+=f"GEN_ENS_PROD_ENSEMBLE_FLAG_EAS = TRUE\n"
                 continue
             method_flags+=f"GEN_ENS_PROD_EAS_PROB_{flag} = {eascfg[flag]}\n"
         method_flags+="\n"
