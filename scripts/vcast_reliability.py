@@ -4,12 +4,19 @@ Generate the VCasT (https://github.com/NOAA-GSL/VCasT) configuration YAML files 
 ensemble-probability reliability (PCT) statistics and draw reliability diagrams for a single grid
 field group, and write an ordered manifest of those YAMLs.
 
-For each grid field group, this writes:
-  1. one aggregation YAML (``pct_{group}.yaml``) that aggregates the GridStat_ensprob PCT stats
-     across all cycles into a single ``.data`` file, and
-  2. one plotting YAML per forecast variable (``plot_{group}_{fcst_var}.yaml``).
-It also writes a manifest file listing those YAMLs in the order VCasT must run them (aggregation
-first, then the plots that read its output).
+For each grid field group and each configured VX_MASK region (or once, unmasked, if VX_MASK is
+empty), this writes:
+  1. one aggregation YAML (``pct_{group}_{mask}.yaml``) that aggregates the GridStat_ensprob PCT
+     stats for that mask across all cycles into a single ``.data`` file, and
+  2. one plotting YAML per forecast variable (``plot_{group}_{mask}_{fcst_var}.yaml``).
+It also writes a manifest file listing those YAMLs in the order VCasT must run them (each mask's
+aggregation before the plots that read its output).
+
+Each mask is aggregated separately (rather than combining all masks' stats into one aggregation)
+because VCasT's aggregation does not group by mask, so combining them would mix regions together
+on one reliability curve. Each aggregation YAML also sets ``statfile_pattern`` to a glob that
+matches only this field group's stat files, since all field groups' GridStat_ensprob output for a
+cycle lands in the same directory and would otherwise all be read and then discarded.
 
 This script only GENERATES files; it does NOT run VCasT. It runs in the vx_workflow environment
 (which provides uwtools). jobs/VCAST_RELIABILITY.sh then activates the separate ``vcast`` conda
@@ -175,46 +182,27 @@ def vcast_reliability(config_file, field_group, accum_hh=None, manifest_path=Non
         lead_hrs = list(range(0, fcst_len + 1, intvl))
     leads = [_lead_str(h) for h in lead_hrs]
 
-    vx_mask = list(vxcfg.get("VX_MASK") or [])
+    # Each configured mask is aggregated/plotted separately (see module docstring); with no
+    # VX_MASK configured, run once unmasked.
+    vx_masks = list(vxcfg.get("VX_MASK") or [])
+    mask_list = vx_masks if vx_masks else [None]
 
     # Tag used to prefix output filenames so concurrently-running tasks (e.g. one per APCP
     # accumulation) don't clobber each other. Cumulative groups append the accumulation.
     group_tag = f"{field_group}_{accum_hh:02d}" if is_cumul else field_group
 
+    # Glob (relative to a cycle's GridStat_ensprob dir) matching only this field group's (and, for
+    # cumulative groups, this accumulation's) stat files, e.g. "*APCP01*stat" or "*REFC*stat". All
+    # field groups' stat files for a cycle land in the same directory, so this avoids VCasT reading
+    # every other group's files only to discard them via string_filters.
+    statfile_pattern = (f"*{field_group}{accum_hh:02d}*stat" if is_cumul
+                       else f"*{field_group}*stat")
+
     # Working directory + output filenames, prefixed by group_tag to avoid collisions.
     workdir = Path(exptdir, "metprd", "vcast", field_group)
     workdir.mkdir(parents=True, exist_ok=True)
-    agg_file = str(workdir / f"{group_tag}_rel.data")
 
-    # ---- Step 1: aggregation YAML + run ----
-    pct_cfg = {
-        "input_stat_folder": f"{exptdir}/*/metprd/GridStat_ensprob",
-        "line_type": "pct",
-        "date_column": "fcst_valid_beg",
-        "start_date": start_dt.strftime(fmt_out),
-        "end_date": end_dt.strftime(fmt_out),
-        "string_filters": {
-            "model": [model],
-            "fcst_var": fcst_vars,
-            "fcst_lead": leads,
-            "vx_mask": vx_mask,
-        },
-        "stat_vars": ["all_thresh"],
-        "reformat_file": False,
-        "output_reformat_file": str(workdir / f"{group_tag}_filtered.data"),
-        "output_file": True,
-        "output_plot_file": str(workdir / f"{group_tag}_vars.data"),
-        "aggregate": True,
-        "group_by": ["model", "fcst_var", "fcst_lead"],
-        "output_agg_file": agg_file,
-    }
-    run_order = []
-    pct_yaml = workdir / f"pct_{group_tag}.yaml"
-    _write_yaml(pct_yaml, pct_cfg)
-    run_order.append(pct_yaml)
-    lgr.info(f"Wrote aggregation config {pct_yaml}")
-
-    # ---- Step 2: one plotting YAML + run per forecast variable ----
+    # Plot lead hours + line styles are the same for every mask, so compute them once.
     # Keep only the requested plot lead hours that actually exist for this group/accumulation;
     # plotting a lead with no data would produce an empty reliability curve.
     valid_leads = set(lead_hrs)
@@ -228,30 +216,68 @@ def vcast_reliability(config_file, field_group, accum_hh=None, manifest_path=Non
                          f"forecast leads for {group_tag} (valid leads: {sorted(valid_leads)})")
     styles = _line_styles(taskcfg, len(plot_leads))
     ncols = int(enscfg["NUM_ENS_MEMBERS"])
-    mask_label = " ".join(vx_mask)
 
-    for fcst_var in fcst_vars:
-        vars_list = [{int(_lead_str(h)): agg_file} for h in plot_leads]
-        plot_cfg = {
-            "plot_type": "reliability",
-            "fcst_var": fcst_var,
-            "vars": vars_list,
-            "unique": None,
-            "plot_title": " ".join(x for x in (model, mask_label, fcst_var, "reliability") if x),
-            "legend_title": "Lead Time",
-            "labels": [f"{h:02d}" for h in plot_leads],
-            "line_color": styles["line_color"],
-            "line_marker": styles["line_marker"],
-            "line_type": styles["line_type"],
-            "line_width": styles["line_width"],
-            "ncols": ncols,
-            "output_filename": str(workdir / f"{model}_{fcst_var}_reliability.png"),
-            "grid": True,
+    run_order = []
+    for mask in mask_list:
+        # mask_tag disambiguates this mask's filenames from every other mask's (and, via
+        # group_tag, from other field groups'/accumulations'); mask_label feeds the plot title.
+        mask_tag = f"{group_tag}_{mask}" if mask else group_tag
+        mask_label = mask or ""
+
+        agg_file = str(workdir / f"{mask_tag}_rel.data")
+
+        # ---- Step 1: aggregation YAML for this mask ----
+        pct_cfg = {
+            "input_stat_folder": f"{exptdir}/*/metprd/GridStat_ensprob",
+            "statfile_pattern": statfile_pattern,
+            "line_type": "pct",
+            "date_column": "fcst_valid_beg",
+            "start_date": start_dt.strftime(fmt_out),
+            "end_date": end_dt.strftime(fmt_out),
+            "string_filters": {
+                "model": [model],
+                "fcst_var": fcst_vars,
+                "fcst_lead": leads,
+                "vx_mask": [mask] if mask else [],
+            },
+            "stat_vars": ["all_thresh"],
+            "reformat_file": False,
+            "output_reformat_file": str(workdir / f"{mask_tag}_filtered.data"),
+            "output_file": True,
+            "output_plot_file": str(workdir / f"{mask_tag}_vars.data"),
+            "aggregate": True,
+            "group_by": ["model", "fcst_var", "fcst_lead"],
+            "output_agg_file": agg_file,
         }
-        plot_yaml = workdir / f"plot_{group_tag}_{fcst_var}.yaml"
-        _write_yaml(plot_yaml, plot_cfg)
-        run_order.append(plot_yaml)
-        lgr.info(f"Wrote plot config {plot_yaml}")
+        pct_yaml = workdir / f"pct_{mask_tag}.yaml"
+        _write_yaml(pct_yaml, pct_cfg)
+        run_order.append(pct_yaml)
+        lgr.info(f"Wrote aggregation config {pct_yaml}")
+
+        # ---- Step 2: one plotting YAML per forecast variable for this mask ----
+        for fcst_var in fcst_vars:
+            vars_list = [{int(_lead_str(h)): agg_file} for h in plot_leads]
+            plot_cfg = {
+                "plot_type": "reliability",
+                "fcst_var": fcst_var,
+                "vars": vars_list,
+                "unique": None,
+                "plot_title": " ".join(
+                    x for x in (model, mask_label, fcst_var, "reliability") if x),
+                "legend_title": "Lead Time",
+                "labels": [f"{h:02d}" for h in plot_leads],
+                "line_color": styles["line_color"],
+                "line_marker": styles["line_marker"],
+                "line_type": styles["line_type"],
+                "line_width": styles["line_width"],
+                "ncols": ncols,
+                "output_filename": str(workdir / f"{model}_{mask_tag}_{fcst_var}_reliability.png"),
+                "grid": True,
+            }
+            plot_yaml = workdir / f"plot_{mask_tag}_{fcst_var}.yaml"
+            _write_yaml(plot_yaml, plot_cfg)
+            run_order.append(plot_yaml)
+            lgr.info(f"Wrote plot config {plot_yaml}")
 
     # Write the manifest of YAMLs (absolute paths, in run order) for jobs/VCAST_RELIABILITY.sh to
     # run under the vcast environment.
