@@ -1,0 +1,84 @@
+metadata:
+  description: |-
+    Full run for SSEOv2 SFE 2026 experiment, with integrated VCast graphics generation
+workflow:
+  DATE_FIRST_CYCL: '2026042712'
+  DATE_LAST_CYCL: '2026053112'
+  FCST_LEN_HRS: 36
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+  - parm/wflow/get_obs.yaml
+  - parm/wflow/preprocessing.yaml
+  - parm/wflow/verify_det.yaml
+  - parm/wflow/verify_ens.yaml
+  - parm/wflow/vcast.yaml
+  EXPTDIR: /scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/runs/SSEOv2_vcast
+  USE_CRON_TO_RELAUNCH: false
+  VERBOSE: false
+ensemble:
+  DO_ENSEMBLE: true
+  NUM_ENS_MEMBERS: 10
+  ENS_TIME_LAG_HRS: !list '[ 0, 0, 6, 6, 6, 6, 12, 12, 12, 12 ]'
+  EAS:                                                                                                                
+    FLAG_EAS: True                                                                                                    
+  NMEP:
+    FLAG_NMEP: True
+verification:
+  VX_FCST_MODEL_NAME: SSEOv2
+  VX_FIELD_GROUPS:
+  - APCP
+  - REFC
+  - RETOP
+  - SFC
+  - UPA
+  VX_FIELDS_EXCLUDE: [TCDC]
+  VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/data/'
+  VX_MASK:
+  - CONUS
+  - EAST_OF_ROCKIES
+  FCST_FN_TEMPLATE:
+  - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/mpas_rrfsa_two_{init?fmt=%Y%m%d%H?shift=-${time_lag}}_f{lead?fmt=%HH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/mpasht2_nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/hrrr_ncep_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/mpas_rrfsa_two_{init?fmt=%Y%m%d%H?shift=-${time_lag}}_f{lead?fmt=%HH?shift=${time_lag}}.grib2'
+  - '{init?fmt=%Y%m%d}/mpasht2_nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HH?shift=${time_lag}}.grib2'
+  CCPA_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/ccpa'
+  MRMS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/mrms'
+  NDAS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/ndas'
+
+  VX_TASKS: 8
+gridstat:
+  TASKS: 16
+pointstat:
+  TASKS: 8
+ensemblestat:
+  execution:
+    walltime: 02:00:00
+    memory: '120G'
+    threads: 32
+  TASKS: 37
+genensprod:
+  execution:
+    walltime: 03:00:00
+  # 36 hour forecasts plus 00 hours, so every hour gets a dedicated task
+  TASKS: 37
+gridstat_ensmean:
+  execution:
+    walltime: 02:00:00
+  TASKS: 37
+gridstat_ensprob:
+  execution:
+    walltime: 02:00:00
+  TASKS: 37
+user:
+  MACHINE: URSA
+  ACCOUNT: gsd-fv3-dev
+platform:
+  MET_INSTALL_DIR: '/contrib/met/13.0.0-beta2'
+  METPLUS_ROOT: '/contrib/METplus/METplus-13.0.0-beta2/'
+

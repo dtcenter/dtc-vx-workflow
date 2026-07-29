@@ -1430,7 +1430,7 @@ vcast:
       memory: 8G
       tries: 1
     # Lead hours (integers) to overlay as separate curves on each reliability diagram.
-    PLOT_LEAD_HRS: [1, 3, 5, 10, 18, 36]
+    PLOT_LEAD_HRS: [1, 3, 6, 12, 24, 36]
     # Optional line styling. If left empty, sensible defaults are cycled to match the number of
     # entries in PLOT_LEAD_HRS. If specified, each list must have the same length as PLOT_LEAD_HRS.
     line_color: []
