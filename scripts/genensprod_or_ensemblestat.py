@@ -199,13 +199,32 @@ def genensprod_or_ensemblestat(
                                          taskcfg.get("fields"),
                                          exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
 
+    # Populate the flags that will be added for various probabilistic metrics
+    method_flags=''
+    # NMEP settings
+    nmepcfg=enscfg['NMEP']
+    if nmepcfg.get("FLAG_NMEP"):
+        for flag in nmepcfg:
+            if flag == "FLAG_NMEP":
+                continue
+            method_flags+=f"GEN_ENS_PROD_NMEP_SMOOTH_{flag} = {nmepcfg[flag]}\n"
+        method_flags+="\n"
+    # EAS settings
+    eascfg=enscfg['EAS']
+    if eascfg.get("FLAG_EAS"):
+        for flag in eascfg:
+            if flag == "FLAG_EAS":
+                continue
+            method_flags+=f"GEN_ENS_PROD_EAS_PROB_{flag} = {eascfg[flag]}\n"
+        method_flags+="\n"
+
+
     # Create the entries for forecast and variable names to pass to METplus conf file.
     if field_group in ['APCP', 'ASNOW']:
         fcst_level=f"A{accum_hh}"
     else:
         fcst_level="all"
     if metplus_tool.upper() == "GENENSPROD":
-        lgr.debug("THIS IS GENENSPROD")
         var_list=make_var_list(vx_config_dict,field_group,fcst_level,ens=True)
     else:
         var_list=make_var_list(vx_config_dict,field_group,fcst_level)
@@ -243,6 +262,11 @@ def genensprod_or_ensemblestat(
         "vx_mask": ", ".join(vx_mask_files),
         # Variable list
         'var_list': var_list,
+        # Probability verification metrics flags
+        'nbrhd_prob_width': taskcfg['NBRHD_PROB_WIDTH'],
+        'nbrhd_prob_shape': taskcfg['NBRHD_PROB_SHAPE'],
+        'nbrhd_prob_thresh': taskcfg['NBRHD_PROB_VLD_THRESH'],
+        'method_flags': method_flags,
         # Rest of settings from yaml file
         'vx_config_dict': vx_config_dict
     }

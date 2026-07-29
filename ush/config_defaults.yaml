@@ -512,6 +512,46 @@ ensemble:
   NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS }}'
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
+    # Config file settings for these various metrics are described in the GenEnsProd chapter of the MET Users Guide:
+    # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
+  # NEP settings
+  NEP:
+    DO_NEP: false
+  # NMEP settings
+  NMEP:
+    # Turns on NMEP calculations, Sets GEN_ENS_PROD_ENSEMBLE_FLAG_NMEP in GenEnsProd
+    FLAG_NMEP: false
+    # The following settings all end up in the GenEnsProd conf file, prepended with "GEN_ENS_PROD_NMEP_SMOOTH_"
+    # A list of candidate widths (in number of gridpoints) in increasing order
+    WIDTH: 1
+    # Valid shapes are CIRCLE or SQUARE
+    SHAPE: 'CIRCLE'
+    # A number between 0 and 1 specifying the required ratio of valid data in the neighborhood for an output value to be computed
+    VLD_THRESH: 0.0
+    METHOD: 'GAUSSIAN'
+    # Definitions for gaussian smoother applied to raw NMEP probability values
+    GAUSSIAN_DX: 81.27
+    GAUSSIAN_RADIUS: 120
+
+  # EAS settings
+  EAS:
+    # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
+    # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
+    # Turns on EAS calculations, Sets GEN_ENS_PROD_ENSEMBLE_FLAG_EAS in GenEnsProd
+    FLAG_EAS: True
+    # The following settings all end up in the GenEnsProd conf file, prepended with "GEN_ENS_PROD_EAS_PROB_"
+    # A list of candidate widths (in number of gridpoints) in increasing order
+    WIDTH: '[ 3, 5, 7, 9, 11, 13, 15 ]'
+    # Valid shapes are CIRCLE or SQUARE
+    SHAPE: 'CIRCLE'
+    # A number between 0 and 1 specifying the required ratio of valid data in the neighborhood for an output value to be computed
+    VLD_THRESH: 0.0
+    # Similarity criteria parameter α: related to the amount of bias tolerated. 0.5 is recommended.
+    ALPHA: 0.5
+    # Definitions for gaussian smoother applied to raw EAS probability values
+    GAUSSIAN_DX: 81.27
+    GAUSSIAN_RADIUS: 120
+
   # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
   # gridstat_ensmean and gridstat_ensprob, and pointstat_ensmean and pointstat_ensprob
   # You can overwrite this in each individual task's section if you wish
@@ -1231,6 +1271,10 @@ genensprod:
     tries: 1
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+  # Neighborhood settings for NEP and NMEP calculations
+  NBRHD_PROB_WIDTH: 27
+  NBRHD_PROB_SHAPE: CIRCLE
+  NBRHD_PROB_VLD_THRESH: 0.0
 
   # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
   conf:

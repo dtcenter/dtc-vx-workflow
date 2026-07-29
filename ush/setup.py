@@ -579,6 +579,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_GenEnsProd_EnsembleStat_APCP_all_accums",
         "metatask_GridStat_APCP_all_accums_ensmean",
         "metatask_GridStat_APCP_all_accums_ensprob",
+        "metatask_vcast_APCP_all_accums",
     ]
 
     vx_field_groups_all_by_obtype["NOHRSC"] = ["ASNOW"]
@@ -595,12 +596,16 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     vx_field_groups_all_by_obtype["MRMS"] = ["REFC", "RETOP"]
     vx_metatasks_all_by_obtype["MRMS"] \
     = ["task_get_obs_mrms",
-       "metatask_GridStat_REFC_RETOP_all_mems"]
+       "metatask_GridStat_REFC_RETOP_all_mems",
+       "metatask_GenEnsProd_EnsembleStat_REFC_RETOP",
+       "metatask_GridStat_REFC_RETOP_ensprob",
+       "metatask_vcast_REFC_RETOP",]
 
     vx_field_groups_all_by_obtype["NDAS"] = ["SFC", "UPA"]
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
+       "metatask_GenEnsProd_EnsembleStat_SFC_UPA",
        "metatask_PointStat_SFC_UPA_ensmean",
        "metatask_PointStat_SFC_UPA_ensprob",
     ]
