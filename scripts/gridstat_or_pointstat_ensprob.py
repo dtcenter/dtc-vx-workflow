@@ -182,9 +182,19 @@ def gridstat_or_pointstat_ensprob(
     # used both per-variable (inside make_ensprob_var_list) and for the tool-level
     # FCST_<tool>_PROB_THRESH setting, so compute it once here.
     prob_thresh=f"=={enscfg['NUM_ENS_BINS']}"
+    # Also verify the neighborhood/agreement-scale probability fields GenEnsProd produces: NEP is
+    # always produced, NMEP/EAS per their flags. Their field names embed the neighborhood size
+    # (genensprod.NBRHD_PROB_WIDTH) and, for NMEP, the smoother (ensemble.NMEP.METHOD/WIDTH).
+    nmepcfg=enscfg["NMEP"]
+    eascfg=enscfg["EAS"]
     var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
                                    prob_thresh=prob_thresh,
-                                   neighborhood=(metplus_tool_camel_case == "GridStat"))
+                                   neighborhood=(metplus_tool_camel_case == "GridStat"),
+                                   nbrhd_width=int(cfg["genensprod"]["NBRHD_PROB_WIDTH"]),
+                                   do_nmep=bool(nmepcfg.get("FLAG_NMEP")),
+                                   do_eas=bool(eascfg.get("FLAG_EAS")),
+                                   nmep_method=nmepcfg.get("METHOD", "GAUSSIAN"),
+                                   nmep_width=int(nmepcfg.get("WIDTH", 1)))
 
     settings = {
         "metplus_tool_name": metplus_tool_name,

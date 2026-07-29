@@ -276,29 +276,43 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
 
 
 def make_ensprob_var_list(vx_config_dict, field_group,
-                          level="all", thresh="all", prob_thresh=None, neighborhood=True):
+                          level="all", thresh="all", prob_thresh=None, neighborhood=True,
+                          nbrhd_width=None, do_nmep=False, do_eas=False,
+                          nmep_method="GAUSSIAN", nmep_width=1):
     """Render the FCST/OBS variable list for ensemble-probability (ensprob) verification of the
-    ensemble relative-frequency fields produced by GenEnsProd.
+    ensemble-probability fields produced by GenEnsProd.
 
     Unlike make_var_list() (which emits one FCST/OBS pair per field with thresholds comma-joined),
-    ensprob verification emits, for EACH forecast threshold, a separate FCST/OBS pair -- and does
-    so in two passes over all thresholds:
+    ensprob verification emits, for EACH forecast threshold, a separate FCST/OBS pair. Several
+    GenEnsProd probability products are verified, in this order:
 
-      1. Probabilistic pass: the GenEnsProd frequency field is verified as a probability (yields
-         Brier/reliability/ROC via the PCT/PSTD/PJC line types).
-      2. Scalar pass: the same field is verified as a scalar (``prob = FALSE``) using neighborhood
-         methods (yields NBRCNT/NBRCTC). This pass is emitted only when ``neighborhood`` is True
-         (i.e. gridded verification / GridStat); for point verification / PointStat, where
-         neighborhood methods do not apply, pass ``neighborhood=False`` to emit only pass 1.
+      1. ENS_FREQ probabilistic pass: the relative-frequency field verified as a probability
+         (yields Brier/reliability/ROC via the PCT/PSTD/PJC line types).
+      2. ENS_FREQ scalar pass: the same field verified as a scalar (``prob = FALSE``) using
+         neighborhood methods (yields NBRCNT/NBRCTC). Emitted only when ``neighborhood`` is True
+         (gridded verification / GridStat); for PointStat pass ``neighborhood=False`` to skip it.
+      3. Neighborhood/agreement-scale probability methods, verified as probabilities like pass 1
+         (THRESH=prob_thresh, base obs_options only, no ``prob = FALSE`` and no neighborhood
+         clause), grouped per threshold in the order EAS, NEP, NMEP:
+           - ENS_EAS  (when ``do_eas``)  -- ensemble agreement scale
+           - ENS_NEP  (always)           -- neighborhood ensemble probability
+           - ENS_NMEP (when ``do_nmep``) -- neighborhood maximum ensemble probability
+         These are emitted for both GridStat and PointStat.
 
-    All probabilistic pairs are emitted first, then all scalar pairs, matching MET's expectation.
     A single running counter drives the ``VARn`` index so it stays contiguous starting at 1 even
     when the level/threshold filters skip entries.
 
     The forecast field name must exactly match GenEnsProd's output-variable naming, which appends
-    the level and the physical threshold to the field name:
+    the level, the physical threshold, and (for the neighborhood methods) the neighborhood size and
+    smoother to the field name:
 
         {fcst_name}_{level}_ENS_FREQ_{thresh}
+        {fcst_name}_{level}_ENS_EAS_{thresh}
+        {fcst_name}_{level}_ENS_NEP_{thresh}_NBRHD{nbrhd_width**2}
+        {fcst_name}_{level}_ENS_NMEP_{thresh}_NBRHD{nbrhd_width**2}_{nmep_method}{nmep_width}
+
+    where ``nbrhd_width`` is genensprod.NBRHD_PROB_WIDTH (e.g. 27 -> NBRHD729) and the NMEP smoother
+    token is ``{nmep_method}{nmep_width}`` from ensemble.NMEP.METHOD/WIDTH (e.g. GAUSSIAN1).
 
     For accumulated fields the accumulation period is expected to be part of ``fcst_name`` already
     (e.g. ``APCP_06``), so no special-casing is required here.
@@ -310,11 +324,11 @@ def make_ensprob_var_list(vx_config_dict, field_group,
     Per-entry keys used (in addition to those documented in make_var_list()):
 
       nbrhd_options (str): Neighborhood option string appended to ``OBS_VARn_OPTIONS`` on the
-                           scalar pass only (optional).
+                           ENS_FREQ scalar pass only (optional).
 
     Note that the entry's ``fcst_options`` are intentionally NOT applied here: for ensprob the
-    forecast field is the ENS_FREQ probability field, so the only forecast option is ``prob =
-    FALSE`` on the scalar pass.
+    forecast field is a probability field, so the only forecast option is ``prob = FALSE`` on the
+    ENS_FREQ scalar pass.
     """
     lgr = logging.getLogger(__name__)
 
@@ -325,33 +339,55 @@ def make_ensprob_var_list(vx_config_dict, field_group,
         raise ValueError("make_ensprob_var_list requires prob_thresh (e.g. '==10')")
     lgr.debug(f"{prob_thresh=}")
 
+    def _entry_fields(entry):
+        """Extract and validate the per-entry field/level/threshold info shared by all passes."""
+        fcstvar = entry["fcst_name"]
+        obsvar = entry.get("obs_name", fcstvar)
+        fcst_levels = list(entry["fcst_levels"])
+        obs_levels = list(entry.get("obs_levels", fcst_levels))
+        if len(obs_levels) != len(fcst_levels):
+            raise ValueError(
+                f"For field '{fcstvar}' in group '{field_group}', 'obs_levels' "
+                f"(length {len(obs_levels)}) must be the same length as 'fcst_levels' "
+                f"(length {len(fcst_levels)})")
+        fcst_threshes = entry.get("fcst_thresholds", [])
+        obs_threshes = entry.get("obs_thresholds", fcst_threshes)
+        if len(obs_threshes) != len(fcst_threshes):
+            raise ValueError(
+                f"For field '{fcstvar}' in group '{field_group}', 'obs_thresholds' "
+                f"(length {len(obs_threshes)}) must be the same length as 'fcst_thresholds' "
+                f"(length {len(fcst_threshes)})")
+        return (fcstvar, obsvar, fcst_levels, obs_levels, fcst_threshes, obs_threshes,
+                entry.get("obs_options"), entry.get("nbrhd_options"))
+
+    def _emit_pair(idx, fcstvar, level_fcst, level_obs, obsvar, obs_thresh_val,
+                   name_suffix, fcst_opts, obs_opts_list):
+        """Build one FCST_VARn/OBS_VARn block. name_suffix is the part after '{fcstvar}_{level}_'."""
+        block = f"FCST_VAR{idx}_NAME = {fcstvar}_{level_fcst}_{name_suffix}\n"
+        block += f"FCST_VAR{idx}_LEVELS = {level_fcst}\n"
+        block += f"FCST_VAR{idx}_THRESH = {prob_thresh}\n"
+        if fcst_opts:
+            block += f"FCST_VAR{idx}_OPTIONS = {fcst_opts}\n"
+        block += f"OBS_VAR{idx}_NAME = {obsvar}\n"
+        block += f"OBS_VAR{idx}_LEVELS = {level_obs}\n"
+        if thresh != "none":
+            block += f"OBS_VAR{idx}_THRESH = {obs_thresh_val}\n"
+        obs_opts = [o.rstrip() for o in obs_opts_list if o]
+        if obs_opts:
+            block += f"OBS_VAR{idx}_OPTIONS = {' '.join(obs_opts)}\n"
+        lgr.debug(f"{block=}")
+        return block + "\n"
+
     var_list = ''
     i = 0
-    # The probabilistic pass always runs; the scalar+neighborhood pass runs only when neighborhood
-    # methods apply (gridded verification / GridStat, not point verification / PointStat).
+    # ENS_FREQ: probabilistic pass always runs; the scalar+neighborhood pass runs only when
+    # neighborhood methods apply (gridded verification / GridStat, not PointStat).
     passes = (True, False) if neighborhood else (True,)
     for treat_as_prob in passes:
         for entry in vx_config_dict[field_group]:
             lgr.debug(f"{entry=}")
-            fcstvar = entry["fcst_name"]
-            obsvar = entry.get("obs_name", fcstvar)
-            fcst_levels = list(entry["fcst_levels"])
-            obs_levels = list(entry.get("obs_levels", fcst_levels))
-            if len(obs_levels) != len(fcst_levels):
-                raise ValueError(
-                    f"For field '{fcstvar}' in group '{field_group}', 'obs_levels' "
-                    f"(length {len(obs_levels)}) must be the same length as 'fcst_levels' "
-                    f"(length {len(fcst_levels)})")
-            fcst_threshes = entry.get("fcst_thresholds", [])
-            obs_threshes = entry.get("obs_thresholds", fcst_threshes)
-            if len(obs_threshes) != len(fcst_threshes):
-                raise ValueError(
-                    f"For field '{fcstvar}' in group '{field_group}', 'obs_thresholds' "
-                    f"(length {len(obs_threshes)}) must be the same length as 'fcst_thresholds' "
-                    f"(length {len(fcst_threshes)})")
-            base_obs_opts = entry.get("obs_options")
-            nbrhd_opts = entry.get("nbrhd_options")
-
+            (fcstvar, obsvar, fcst_levels, obs_levels, fcst_threshes, obs_threshes,
+             base_obs_opts, nbrhd_opts) = _entry_fields(entry)
             for li, level_fcst in enumerate(fcst_levels):
                 if level != "all" and level != level_fcst:
                     continue
@@ -363,27 +399,51 @@ def make_ensprob_var_list(vx_config_dict, field_group,
                     i += 1
                     # MET field names cannot contain '&&' or '||'
                     thresh_name = thresh_fcst.replace("&&", ".and.").replace("||", ".or.")
-
-                    fcst_var = f"FCST_VAR{i}_NAME = {fcstvar}_{level_fcst}_ENS_FREQ_{thresh_name}\n"
-                    fcst_var += f"FCST_VAR{i}_LEVELS = {level_fcst}\n"
-                    fcst_var += f"FCST_VAR{i}_THRESH = {prob_thresh}\n"
-                    if not treat_as_prob:
-                        fcst_var += f"FCST_VAR{i}_OPTIONS = prob = FALSE;\n"
-
-                    obs_var = f"OBS_VAR{i}_NAME = {obsvar}\n"
-                    obs_var += f"OBS_VAR{i}_LEVELS = {level_obs}\n"
-                    if thresh != "none":
-                        obs_var += f"OBS_VAR{i}_THRESH = {obs_threshes[ti]}\n"
                     # Base obs options apply on both passes; the neighborhood clause is added only
                     # on the scalar pass.
-                    obs_opts = [o.rstrip() for o in
-                                (base_obs_opts, None if treat_as_prob else nbrhd_opts) if o]
-                    if obs_opts:
-                        obs_var += f"OBS_VAR{i}_OPTIONS = {' '.join(obs_opts)}\n"
+                    obs_opts_list = [base_obs_opts] if treat_as_prob else [base_obs_opts, nbrhd_opts]
+                    var_list += _emit_pair(
+                        i, fcstvar, level_fcst, level_obs, obsvar, obs_threshes[ti],
+                        f"ENS_FREQ_{thresh_name}",
+                        None if treat_as_prob else "prob = FALSE;", obs_opts_list)
 
-                    var_list += fcst_var + obs_var + "\n"
-                    lgr.debug(f"{fcst_var=}")
-                    lgr.debug(f"{obs_var=}")
+    # Neighborhood/agreement-scale probability methods (pass 3). NEP is always produced by
+    # GenEnsProd (ENSEMBLE_FLAG_NEP is hardcoded TRUE); NMEP/EAS only when their flags are set.
+    methods = (["ENS_EAS"] if do_eas else []) + ["ENS_NEP"] + (["ENS_NMEP"] if do_nmep else [])
+    if isinstance(nmep_width, (list, tuple)):
+        raise ValueError(
+            "make_ensprob_var_list: a list-valued NMEP smoother width is not supported (GenEnsProd "
+            f"would emit one NMEP field per width); got nmep_width={nmep_width!r}")
+    # NEP and NMEP names embed the neighborhood size, so nbrhd_width is required (NEP always runs).
+    if nbrhd_width is None:
+        raise ValueError(
+            "make_ensprob_var_list: nbrhd_width is required (e.g. genensprod.NBRHD_PROB_WIDTH) "
+            "because NEP/NMEP field names embed the neighborhood size NBRHD{width**2}")
+    nbrhd_tag = f"_NBRHD{nbrhd_width ** 2}"
+    for entry in vx_config_dict[field_group]:
+        lgr.debug(f"{entry=}")
+        (fcstvar, obsvar, fcst_levels, obs_levels, fcst_threshes, obs_threshes,
+         base_obs_opts, _) = _entry_fields(entry)
+        for li, level_fcst in enumerate(fcst_levels):
+            if level != "all" and level != level_fcst:
+                continue
+            level_obs = obs_levels[li]
+            for ti, thresh_fcst in enumerate(fcst_threshes):
+                if thresh not in ("all", "none") and thresh != thresh_fcst:
+                    continue
+                thresh_name = thresh_fcst.replace("&&", ".and.").replace("||", ".or.")
+                for method in methods:
+                    if method == "ENS_EAS":
+                        name_suffix = f"ENS_EAS_{thresh_name}"
+                    elif method == "ENS_NEP":
+                        name_suffix = f"ENS_NEP_{thresh_name}{nbrhd_tag}"
+                    else:  # ENS_NMEP
+                        name_suffix = (f"ENS_NMEP_{thresh_name}{nbrhd_tag}"
+                                       f"_{nmep_method}{nmep_width}")
+                    i += 1
+                    var_list += _emit_pair(
+                        i, fcstvar, level_fcst, level_obs, obsvar, obs_threshes[ti],
+                        name_suffix, None, [base_obs_opts])
 
     return var_list
 
