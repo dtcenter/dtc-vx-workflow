@@ -166,7 +166,7 @@ def run_we2e_tests(args) -> None:
     logging.info("All experiments have been generated;")
     logging.info(f"Experiment file {monitor_file} created")
 
-    if args.launch != "python":
+    if args.launch == "none":
         logging.info("To automatically run and monitor experiments, use:\n")
         logging.info(f"./monitor_jobs.py -y={monitor_file}\n")
         return
