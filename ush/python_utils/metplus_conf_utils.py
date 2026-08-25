@@ -2,10 +2,6 @@
 Common utilities for creating/handling METplus configuration files
 """
 import logging
-import os
-import sys
-from jinja2 import Environment, FileSystemLoader
-
 
 def make_var_lists(vx_config_dict,field_group):
     """Renders two multi-line strings representing the list of forecast and observation variables
@@ -88,7 +84,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks):
     """Renders metplus conf files from the appropriate template and user settings.
     If VX_TASKS > 1 and vx_leadhr_list > 1, renders a conf file for each parallel task.
     Returns the filename(s) of metplus conf files that were rendered"""
-
+    from jinja2 import Environment, FileSystemLoader
     logger = logging.getLogger(__name__)
 
     num_fhrs = len(vx_leadhr_list)

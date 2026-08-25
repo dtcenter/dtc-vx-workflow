@@ -155,7 +155,7 @@ The default behavior is to pass `--tests all` to the `run_we2e_tests.py` script.
 To run the METplus diff utility, call the `run_diff.py` script,
 passing the path to the output directory of the end-to-end tests.
 By default, the output.baseline directory is used as the baseline.
-You can override this by passing the `--baseline` argument.
+You can override this by passing the `--baseline_dir` argument.
 You can also override the location of METplus to use with the `--metplus` argument.
 
 The default behavior is to run the diff utility on all files in the dated subdirectories
@@ -175,3 +175,13 @@ python3 ./tests/regression/run_diff.py \
   ${test_dir} \
   --regression_dir ${regression_dir}
 ```
+
+### Diffing a Subset of Tests
+
+The `--tests` argument can be provided to the `run_diff.py` script
+to define a subset of tests to diff.
+The format of the argument is the same as the `--tests` argument to the
+`tests/WE2E/run_we2e_tests.py` script.
+The list of tests defined here determines which subdirectories to pass to the
+diff utility. Tests not found in either directory will be reported as a failure.
+The default behavior is diff all tests found under `tests/WE2E/test_configs`.

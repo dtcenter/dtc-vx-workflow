@@ -33,7 +33,6 @@ jobs:
       - name: Lint the python code
         run: |
           micromamba activate vx_workflow
-          export PYTHONPATH=$(pwd)/ush
           pylint --version
           pylint --ignore-imports=yes tests/test_python/test_*.py
           pylint ush/generate_wflow.py
