@@ -42,7 +42,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       OBTYPE: 'CCPA'
       FCST_LEVEL: 'A#ACCUM_HH#'
       FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -56,6 +56,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       <<: *envars_GenEnsProd_CCPA
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -83,7 +84,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       OBTYPE: 'NOHRSC'
       FCST_LEVEL: 'A#ACCUM_HH#'
       FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -98,6 +99,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       <<: *envars_GenEnsProd_NOHRSC
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -125,7 +127,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       OBTYPE: 'MRMS'
       FCST_LEVEL: 'L0'
       FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -141,6 +143,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_LEVEL: 'L0'
       FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -172,7 +175,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
       FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -184,6 +187,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     envars:
       <<: *envars_GenEnsProd_NDAS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
