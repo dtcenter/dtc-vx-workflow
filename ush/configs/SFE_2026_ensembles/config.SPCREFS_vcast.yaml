@@ -60,7 +60,7 @@ ensemblestat:
   execution:
     walltime: 02:00:00
     memory: '120G'
-    threads: 32
+    threads: 4
   TASKS: 37
 genensprod:
   execution:
