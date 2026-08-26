@@ -525,7 +525,7 @@ ensemble:
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
   ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  ENS_TIME_LAG_HRS: '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+  ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
 tropical:
 #-----------------------------
@@ -574,23 +574,7 @@ verification_resources:
   execution:
     nodes: 1
     tasks_per_node: 1
-    deterministic:
-      gridstat:
-        tasks_per_node: '{{ verification.VX_TASKS }}'
-        walltime: 02:00:00
-        memory: '{{ 2 * verification.VX_TASKS }}G'
-      pointstat:
-        tasks_per_node: '{{ verification.VX_TASKS }}'
-        walltime: 01:00:00
-        memory: '{{ 2 * verification.VX_TASKS }}G'
     ensemble:
-      genensprod:
-        default:
-          walltime: 04:45:00
-        ndas:
-          walltime: 02:30:00
-      ensemblestat:
-        walltime: 01:00:00
       gridstat:
         walltime: 01:00:00
       pointstat:
@@ -1007,6 +991,24 @@ verification:
   # sequential forecast hours, and so can be run simultaneously.
   VX_TASKS: 1
 
+gridstat:
+  # Runtime settings for deterministic GRIDSTAT jobs
+  execution:
+    tasks_per_node: '{{ gridstat.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat.TASKS }}G'
+  # Number of GRIDSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+pointstat:
+  # Runtime settings for POINTSTAT jobs
+  execution:
+    tasks_per_node: '{{ pointstat.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat.TASKS }}G'
+  # Number of POINTSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
 point2grid:
   execution:
     tasks_per_node: '{{ point2grid.TASKS }}'
@@ -1020,16 +1022,34 @@ point2grid:
   # 3: no retrieval quality flag
   GOES_QC_FLAGS: '0,1'
   # Number of POINT2GRID instances to run in parallel
-  TASKS: '{{ verification.VX_TASKS }}'
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+genensprod:
+  # Runtime settings for GenEnsProd jobs
+  execution:
+    tasks_per_node: '{{ genensprod.TASKS }}'
+    walltime: 02:00:00
+    memory: '{{ 2 * genensprod.TASKS }}G'
+  # Number of GenEnsProd instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+ensemblestat:
+  # Runtime settings for deterministic EnsembleStat jobs
+  execution:
+    tasks_per_node: '{{ ensemblestat.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * ensemblestat.TASKS }}G'
+  # Number of EnsembleStat instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
   execution:
     tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
-    memory: '{{ 10 * regriddataplane.TASKS }}G'
+    memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
   # Number of REGRIDDATAPLANE instances to run in parallel
-  TASKS: 1
+  TASKS: !int '{{ verification.VX_TASKS }}'
   
   # Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
   REGRID_METHOD: MAXGAUSS
@@ -1048,7 +1068,7 @@ mode:
     # Memory to allocate to MODE job
     memory: '{{ 10 * mode.TASKS }}G'
   # Number of MODE instances to run in parallel
-  TASKS: 1
+  TASKS: !int '{{ verification.VX_TASKS }}'
 
   # For more information on MODE variables see the MODE documentation:
   # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html

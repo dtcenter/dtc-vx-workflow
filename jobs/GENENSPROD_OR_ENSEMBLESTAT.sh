@@ -35,6 +35,8 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+# Sets up PYTHONPATH, ACCUM_ARG, and VERBOSE environment variables
+. $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -48,7 +50,7 @@ scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
-print_info_msg "
+printf "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
@@ -56,7 +58,16 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-$SCRIPTSdir/genensprod_or_ensemblestat.sh || \
+python $SCRIPTSdir/genensprod_or_ensemblestat.py ${VERBOSE_FLAG} \
+  --config="${GLOBAL_VAR_DEFNS_FP}" \
+  --cycle_date="${YYMMDD}${HH}" \
+  --field_group="${FIELD_GROUP}" \
+  --obs_dir="${OBS_DIR}" \
+  --obtype="${OBTYPE}" \
+  --fcst_level="${FCST_LEVEL}" \
+  --fcst_thresh="${FCST_THRESH}" \
+  --metplus_tool="${METPLUSTOOLNAME}" \
+  ${ACCUM_ARG} || \
 print_err_msg_exit "\
-Call to \"genensprod_or_ensemblestat.sh\" from \"${scrfunc_fn}\" failed."
+Call to \"genensprod_or_ensemblestat.py\" from \"${scrfunc_fn}\" failed."
 

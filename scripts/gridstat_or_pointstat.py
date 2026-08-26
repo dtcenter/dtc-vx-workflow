@@ -8,9 +8,7 @@ The script is intended to be called from jobs/GRIDSTAT_OR_POINTSTAT.sh.
 """
 
 import argparse
-import ast
 import logging
-import math
 import os
 import subprocess
 
@@ -95,8 +93,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     lgr.debug(f"{vxcfg['VX_NDIGITS_ENSMEM_NAMES']=}")
     time_lag = 0
     if do_ens:
-        time_lag_hrs = ast.literal_eval(cfg['ensemble']['ENS_TIME_LAG_HRS'])[ensmem_index-1]
-        time_lag = time_lag_hrs*3600
+        time_lag = cfg['ensemble']['ENS_TIME_LAG_HRS'][ensmem_index-1]*3600
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
@@ -294,10 +291,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'vx_config_dict': vx_config_dict
                }
 
-    if field_group == "UPA":
-        numprocs=math.ceil(vxcfg['VX_TASKS']/2)
-    else:
-        numprocs=vxcfg['VX_TASKS']
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
@@ -315,7 +309,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
 
 def run_metplus(common_config,config_fn):
-    """Calls the run_metplus script as a subprocess. If VX_TASKS > 1 and vx_leadhr_list > 1,
+    """Calls the run_metplus script as a subprocess. If TASKS > 1 and vx_leadhr_list > 1,
     calls in with starmap for the number of tasks specified."""
 
     # Run METplus

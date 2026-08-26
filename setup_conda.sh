@@ -98,7 +98,7 @@ else
   ENV_NAME=vx_workflow
 fi
 
-if ! conda env list | grep -q "^${ENV_NAME}\s" ; then
+if ! conda env list 2>/dev/null | grep -q "^${ENV_NAME}\s" ; then
   echo "Creating ${ENV_NAME} environment..."
   mamba env create -n ${ENV_NAME} --file "${ENV_YAML}" --quiet
 else
