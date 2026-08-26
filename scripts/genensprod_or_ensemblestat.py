@@ -132,7 +132,7 @@ def genensprod_or_ensemblestat(
     fcst_in_fn_templates = []
     for i in range(enscfg["NUM_ENS_MEMBERS"]):
         # Build per-member forecast filename templates (comma-separated list for METplus)
-        ensmem = f"mem{str(i + 1).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+        ensmem = f"mem{str(i).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
         subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
@@ -145,14 +145,14 @@ def genensprod_or_ensemblestat(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).safe_substitute(subvars),
             ))
         else:
-            subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
-            fn = Template(vxcfg["FCST_FN_TEMPLATE"]).safe_substitute(subvars)
-            tmpl = str(Path(subdir, fn)) if subdir else fn
+            tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][i]).safe_substitute(subvars)
         fcst_in_fn_templates.append(tmpl)
     fcst_in_fn_template = ", ".join(fcst_in_fn_templates)
 
     output_dir = Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
-    staging_dir = Path(exptdir, cdate, "stage", met_filedir_name)
+    # The ".0" will be stripped from this dirname if using only one task, otherwise
+    # it will be replaced with the task number
+    staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}.0")
     os.makedirs(output_dir, exist_ok=True)
 
     if obtype in ("CCPA", "NOHRSC"):
@@ -235,7 +235,8 @@ def genensprod_or_ensemblestat(
 
     numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
 
-    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,
+                                      cfg["genensprod"].get("conf"))
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")

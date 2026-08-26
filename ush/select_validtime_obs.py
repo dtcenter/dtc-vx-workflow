@@ -37,11 +37,7 @@ def select_validtime_obs(valid_time, outdir, source, in_template, out_template, 
 
 
     Returns:
-        string: The staged filename
-        
-    Raises: 
-        FileNotFoundError: If no valid file was found within "window" seconds of the valid 
-                           time of the forecast
+        string: The staged filename, or a null string if none found
 
     """
 
@@ -84,6 +80,7 @@ def select_validtime_obs(valid_time, outdir, source, in_template, out_template, 
 
     # Check to make sure closest file is within +/- window seconds of top of the hour
     difference = abs(closest_timestamp - valid)
+    target = ''
     if difference.total_seconds() <= window:
         filename1 = f"{template_start}{closest_timestamp.strftime(date_template)}{template_end}"
         filename2 = datetime.strftime(valid,out_template)
@@ -95,9 +92,9 @@ def select_validtime_obs(valid_time, outdir, source, in_template, out_template, 
 
         print(f"Moving file {origfile} to {target}")
         shutil.move(origfile,target)
-        
     else:
-        raise FileNotFoundError(f"Did not find a valid file within {window} seconds of {valid}")
+        print(f"WARNING: Did not find a valid file within {window} seconds of {valid}")
+
 
     return target
 

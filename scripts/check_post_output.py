@@ -9,7 +9,6 @@ The script is intended to be called from jobs/CHECK_POST_OUTPUT.sh.
 
 import argparse
 import logging
-import os
 from string import Template
 
 import uwtools.api.config as uwconfig
@@ -31,7 +30,7 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     cdate : str
         Eight-digit cycle date in ``YYYYMMDDHH`` format.
     ensmem_index : int
-        Ensemble member index (0 for deterministic runs, 1-based for ensemble members).
+        Ensemble member index (0-based; use 0 for deterministic runs).
     """
     lgr = logging.getLogger(__name__)
 
@@ -52,10 +51,8 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
             "time_lag": time_lag,
               }
 
-# Build forecast filename template, prepending subdir template if set
-    subdir = vxcfg.get("FCST_SUBDIR_TEMPLATE", "")
-    fn_template = os.path.join(subdir, vxcfg["FCST_FN_TEMPLATE"]) if subdir \
-                  else vxcfg["FCST_FN_TEMPLATE"]
+# Build forecast filename template
+    fn_template = vxcfg["FCST_FN_TEMPLATE"][i]
 
     lgr.debug(f"{fn_template=}")
     fn_template=Template(fn_template).substitute(subvars)
@@ -94,7 +91,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--ensmem_index", required=True, type=int,
-        help="Ensemble member index (0 for deterministic, 1-based for ensemble members)",
+        help="Ensemble member index (use 0 for deterministic)",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true",

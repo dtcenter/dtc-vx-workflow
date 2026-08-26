@@ -1,7 +1,7 @@
 metadata:
   description: |-
     This is a test for deterministic verification of the
-    GraphCast (gc) global AI model.  Note that this test uses a custom 
+    GraphCast (gc) global AI model.  Note that this test uses a custom
     verification configuration file because the AI model output does not
     include many of the fields that exist in physics-based models.
 
@@ -16,9 +16,6 @@ workflow:
   DATE_FIRST_CYCL: '2024073000'
   DATE_LAST_CYCL: '2024073000'
   FCST_LEN_HRS: 240
-  taskgroups:
-    - parm/wflow/verify_pre.yaml
-    - parm/wflow/verify_det.yaml
 
 task_get_extrn_lbcs:
   envvars:
@@ -51,8 +48,7 @@ verification:
   VX_FCST_MODEL_NAME: 'gc'
   VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.obs_gdas.model_aiml.yaml'
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}'
-  FCST_SUBDIR_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}'
-  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}'
+  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}_a${ACCUM_HH}h.nc'
   #
   VX_FCST_OUTPUT_INTVL_HRS: 6

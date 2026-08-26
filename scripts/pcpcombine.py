@@ -57,7 +57,7 @@ def pcpcombine(
     fcst_or_obs : str
         Whether this task processes forecast (``"FCST"``) or observation (``"OBS"``) data.
     ensmem_index : int
-        Ensemble member index (0 for deterministic, 1-based for ensemble members).
+        Ensemble member index (0 for deterministic).
     """
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
@@ -95,13 +95,12 @@ def pcpcombine(
     time_lag = 0
     if fcst_or_obs == "FCST":
         if do_ensemble:
-            time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index - 1]) * 3600
+            time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index]) * 3600
 
         subvars["time_lag"]=time_lag
-        fcst_subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
-        fcst_fn = Template(vxcfg["FCST_FN_TEMPLATE"]).safe_substitute(subvars)
+        input_fn_template = Template(
+                vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
-        input_fn_template = str(Path(fcst_subdir, fcst_fn)) if fcst_subdir else fcst_fn
         output_fn_template = Template(
             vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
         ).safe_substitute(subvars)
@@ -292,7 +291,7 @@ if __name__ == "__main__":
     parser.add_argument("--fcst_or_obs", required=True, type=str,
         help="Whether processing forecast (FCST) or observation (OBS) data")
     parser.add_argument("--ensmem_index", type=int, default=0,
-        help="Ensemble member index (0 for deterministic, 1-based for ensemble members)")
+        help="Ensemble member index (0 for deterministic)")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
     args = parser.parse_args()

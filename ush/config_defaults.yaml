@@ -143,33 +143,15 @@ platform:
   REMOVE_MEMORY: False
   #
   #-----------------------------------------------------------------------
-  #
-  # Set run commands for platforms without a workflow manager. These values
-  # will be ignored unless WORKFLOW_MANAGER: "none".  Definitions:
-  #
-  # RUN_CMD_PRDGEN: 
-  # The run command for the product generation job.
-  #
-  # RUN_CMD_SERIAL:
-  # The run command for some serial jobs 
-  #
-  #-----------------------------------------------------------------------
-  #
-  RUN_CMD_SERIAL: ""
-  RUN_CMD_PRDGEN: ""
-  #
-  #-----------------------------------------------------------------------
-  #
+  # SCHED_NATIVE_CMD:
   # Allows an extra parameter to be passed to SCHEDULER (SLURM/PBSPRO) via 
   # XML Native command
+  # 
+  # SCHED_NATIVE_CMD_HPSS:
+  # Same command, but for jobs submitted to "PARTITION_HPSS"
   #
   SCHED_NATIVE_CMD: ""
-  #
-  #-----------------------------------------------------------------------
-  # Pre task commands such as "ulimit" needed by tasks
-  #-----------------------------------------------------------------------
-  #
-  PRE_TASK_CMDS: ""
+  SCHED_NATIVE_CMD_HPSS: ""
   #
   #-----------------------------------------------------------------------
   # MET and METplus directories. MET_INSTALL_DIR is the directory containing
@@ -251,7 +233,8 @@ workflow:
   #-----------------------------------------------------------------------
   #
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
   #
   #-----------------------------------------------------------------------
@@ -486,7 +469,7 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  VERBOSE: true
+  VERBOSE: false
   DEBUG: false
 
 
@@ -511,10 +494,6 @@ ensemble:
   # For example, if this is set to 8, the member directories will be named 
   # mem1, mem2, ..., mem8. Not used if DO_ENSEMBLE is set to false.
   #
-  # ENSMEM_NAMES:
-  # A list of names for the ensemble member names following the format
-  # mem001, mem002, etc.
-  #
   # ENS_TIME_LAG_HRS:
   # Time lag (in hours) to use for each ensemble member. For a deterministic
   # forecast, this is a one-element array. Default values of array elements
@@ -523,8 +502,7 @@ ensemble:
   #-----------------------------------------------------------------------
   #
   DO_ENSEMBLE: false
-  NUM_ENS_MEMBERS: 0
-  ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
+  NUM_ENS_MEMBERS: 1
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
 tropical:
@@ -574,11 +552,6 @@ verification_resources:
   execution:
     nodes: 1
     tasks_per_node: 1
-    ensemble:
-      gridstat:
-        walltime: 01:00:00
-      pointstat:
-        walltime: 01:00:00
     get_obs:
       aeronet:
         walltime: 02:00:00
@@ -592,8 +565,6 @@ verification_resources:
         walltime: 02:00:00
       ndas:
         walltime: 02:00:00
-    pb2nc:
-      walltime: 00:30:00
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -945,15 +916,15 @@ verification:
   #
   VX_FCST_INPUT_BASEDIR: '{{ workflow.EXPTDIR }}'
   #
-  # FCST_SUBDIR_TEMPLATE:
-  # METplus template for the name of the subdirectory containing forecast
-  # files to use as inputs to the verification tasks.
-  #
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'
-  #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
-  # to the verification tasks.
+  # to the verification tasks. This can be a string for deterministic runs
+  # or ensembles with a uniform naming template; otherwise, this should be
+  # a list of strings with length equal to the number of ensemble members
+  #
+  # If your directory structure includes METplus wildcards that must be
+  # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those
+  # subdirectories should be included here rather than under VX_FCST_INPUT_BASEDIR
   # 
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
   #
@@ -991,22 +962,58 @@ verification:
   # sequential forecast hours, and so can be run simultaneously.
   VX_TASKS: 1
 
+pb2nc:
+  # Runtime settings for PB2NC jobs
+  execution:
+    # Number of PB2NC tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
+    tasks_per_node: '{{ gridstat.TASKS }}'
+    # Wallclock time to allocate to submitted PB2NC jobs
+    walltime: 00:30:00
+    # Memory to allocate to PB2NC jobs
+    memory: '{{ 2 * gridstat.TASKS }}G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
+  # Number of PB2NC instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
 gridstat:
   # Runtime settings for deterministic GRIDSTAT jobs
   execution:
     tasks_per_node: '{{ gridstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat.TASKS }}G'
+    tries: 1
   # Number of GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 pointstat:
-  # Runtime settings for POINTSTAT jobs
+  # Runtime settings for deterministic POINTSTAT jobs
   execution:
     tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat.TASKS }}G'
+    tries: 1
   # Number of POINTSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+gridstat_ens:
+  # Runtime settings for ensemble GRIDSTAT jobs (ensmean/ensprob)
+  execution:
+    tasks_per_node: '{{ gridstat_ens.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat_ens.TASKS }}G'
+    tries: 1
+  # Number of ensemble GRIDSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+pointstat_ens:
+  # Runtime settings for ensemble POINTSTAT jobs (ensmean/ensprob)
+  execution:
+    tasks_per_node: '{{ pointstat_ens.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat_ens.TASKS }}G'
+    tries: 1
+  # Number of ensemble POINTSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 point2grid:
@@ -1014,6 +1021,7 @@ point2grid:
     tasks_per_node: '{{ point2grid.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * point2grid.TASKS }}G'
+    tries: 1
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
   # 0: high quality
@@ -1030,8 +1038,15 @@ genensprod:
     tasks_per_node: '{{ genensprod.TASKS }}'
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
+    threads: 4
+    tries: 1
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+
+  # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
+  conf:
+    #Verbosity of MET logging output.
+    LOG_GEN_ENS_PROD_VERBOSITY: '{{ verification.METPLUS_VERBOSITY_LEVEL}}'
 
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
@@ -1039,6 +1054,8 @@ ensemblestat:
     tasks_per_node: '{{ ensemblestat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * ensemblestat.TASKS }}G'
+    threads: 4
+    tries: 1
   # Number of EnsembleStat instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1048,6 +1065,7 @@ regriddataplane:
     tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
     memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
+    tries: 1
   # Number of REGRIDDATAPLANE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
   
@@ -1061,12 +1079,16 @@ regriddataplane:
 mode:
   # Runtime settings for MODE jobs
   execution:
-    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    # Number of MODE tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
     tasks_per_node: '{{ mode.TASKS }}'
     # Wallclock time to allocate to submitted MODE job
     walltime: 01:00:00
     # Memory to allocate to MODE job
     memory: '{{ 10 * mode.TASKS }}G'
+    # Number of threads to assign to each task
+    threads: 4
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   # Number of MODE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1116,6 +1138,8 @@ tcpairs:
     walltime: 00:10:00
     # Memory to allocate to TCPAIRS job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   #
   # TECH_ID_VX:
   # The identifier for the best track data to use for TCPAIRS comparison, as read in from the
@@ -1138,6 +1162,8 @@ tcstat:
     walltime: 00:10:00
     # Memory to allocate to TCSTAT job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # SUMMARY_FILE:
   # Filename for TCstat summary output
@@ -1156,6 +1182,8 @@ tcrmw:
     walltime: 00:30:00
     # Memory to allocate to TCRMW job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # OUTPUT_TEMPLATE:
   # Template for output file(s) from TCRMW. {cyclone} and {date} are substituted in the

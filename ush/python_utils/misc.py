@@ -2,31 +2,6 @@
 
 import re
 
-
-def uppercase(s):
-    """Converts a given string to uppercase
-
-    Args:
-        s (str): The string to change to uppercase
-    Returns:
-        Uppercased string
-    """
-
-    return s.upper()
-
-
-def lowercase(s):
-    """Converts a given string to lowercase
-
-    Args:
-        s (str): The string to change to lowercase
-    Returns:
-        Lowercased string
-    """
-
-    return s.lower()
-
-
 def find_pattern_in_str(pattern, source):
     """Finds a regular expression (regex) pattern in a string
 
