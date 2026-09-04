@@ -16,7 +16,10 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensmean_var_list, merge_field_configs
+from python_utils import (
+     make_ensmean_var_list, merge_field_configs, render_metplus_confs,
+                         run_metplus, setup_logging
+     )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -115,7 +118,7 @@ def gridstat_or_pointstat_ensmean(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
-    # Need to load "gridstat_ensmean" or "pointstat_ensmean" config section depending on what we're running
+    # Load "gridstat_ensmean" or "pointstat_ensmean" config section depending on what we're running
     taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ensmean"]
 
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensmean")

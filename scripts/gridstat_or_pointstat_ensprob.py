@@ -17,7 +17,10 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging, make_ensprob_var_list, merge_field_configs
+from python_utils import (
+     make_ensprob_var_list, merge_field_configs, render_metplus_confs,
+                         run_metplus, setup_logging
+     )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -50,7 +53,8 @@ def gridstat_or_pointstat_ensprob(
     fcst_level : str
         METplus forecast level (e.g. L0, A03).
     """
-    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches
+    # pylint: disable=too-many-statements,superfluous-parens
     lgr = logging.getLogger(__name__)
 
     cfg = uwconfig.get_yaml_config(config=config_file)
@@ -116,7 +120,7 @@ def gridstat_or_pointstat_ensprob(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
-    # Need to load "gridstat_ensprob" or "pointstat_ensprob" config section depending on what we're running
+    # Load "gridstat_ensprob" or "pointstat_ensprob" config section depending on what we're running
     taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ensprob"]
 
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensprob")
@@ -182,8 +186,7 @@ def gridstat_or_pointstat_ensprob(
     # used both per-variable (inside make_ensprob_var_list) and for the tool-level
     # FCST_<tool>_PROB_THRESH setting, so compute it once here.
     prob_thresh=f"=={enscfg['NUM_ENS_BINS']}"
-    var_list=make_ensprob_var_list(vx_config_dict, field_group, level=fcst_level,
-                                   prob_thresh=prob_thresh,
+    var_list=make_ensprob_var_list(vx_config_dict, field_group, fcst_level, prob_thresh,
                                    neighborhood=(metplus_tool_camel_case == "GridStat"))
 
     settings = {
