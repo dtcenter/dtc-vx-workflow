@@ -240,7 +240,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
     # Field config for this task: start from the top-level fields: section, then apply this task's
-    # fields: section as per-variable overrides (entries merged by fcst_name; see merge_field_configs).
+    # fields: section as per-variable overrides (entries merged by fcst_name).
     vx_config_dict = merge_field_configs(cfg.get("fields") or {}, taskcfg.get("fields"),
                                          exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
 
