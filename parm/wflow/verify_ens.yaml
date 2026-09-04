@@ -1,8 +1,8 @@
 default_task_verify_ens: &default_task_verify_ens
   account: '&ACCOUNT;'
-  attrs:
+  attrs: &default_ens_attrs
     cycledefs: forecast
-    maxtries: 2
+    maxtries: 1
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
@@ -32,6 +32,9 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h: &task_GenEnsProd_CCPA
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_CCPA
       <<: *default_vars
@@ -41,8 +44,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       METPLUSTOOLNAME: 'GENENSPROD'
       OBTYPE: 'CCPA'
       FCST_LEVEL: 'A#ACCUM_HH#'
-      FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -52,10 +54,13 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
           metatask: PcpCombine_APCP#ACCUM_HH#h_all_mems
   task_run_MET_EnsembleStat_vx_APCP#ACCUM_HH#h:
     <<: *task_GenEnsProd_CCPA
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_CCPA
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
-      FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -73,6 +78,9 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h: &task_GenEnsProd_NOHRSC
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NOHRSC
       <<: *default_vars
@@ -82,8 +90,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       METPLUSTOOLNAME: 'GENENSPROD'
       OBTYPE: 'NOHRSC'
       FCST_LEVEL: 'A#ACCUM_HH#'
-      FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -94,10 +101,13 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
             metatask: PcpCombine_ASNOW#ACCUM_HH#h_all_mems
   task_run_MET_EnsembleStat_vx_ASNOW#ACCUM_HH#h:
     <<: *task_GenEnsProd_NOHRSC
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_NOHRSC
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
-      FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -115,6 +125,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_MRMS
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_MRMS
       <<: *default_vars
@@ -124,8 +137,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       METPLUSTOOLNAME: 'GENENSPROD'
       OBTYPE: 'MRMS'
       FCST_LEVEL: 'L0'
-      FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -136,11 +148,14 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
             metatask: check_post_output_all_mems
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_MRMS
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_MRMS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       FCST_LEVEL: 'L0'
-      FCST_THRESH: 'none'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -162,6 +177,9 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GenEnsProd_vx_#FIELD_GROUP#: &task_GenEnsProd_NDAS
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ genensprod.execution.tries }}"
     command: "&JOBSdir;/GENENSPROD_OR_ENSEMBLESTAT.sh"
     envars: &envars_GenEnsProd_NDAS
       <<: *default_vars
@@ -171,8 +189,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
       OBTYPE: 'NDAS'
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
-      FCST_THRESH: 'all'
-      OMP_NUM_THREADS: 4
+      OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.execution.tasks_per_node }}'
     walltime: "{{ genensprod.execution.walltime }}"
@@ -181,9 +198,13 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
          <<: *check_post_output
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_NDAS
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ ensemblestat.execution.tries }}"
     envars:
       <<: *envars_GenEnsProd_NDAS
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
+      OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.execution.tasks_per_node }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
@@ -202,69 +223,132 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
           attrs:
             task: run_MET_GenEnsProd_vx_#FIELD_GROUP#
 
-metatask_GridStat_APCP_all_accums_ensmeanprob:
+metatask_GridStat_APCP_all_accums_ensmean:
   var:
-    stat: MEAN PROB
-    statlc: mean prob
-  metatask_GridStat_APCP_all_accums_ens#statlc#:
-    var:
-      ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
-    task_run_MET_GridStat_vx_APCP#ACCUM_HH#h_ens#statlc#:
-      <<: *default_task_verify_ens
-      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
-      envars:
-        <<: *default_vars
-        OBS_DIR: '&CCPA_OBS_DIR;'
-        FIELD_GROUP: 'APCP'
-        METPLUSTOOLNAME: 'GRIDSTAT'
-        OBTYPE: 'CCPA'
-        ACCUM_HH: '#ACCUM_HH#'
-        FCST_LEVEL: 'A#ACCUM_HH#'
-        FCST_THRESH: 'all'
-        OMP_NUM_THREADS: 4
-      walltime: "{{ verification_resources.execution.ensemble.gridstat.walltime }}"
-      dependency:
-        and:
-          taskdep_pcpcombine_obs_ccpa:
-            <<: *taskdep_pcpcombine_obs_ccpa
-          taskdep_genensprod:
-            attrs:
-              task: run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h
+    ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
+  task_run_MET_GridStat_vx_APCP#ACCUM_HH#h_ensmean:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ gridstat_ensmean.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&CCPA_OBS_DIR;'
+      FIELD_GROUP: 'APCP'
+      METPLUSTOOLNAME: 'GRIDSTAT'
+      OBTYPE: 'CCPA'
+      ACCUM_HH: '#ACCUM_HH#'
+      FCST_LEVEL: 'A#ACCUM_HH#'
+      OMP_NUM_THREADS: 4
+    memory: '{{ gridstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensmean.execution.walltime }}"
+    dependency:
+      and:
+        taskdep_pcpcombine_obs_ccpa:
+          <<: *taskdep_pcpcombine_obs_ccpa
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h
 
-metatask_GridStat_ASNOW_all_accums_ensmeanprob:
+metatask_GridStat_APCP_all_accums_ensprob:
   var:
-    stat: MEAN PROB
-    statlc: mean prob
-  metatask_GridStat_ASNOW_all_accums_ens#statlc#:
-    var:
-      ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
-    task_run_MET_GridStat_vx_ASNOW#ACCUM_HH#h_ens#statlc#:
-      <<: *default_task_verify_ens
-      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
-      envars:
-        <<: *default_vars
-        OBS_DIR: '&NOHRSC_OBS_DIR;'
-        FIELD_GROUP: 'ASNOW'
-        METPLUSTOOLNAME: 'GRIDSTAT'
-        OBTYPE: 'NOHRSC'
-        ACCUM_HH: '#ACCUM_HH#'
-        FCST_LEVEL: 'A#ACCUM_HH#'
-        FCST_THRESH: 'all'
-        OMP_NUM_THREADS: 4
-      walltime: "{{ verification_resources.execution.ensemble.gridstat.walltime }}"
-      dependency:
-        and:
-          taskdep_pcpcombine_obs_nohrsc:
-            <<: *taskdep_pcpcombine_obs_nohrsc
-          taskdep_genensprod:
-            attrs:
-              task: run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h
+    ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
+  task_run_MET_GridStat_vx_APCP#ACCUM_HH#h_ensprob:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&CCPA_OBS_DIR;'
+      FIELD_GROUP: 'APCP'
+      METPLUSTOOLNAME: 'GRIDSTAT'
+      OBTYPE: 'CCPA'
+      ACCUM_HH: '#ACCUM_HH#'
+      FCST_LEVEL: 'A#ACCUM_HH#'
+      OMP_NUM_THREADS: 4
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
+    dependency:
+      and:
+        taskdep_pcpcombine_obs_ccpa:
+          <<: *taskdep_pcpcombine_obs_ccpa
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_APCP#ACCUM_HH#h
+
+
+metatask_GridStat_ASNOW_all_accums_ensmean:
+  var:
+    ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
+  task_run_MET_GridStat_vx_ASNOW#ACCUM_HH#h_ensmean:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ gridstat_ensmean.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&NOHRSC_OBS_DIR;'
+      FIELD_GROUP: 'ASNOW'
+      METPLUSTOOLNAME: 'GRIDSTAT'
+      OBTYPE: 'NOHRSC'
+      ACCUM_HH: '#ACCUM_HH#'
+      FCST_LEVEL: 'A#ACCUM_HH#'
+      OMP_NUM_THREADS: 4
+    memory: '{{ gridstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensmean.execution.walltime }}"
+    dependency:
+      and:
+        taskdep_pcpcombine_obs_nohrsc:
+          <<: *taskdep_pcpcombine_obs_nohrsc
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h
+
+metatask_GridStat_ASNOW_all_accums_ensprob:
+  var:
+    ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
+  task_run_MET_GridStat_vx_ASNOW#ACCUM_HH#h_ensprob:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&NOHRSC_OBS_DIR;'
+      FIELD_GROUP: 'ASNOW'
+      METPLUSTOOLNAME: 'GRIDSTAT'
+      OBTYPE: 'NOHRSC'
+      ACCUM_HH: '#ACCUM_HH#'
+      FCST_LEVEL: 'A#ACCUM_HH#'
+      OMP_NUM_THREADS: 4
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
+    dependency:
+      and:
+        taskdep_pcpcombine_obs_nohrsc:
+          <<: *taskdep_pcpcombine_obs_nohrsc
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_ASNOW#ACCUM_HH#h
+
 
 metatask_GridStat_REFC_RETOP_ensprob:
   var:
     FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["REFC", "RETOP"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
   task_run_MET_GridStat_vx_#FIELD_GROUP#_ensprob:
     <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ gridstat_ensprob.execution.tries }}"
     command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
     envars:
       <<: *default_vars
@@ -274,9 +358,10 @@ metatask_GridStat_REFC_RETOP_ensprob:
       METPLUSTOOLNAME: 'GRIDSTAT'
       OBTYPE: 'MRMS'
       FCST_LEVEL: 'L0'
-      FCST_THRESH: 'all'
       OMP_NUM_THREADS: 4
-    walltime: "{{ verification_resources.execution.ensemble.gridstat.walltime }}"
+    memory: '{{ gridstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
         sh_all_get_obs_mrms_complete:
@@ -285,30 +370,60 @@ metatask_GridStat_REFC_RETOP_ensprob:
           attrs:
             task: run_MET_GenEnsProd_vx_#FIELD_GROUP#
 
-metatask_PointStat_SFC_UPA_ensmeanprob:
+metatask_PointStat_SFC_UPA_ensmean:
   var:
-    stat: MEAN PROB
-    statlc: mean prob
-  metatask_PointStat_SFC_UPA_ens#statlc#:
-    var:
-      FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
-    task_run_MET_PointStat_vx_#FIELD_GROUP#_ens#statlc#:
-      <<: *default_task_verify_ens
-      command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENS#stat#.sh"
-      envars:
-        <<: *default_vars
-        OBS_DIR: '&NDAS_OBS_DIR;'
-        FIELD_GROUP: '#FIELD_GROUP#'
-        METPLUSTOOLNAME: 'POINTSTAT'
-        OBTYPE: 'NDAS'
-        ACCUM_HH: '01'
-        FCST_LEVEL: 'all'
-        FCST_THRESH: 'all'
-      walltime: "{{ verification_resources.execution.ensemble.pointstat.walltime }}"
-      dependency:
-        and:
-          sh_all_pb2nc_obs_ndas_complete:
-            <<: *all_pb2nc_obs_ndas_complete
-          taskdep_genensprod:
-            attrs:
-              task: run_MET_GenEnsProd_vx_#FIELD_GROUP#
+    FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
+  task_run_MET_PointStat_vx_#FIELD_GROUP#_ensmean:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ pointstat_ensmean.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSMEAN.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&NDAS_OBS_DIR;'
+      FIELD_GROUP: '#FIELD_GROUP#'
+      METPLUSTOOLNAME: 'POINTSTAT'
+      OBTYPE: 'NDAS'
+      ACCUM_HH: '01'
+      FCST_LEVEL: 'all'
+    memory: '{{ pointstat_ensmean.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensmean.execution.tasks_per_node }}'
+    walltime: "{{ pointstat_ensmean.execution.walltime }}"
+    dependency:
+      and:
+        sh_all_pb2nc_obs_ndas_complete:
+          <<: *all_pb2nc_obs_ndas_complete
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_#FIELD_GROUP#
+
+
+metatask_PointStat_SFC_UPA_ensprob:
+  var:
+    FIELD_GROUP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var in ["SFC", "UPA"] %}{{ "%s " % var }}{% endif %}{% endfor %}'
+  task_run_MET_PointStat_vx_#FIELD_GROUP#_ensprob:
+    <<: *default_task_verify_ens
+    attrs:
+      <<: *default_ens_attrs
+      maxtries: !int "{{ pointstat_ensprob.execution.tries }}"
+    command: "&JOBSdir;/GRIDSTAT_OR_POINTSTAT_ENSPROB.sh"
+    envars:
+      <<: *default_vars
+      OBS_DIR: '&NDAS_OBS_DIR;'
+      FIELD_GROUP: '#FIELD_GROUP#'
+      METPLUSTOOLNAME: 'POINTSTAT'
+      OBTYPE: 'NDAS'
+      ACCUM_HH: '01'
+      FCST_LEVEL: 'all'
+    memory: '{{ pointstat_ensprob.execution.memory }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensprob.execution.tasks_per_node }}'
+    walltime: "{{ pointstat_ensprob.execution.walltime }}"
+    dependency:
+      and:
+        sh_all_pb2nc_obs_ndas_complete:
+          <<: *all_pb2nc_obs_ndas_complete
+        taskdep_genensprod:
+          attrs:
+            task: run_MET_GenEnsProd_vx_#FIELD_GROUP#
+

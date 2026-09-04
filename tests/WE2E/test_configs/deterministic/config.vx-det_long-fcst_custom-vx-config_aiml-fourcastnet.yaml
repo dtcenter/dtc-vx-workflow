@@ -1,7 +1,7 @@
 metadata:
   description: |-
     This is a test for deterministic verification of the
-    FourCastNet (fcnv2) global AI model.  Note that this test uses a custom 
+    FourCastNet (fcnv2) global AI model.  Note that this test uses a custom
     verification configuration file (as opposed to the default one in the
     SRW) because the AI model output often does not include many of the
     fields that exist in physics-based models.
@@ -12,9 +12,6 @@ workflow:
   DATE_FIRST_CYCL: '2024073000'
   DATE_LAST_CYCL: '2024073000'
   FCST_LEN_HRS: 240
-  taskgroups:
-    - parm/wflow/verify_pre.yaml
-    - parm/wflow/verify_det.yaml
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5
@@ -34,11 +31,28 @@ verification:
   OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', '{valid?fmt=%Y%m%d}/gdas.t{valid?fmt=%H}z.prepbufr.nr' ]
   #
   VX_FCST_MODEL_NAME: 'fcnv2'
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.obs_gdas.model_aiml.yaml'
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}'
-  FCST_SUBDIR_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}'
-  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}.grb2'
+  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.{init?fmt=%Y%m%d}/{init?fmt=%H}/{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}.grb2'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '{{ verification.VX_FCST_MODEL_NAME }}.t00z.prslev.f{lead?fmt=%HHH}_a${ACCUM_HH}h.nc'
   #
   VX_FCST_OUTPUT_INTVL_HRS: 6
   VX_FIELD_GROUPS: [ "SFC" ]
+fields:
+  SFC:
+    - fcst_name: TMP
+      fcst_levels: [Z2]
+      fcst_thresholds: []
+    - fcst_name: UGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+    - fcst_name: VGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+    - fcst_name: WIND
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+    - fcst_name: PRES
+      obs_name: PRMSL
+      fcst_levels: [Z0]
+      fcst_thresholds: []
+

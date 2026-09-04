@@ -16,7 +16,10 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging
+from python_utils import (
+     make_ensmean_var_list, merge_field_configs, render_metplus_confs,
+                         run_metplus, setup_logging
+     )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -29,7 +32,6 @@ def gridstat_or_pointstat_ensmean(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
 ) -> None:
     """Execute a METplus GridStat or PointStat verification task on ensemble mean output.
 
@@ -49,14 +51,13 @@ def gridstat_or_pointstat_ensmean(
         Accumulation hours for the observation type.
     fcst_level : str
         METplus forecast level (e.g. L0, A03).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     """
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
 
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
+    enscfg = cfg["ensemble"]
 
     if not Path(obs_dir).is_dir():
         raise FileNotFoundError(f"{obs_dir=} does not exist or is not a directory")
@@ -117,6 +118,9 @@ def gridstat_or_pointstat_ensmean(
         "_{lead?fmt=%H%M%S}L_{valid?fmt=%Y%m%d}_{valid?fmt=%H%M%S}V.nc"
     )
 
+    # Load "gridstat_ensmean" or "pointstat_ensmean" config section depending on what we're running
+    taskcfg = cfg[f"{metplus_tool_camel_case.lower()}_ensmean"]
+
     output_dir = Path(exptdir, cdate, "metprd", f"{metplus_tool_camel_case}_ensmean")
     staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}_ensmean")
     os.makedirs(output_dir, exist_ok=True)
@@ -162,9 +166,21 @@ def gridstat_or_pointstat_ensmean(
         f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}_ensmean.0"
     )
 
-    vx_config_dict = uwconfig.get_yaml_config(
-        config=f"{cfg['user']['METPLUS_CONF']}/{vxcfg['VX_CONFIG_ENS_FN']}"
-    )
+    # Field config for this task: start from the shared ensemble: fields: section (falling back to
+    # the top-level fields:), then apply this task's fields: section as per-variable overrides
+    # (entries merged by fcst_name; see merge_field_configs).
+    vx_config_dict = merge_field_configs(enscfg.get("fields") or cfg.get("fields") or {},
+                                         taskcfg.get("fields"),
+                                         exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
+
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+    if field_group in ['APCP', 'ASNOW']:
+        fcst_level=f"A{accum_hh}"
+    else:
+        fcst_level="all"
+    # Ensemble-mean verification: one FCST/OBS pair PER LEVEL, with the forecast field named
+    # {fcst_name}_{level}_ENS_MEAN to match GenEnsProd's ensemble-mean output.
+    var_list=make_ensmean_var_list(vx_config_dict, field_group, level=fcst_level)
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -183,7 +199,7 @@ def gridstat_or_pointstat_ensmean(
         "output_fn_template": "",
         "staging_dir": staging_dir,
         "vx_fcst_model_name": vxcfg["VX_FCST_MODEL_NAME"],
-        "num_ens_members": cfg["ensemble"]["NUM_ENS_MEMBERS"],
+        "num_ens_members": enscfg["NUM_ENS_MEMBERS"],
         "ensmem_name": "",
         "time_lag": 0,
         "fieldname_in_obs_input": str(obs_in_dir),
@@ -196,18 +212,19 @@ def gridstat_or_pointstat_ensmean(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "vx_mask": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
+        # Variable list
+        'var_list': var_list,
     }
 
-    numprocs = 1
+    numprocs = int(vxcfg["VX_TASKS"])
     conf_files = render_metplus_confs(
         cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
     )
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case}_ensmean with METplus")
+    lgr.info(f"Running {metplus_tool_camel_case}_ensmean with METplus for {numprocs} tasks")
     common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])
@@ -233,8 +250,6 @@ if __name__ == "__main__":
         help="Accumulation hours for this observation type")
     parser.add_argument("--fcst_level", required=True, type=str,
         help="METplus forecast level (e.g. L0, A03)")
-    parser.add_argument("--fcst_thresh", required=True, type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
     args = parser.parse_args()
@@ -244,5 +259,5 @@ if __name__ == "__main__":
 
     gridstat_or_pointstat_ensmean(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
     )

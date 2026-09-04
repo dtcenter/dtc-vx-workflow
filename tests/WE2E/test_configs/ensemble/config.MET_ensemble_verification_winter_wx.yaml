@@ -9,7 +9,8 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
 ensemble:
@@ -23,7 +24,17 @@ verification:
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_ensemble_verification_winter_wx'
   VX_TASKS: 4
   VX_MASK: ["CONUS"]
-  FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+  FCST_FN_TEMPLATE:
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem001/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem002/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem003/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem004/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem005/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem006/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem007/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem008/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem009/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem010/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
 gridstat:
   TASKS: 4
 pointstat:

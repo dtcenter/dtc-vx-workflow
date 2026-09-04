@@ -17,7 +17,10 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging
+from python_utils import (
+     make_var_list, merge_field_configs, render_metplus_confs,
+                         run_metplus, setup_logging
+     )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -36,7 +39,6 @@ def genensprod_or_ensemblestat(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
     metplus_tool: str,
 ) -> None:
     """Execute a METplus GenEnsProd or EnsembleStat ensemble verification task.
@@ -57,8 +59,6 @@ def genensprod_or_ensemblestat(
         Accumulation hours for the observation type.
     fcst_level : str
         METplus forecast level (e.g. L0, A03).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     metplus_tool : str
         METplus tool to run: ``"GENENSPROD"`` or ``"ENSEMBLESTAT"`` (case-insensitive).
     """
@@ -76,6 +76,8 @@ def genensprod_or_ensemblestat(
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
     enscfg = cfg["ensemble"]
+    # Need to load genensprod or ensemblestat config section depending on what we're running
+    taskcfg = cfg[metplus_tool_camel_case.lower()]
 
     if metplus_tool_name == "ensemble_stat":
         if not Path(obs_dir).is_dir():
@@ -132,7 +134,7 @@ def genensprod_or_ensemblestat(
     fcst_in_fn_templates = []
     for i in range(enscfg["NUM_ENS_MEMBERS"]):
         # Build per-member forecast filename templates (comma-separated list for METplus)
-        ensmem = f"mem{str(i + 1).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+        ensmem = f"mem{str(i).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
         subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
@@ -145,14 +147,14 @@ def genensprod_or_ensemblestat(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).safe_substitute(subvars),
             ))
         else:
-            subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
-            fn = Template(vxcfg["FCST_FN_TEMPLATE"]).safe_substitute(subvars)
-            tmpl = str(Path(subdir, fn)) if subdir else fn
+            tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][i]).safe_substitute(subvars)
         fcst_in_fn_templates.append(tmpl)
     fcst_in_fn_template = ", ".join(fcst_in_fn_templates)
 
     output_dir = Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
-    staging_dir = Path(exptdir, cdate, "stage", met_filedir_name)
+    # The ".0" will be stripped from this dirname if using only one task, otherwise
+    # it will be replaced with the task number
+    staging_dir = Path(exptdir, cdate, "stage", f"{met_filedir_name}.0")
     os.makedirs(output_dir, exist_ok=True)
 
     if obtype in ("CCPA", "NOHRSC"):
@@ -193,10 +195,23 @@ def genensprod_or_ensemblestat(
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}.conf"
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"
     metplus_log_fn = f"metplus.log.{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.0"
+    # Field config for this task: start from the shared ensemble: fields: section (falling back to
+    # the top-level fields:), then apply this task's fields: section as per-variable overrides
+    # (entries merged by fcst_name; see merge_field_configs).
+    vx_config_dict = merge_field_configs(enscfg.get("fields") or cfg.get("fields") or {},
+                                         taskcfg.get("fields"),
+                                         exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
 
-    vx_config_dict = uwconfig.get_yaml_config(
-        config=f"{cfg['user']['METPLUS_CONF']}/{vxcfg['VX_CONFIG_ENS_FN']}"
-    )
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+    if field_group in ['APCP', 'ASNOW']:
+        fcst_level=f"A{accum_hh}"
+    else:
+        fcst_level="all"
+    if metplus_tool.upper() == "GENENSPROD":
+        lgr.debug("THIS IS GENENSPROD")
+        var_list=make_var_list(vx_config_dict,field_group,fcst_level,ens=True)
+    else:
+        var_list=make_var_list(vx_config_dict,field_group,fcst_level)
 
     settings = {
         "metplus_tool_name": metplus_tool_name,
@@ -228,14 +243,17 @@ def genensprod_or_ensemblestat(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "vx_mask": ", ".join(vx_mask_files),
-        "vx_config_dict": vx_config_dict,
+        # Variable list
+        'var_list': var_list,
+        # Rest of settings from yaml file
+        'vx_config_dict': vx_config_dict
     }
 
-    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
+    numprocs = int(taskcfg["TASKS"])
 
-    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
+    conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,
+                                      cfg["genensprod"].get("conf"))
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
@@ -268,8 +286,6 @@ if __name__ == "__main__":
         help="Accumulation hours for this observation type")
     parser.add_argument("--fcst_level", default="", type=str,
         help="METplus forecast level (e.g. L0, A03)")
-    parser.add_argument("--fcst_thresh", default="", type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("--metplus_tool", required=True, type=str,
         help="METplus tool to run: GENENSPROD or ENSEMBLESTAT")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -281,6 +297,6 @@ if __name__ == "__main__":
 
     genensprod_or_ensemblestat(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
         args.metplus_tool,
     )

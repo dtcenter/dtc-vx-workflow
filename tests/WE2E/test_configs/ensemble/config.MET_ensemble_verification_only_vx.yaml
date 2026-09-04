@@ -9,20 +9,24 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
 
 ensemble:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 2
+  ENS_BIN_WIDTH: 0.1
 
 verification:
   VX_FCST_MODEL_NAME: RRFS
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/output_data/fcst_ens/RRFS_CONUS_25km'
   VX_MASK: ["CONUS"]
   VX_TASKS: 4
-  FCST_FN_TEMPLATE: 'rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
+  FCST_FN_TEMPLATE:
+    - '{init?fmt=%Y%m%d%H}/mem001/postprd/rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
+    - '{init?fmt=%Y%m%d%H}/mem002/postprd/rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
 gridstat:
   TASKS: 4
 pointstat:

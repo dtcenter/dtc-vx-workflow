@@ -16,9 +16,6 @@ workflow:
   DATE_FIRST_CYCL: '2024042912'
   DATE_LAST_CYCL: '2024050212'
   FCST_LEN_HRS: 48
-  taskgroups:
-    - parm/wflow/verify_pre.yaml
-    - parm/wflow/verify_det.yaml
 
 verification:
   METPLUS_VERBOSITY_LEVEL: 5
@@ -40,7 +37,7 @@ verification:
   #
   VX_FCST_MODEL_NAME: 'NSSL-MPAS-HN'
   VX_FCST_INPUT_BASEDIR: '{{ "%s/%s" % (platform.STAGED_DATA, verification.VX_FCST_MODEL_NAME) }}'
-  FCST_FN_TEMPLATE: 'mpashn4nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%H?shift=${time_lag}}.grib2'
+  FCST_FN_TEMPLATE: '{init?fmt=%Y%m%d%H}/postprd/mpashn4nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%H?shift=${time_lag}}.grib2'
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'mpashn4nssl_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'
 gridstat:
   TASKS: 12

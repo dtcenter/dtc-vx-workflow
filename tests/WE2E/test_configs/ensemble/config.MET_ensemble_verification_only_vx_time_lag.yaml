@@ -9,15 +9,16 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/verify_ens.yaml
 
 ensemble:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 2
+  ENS_BIN_WIDTH: 0.1
   ENS_TIME_LAG_HRS: !list '[ 0, 12 ]'
-
 
 verification:
   # If the following is commented out, then the obs files staged on each
@@ -29,7 +30,9 @@ verification:
   VX_FCST_MODEL_NAME: RRFSE_CONUS
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/output_data/fcst_ens/RRFS_CONUS_3km'
   VX_NDIGITS_ENSMEM_NAMES: 1
-  FCST_FN_TEMPLATE: '{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
+  FCST_FN_TEMPLATE:
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem1/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
+    - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem2/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
   VX_MASK: ["CONUS"]
   VX_TASKS: 6
 gridstat:

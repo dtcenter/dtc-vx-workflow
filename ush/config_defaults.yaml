@@ -143,33 +143,15 @@ platform:
   REMOVE_MEMORY: False
   #
   #-----------------------------------------------------------------------
-  #
-  # Set run commands for platforms without a workflow manager. These values
-  # will be ignored unless WORKFLOW_MANAGER: "none".  Definitions:
-  #
-  # RUN_CMD_PRDGEN: 
-  # The run command for the product generation job.
-  #
-  # RUN_CMD_SERIAL:
-  # The run command for some serial jobs 
-  #
-  #-----------------------------------------------------------------------
-  #
-  RUN_CMD_SERIAL: ""
-  RUN_CMD_PRDGEN: ""
-  #
-  #-----------------------------------------------------------------------
-  #
+  # SCHED_NATIVE_CMD:
   # Allows an extra parameter to be passed to SCHEDULER (SLURM/PBSPRO) via 
   # XML Native command
+  # 
+  # SCHED_NATIVE_CMD_HPSS:
+  # Same command, but for jobs submitted to "PARTITION_HPSS"
   #
   SCHED_NATIVE_CMD: ""
-  #
-  #-----------------------------------------------------------------------
-  # Pre task commands such as "ulimit" needed by tasks
-  #-----------------------------------------------------------------------
-  #
-  PRE_TASK_CMDS: ""
+  SCHED_NATIVE_CMD_HPSS: ""
   #
   #-----------------------------------------------------------------------
   # MET and METplus directories. MET_INSTALL_DIR is the directory containing
@@ -251,7 +233,8 @@ workflow:
   #-----------------------------------------------------------------------
   #
   taskgroups:
-    - parm/wflow/verify_pre.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
     - parm/wflow/verify_det.yaml
   #
   #-----------------------------------------------------------------------
@@ -486,7 +469,7 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  VERBOSE: true
+  VERBOSE: false
   DEBUG: false
 
 
@@ -510,10 +493,12 @@ ensemble:
   # This variable also controls the naming of the ensemble member directories.
   # For example, if this is set to 8, the member directories will be named 
   # mem1, mem2, ..., mem8. Not used if DO_ENSEMBLE is set to false.
-  #
-  # ENSMEM_NAMES:
-  # A list of names for the ensemble member names following the format
-  # mem001, mem002, etc.
+  # 
+  # NUM_ENS_BINS:
+  # The number of ensemble members used to define probability bins for ensemble
+  # probability (ensprob) verification. Passed to MET as the "==N" threshold, which
+  # (MET 12.0.0+, issue #2280) defines N+1 probability bins centered on n/N for
+  # n = 0..N. Should normally equal NUM_ENS_MEMBERS.
   #
   # ENS_TIME_LAG_HRS:
   # Time lag (in hours) to use for each ensemble member. For a deterministic
@@ -523,9 +508,131 @@ ensemble:
   #-----------------------------------------------------------------------
   #
   DO_ENSEMBLE: false
-  NUM_ENS_MEMBERS: 0
-  ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
+  NUM_ENS_MEMBERS: 1
+  NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS }}'
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+
+  # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
+  # gridstat_ensmean and gridstat_ensprob, and pointstat_ensmean and pointstat_ensprob
+  # You can overwrite this in each individual task's section if you wish
+  fields:
+    APCP:
+      - fcst_name: APCP_01
+        fcst_levels: [A1]
+        fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge2.54']
+        # Neighborhood clause appended to OBS options on the ensprob scalar pass only (make_ensprob_var_list)
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+      - fcst_name: APCP_03
+        fcst_levels: [A3]
+        fcst_thresholds: ['gt0.0', 'ge0.508', 'ge2.54', 'ge6.350']
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+      - fcst_name: APCP_06
+        fcst_levels: [A6]
+        fcst_thresholds: ['gt0.0', 'ge2.54', 'ge6.350', 'ge12.700']
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+      - fcst_name: APCP_24
+        fcst_levels: [A24]
+        fcst_thresholds: ['gt0.0', 'ge6.350', 'ge12.700', 'ge25.400']
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+    ASNOW:
+      - fcst_name: ASNOW_06
+        fcst_levels: [A6]
+        fcst_thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
+        obs_options: 'convert(x) = 100.0*x;'
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+      - fcst_name: ASNOW_24
+        fcst_levels: [A24]
+        fcst_thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+        obs_options: 'convert(x) = 100.0*x;'
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+    REFC:
+      - fcst_name: REFC
+        obs_name: MergedReflectivityQCComposite
+        fcst_levels: [L0]
+        obs_levels: [Z500]
+        fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+        fcst_options: 'cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+        obs_options: 'censor_thresh = [eq-999, <-20]; censor_val = [-9999, -20]; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+    RETOP:
+      - fcst_name: RETOP
+        obs_name: EchoTop18
+        fcst_levels: [L0]
+        obs_levels: [Z500]
+        fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+        fcst_options: 'convert(x) = x * 3.28084 * 0.001; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+        obs_options: 'convert(x) = x * 3280.84 * 0.001; censor_thresh = [<=-9.84252,eq-3.28084]; censor_val = [-9999,-16.4042]; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+        nbrhd_options: 'nbrhd = { field = OBS; shape = SQUARE; width = [ 1 ]; vld_thresh = 1.0; }'
+    SFC:
+      - fcst_name: TMP
+        fcst_levels: [Z2]
+        fcst_thresholds: ['ge268', 'ge273', 'ge278', 'ge293', 'ge298', 'ge303']
+      - fcst_name: DPT
+        fcst_levels: [Z2]
+        fcst_thresholds: ['ge263', 'ge268', 'ge273', 'ge288', 'ge293', 'ge298']
+      - fcst_name: WIND
+        fcst_levels: [Z10]
+        fcst_thresholds:  ['ge5', 'ge10', 'ge15']
+        fcst_options: 'GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+        obs_options: 'GRIB2_pdt = 0;'
+      - fcst_name: TCDC
+        fcst_levels: [L0]
+        fcst_thresholds:  ['lt25', 'gt75']
+        fcst_options: 'GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+      - fcst_name: VIS
+        fcst_levels: [L0]
+        fcst_thresholds: ['lt1609', 'lt8045', 'ge8045']
+        fcst_options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        obs_options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+      - fcst_name: HGT
+        obs_name: CEILING
+        fcst_levels: [L0]
+        fcst_thresholds: ['lt152', 'lt305', 'lt914']
+        fcst_options: 'GRIB_lvl_typ = 215; desc = "CEILING";'
+        obs_options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+    UPA:
+      - fcst_name: TMP
+        fcst_levels: [P850]
+        fcst_thresholds: ['ge288', 'ge293', 'ge298']
+      - fcst_name: TMP
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge273', 'ge278', 'ge283']
+      - fcst_name: TMP
+        fcst_levels: [P500]
+        fcst_thresholds:  ['ge258', 'ge263', 'ge268']
+      - fcst_name: DPT
+        fcst_levels: [P850]
+        fcst_thresholds:  ['ge273', 'ge278', 'ge283']
+      - fcst_name: DPT
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge263', 'ge268', 'ge273']
+      - fcst_name: WIND
+        fcst_levels: [P850]
+        fcst_thresholds: ['ge5', 'ge10', 'ge15']
+      - fcst_name: WIND
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge10', 'ge15', 'ge20']
+      - fcst_name: WIND
+        fcst_levels: [P500]
+        fcst_thresholds:  ['ge15', 'ge21', 'ge26']
+      - fcst_name: WIND
+        fcst_levels: [P250]
+        fcst_thresholds: ['ge26', 'ge31', 'ge36', 'ge46', 'ge62']
+      - fcst_name: HGT
+        fcst_levels: [P500]
+        fcst_thresholds: ['ge5400', 'ge5600', 'ge5880']
+      - fcst_name: CAPE
+        fcst_levels: [L0]
+        obs_levels: [L0-100000]
+        fcst_thresholds:  ['le1000', 'gt1000&&lt2500', 'ge2500&&lt4000', 'ge2500']
+        fcst_options: 'cnt_thresh = [ >0 ];'
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+      - fcst_name: HPBL
+        obs_name: PBL
+        fcst_levels: [Z0]
+        obs_levels: [L0]
+        fcst_thresholds: ['lt500', 'lt1500', 'gt1500'] 
+        obs_options: 'desc = "TKE";'
 
 tropical:
 #-----------------------------
@@ -574,11 +681,6 @@ verification_resources:
   execution:
     nodes: 1
     tasks_per_node: 1
-    ensemble:
-      gridstat:
-        walltime: 01:00:00
-      pointstat:
-        walltime: 01:00:00
     get_obs:
       aeronet:
         walltime: 02:00:00
@@ -592,8 +694,6 @@ verification_resources:
         walltime: 02:00:00
       ndas:
         walltime: 02:00:00
-    pb2nc:
-      walltime: 00:30:00
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -623,6 +723,16 @@ verification:
   # include the verification tasks for ASNOW in the workflow. 
   #
   VX_FIELD_GROUPS: [ "APCP", "REFC", "RETOP", "SFC", "UPA" ]
+  #
+  # VX_FIELDS_EXCLUDE:
+  # A list of forecast field names (fcst_name) to exclude from ALL verification
+  # tasks. This is an experiment-wide "omit this variable everywhere" switch: any
+  # field entry whose fcst_name appears here is dropped from every field group and
+  # every task (deterministic and ensemble). It is applied on top of the shared and
+  # per-task fields: settings. Leave empty to exclude nothing. For example, to skip
+  # total cloud cover everywhere, set: VX_FIELDS_EXCLUDE: [ "TCDC" ]
+  #
+  VX_FIELDS_EXCLUDE: []
   #
   # VX_APCP_ACCUMS_HRS:
   # The accumulation intervals (in hours) to include in the verification of
@@ -945,15 +1055,15 @@ verification:
   #
   VX_FCST_INPUT_BASEDIR: '{{ workflow.EXPTDIR }}'
   #
-  # FCST_SUBDIR_TEMPLATE:
-  # METplus template for the name of the subdirectory containing forecast
-  # files to use as inputs to the verification tasks.
-  #
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if ensemble.DO_ENSEMBLE }}/postprd'
-  #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
-  # to the verification tasks.
+  # to the verification tasks. This can be a string for deterministic runs
+  # or ensembles with a uniform naming template; otherwise, this should be
+  # a list of strings with length equal to the number of ensemble members
+  #
+  # If your directory structure includes METplus wildcards that must be
+  # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those
+  # subdirectories should be included here rather than under VX_FCST_INPUT_BASEDIR
   # 
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
   #
@@ -991,22 +1101,108 @@ verification:
   # sequential forecast hours, and so can be run simultaneously.
   VX_TASKS: 1
 
+pb2nc:
+  # Runtime settings for PB2NC jobs
+  execution:
+    # Number of PB2NC tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
+    tasks_per_node: '{{ gridstat.TASKS }}'
+    # Wallclock time to allocate to submitted PB2NC jobs
+    walltime: 00:30:00
+    # Memory to allocate to PB2NC jobs
+    memory: '{{ 2 * gridstat.TASKS }}G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
+  # Number of PB2NC instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
 gridstat:
   # Runtime settings for deterministic GRIDSTAT jobs
   execution:
     tasks_per_node: '{{ gridstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat.TASKS }}G'
+    tries: 1
   # Number of GRIDSTAT instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 pointstat:
-  # Runtime settings for POINTSTAT jobs
+  # Runtime settings for deterministic POINTSTAT jobs
   execution:
     tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat.TASKS }}G'
+    tries: 1
   # Number of POINTSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+gridstat_ensmean:
+  # Runtime settings for ensemble mean GRIDSTAT jobs
+  execution:
+    tasks_per_node: '{{ gridstat_ensmean.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat_ensmean.TASKS }}G'
+    tries: 1
+  # Number of instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
+gridstat_ensprob:
+  # Runtime settings for ensemble prob GRIDSTAT jobs
+  execution:
+    tasks_per_node: '{{ gridstat_ensprob.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * gridstat_ensprob.TASKS }}G'
+    tries: 1
+  # Number of ensemble GRIDSTAT instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+  # Per-task field override: entries are merged onto the shared ensemble: fields: section by
+  # fcst_name, so only the keys listed here are overridden. RETOP and REFC need different obs censoring
+  # for ensprob; everything else is inherited from the shared ensemble: entry.
+  fields:
+    RETOP:
+      - fcst_name: RETOP
+        obs_options: 'censor_thresh = lt-20.0; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION; convert(x) = x * 3280.84 * 0.001;'
+    REFC:
+      - fcst_name: REFC
+        obs_options: 'censor_thresh = lt-20; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+
+pointstat_ensmean:
+  # Runtime settings for ensemble mean POINTSTAT jobs
+  execution:
+    tasks_per_node: '{{ pointstat_ensmean.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat_ensmean.TASKS }}G'
+    tries: 1
+  # Number of instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+  fields:
+    UPA:
+      - fcst_name: CAPE
+        fcst_levels: [L0]
+        obs_levels: [L0-100000]
+        fcst_thresholds: ['le1000', 'gt1000&&lt2500', 'ge2500&&lt4000', 'ge2500']
+        fcst_options: 'cnt_thresh = [ >0 ];'
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+    SFC:
+      - fcst_name: WIND
+        fcst_levels: [Z10]
+        fcst_thresholds:  ['ge5', 'ge10', 'ge15']
+        fcst_options: 'GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+      - fcst_name: TCDC
+        omit: True
+      - fcst_name: VIS
+        omit: True
+      - fcst_name: HGT
+        omit: True
+        obs_name: CEILING
+
+pointstat_ensprob:
+  # Runtime settings for ensemble prob POINTSTAT jobs
+  execution:
+    tasks_per_node: '{{ pointstat_ensprob.TASKS }}'
+    walltime: 01:00:00
+    memory: '{{ 2 * pointstat_ensprob.TASKS }}G'
+    tries: 1
+  # Number of instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
 point2grid:
@@ -1014,6 +1210,7 @@ point2grid:
     tasks_per_node: '{{ point2grid.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * point2grid.TASKS }}G'
+    tries: 1
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
   # 0: high quality
@@ -1030,8 +1227,20 @@ genensprod:
     tasks_per_node: '{{ genensprod.TASKS }}'
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
+    threads: 4
+    tries: 1
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+
+  # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
+  conf:
+    #Verbosity of MET logging output.
+    LOG_GEN_ENS_PROD_VERBOSITY: '{{ verification.METPLUS_VERBOSITY_LEVEL}}'
+  # Genensprod needs different options for VIS fields
+  fields:
+    SFC:
+      - fcst_name: VIS
+        fcst_options: 'interp = { type = [ { method = NEAREST; width = 1; } ]; }'
 
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
@@ -1039,8 +1248,133 @@ ensemblestat:
     tasks_per_node: '{{ ensemblestat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * ensemblestat.TASKS }}G'
+    threads: 4
+    tries: 1
   # Number of EnsembleStat instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+  fields:
+    APCP:
+      - fcst_name: APCP_01
+        fcst_levels: [A1]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+      - fcst_name: APCP_03
+        fcst_levels: [A3]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+      - fcst_name: APCP_06
+        fcst_levels: [A6]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+      - fcst_name: APCP_24
+        fcst_levels: [A24]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+    ASNOW:
+      - fcst_name: ASNOW_06
+        fcst_levels: [A6]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+      - fcst_name: ASNOW_24
+        fcst_levels: [A24]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+    REFC:
+      - fcst_name: REFC
+        obs_name: MergedReflectivityQCComposite
+        fcst_levels: [L0]
+        obs_levels: [Z500]
+        fcst_options: 'ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+        obs_options: 'censor_thresh = lt-20; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION; ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;'
+    RETOP:
+      - fcst_name: RETOP
+        obs_name: EchoTop18
+        fcst_levels: [L0]
+        obs_levels: [Z500]
+        fcst_options: 'convert(x) = x * 3.28084 * 0.001; ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;' # First item converts from meters to kft
+        obs_options: 'convert(x) = x * 3280.84 * 0.001; censor_thresh = lt-20; censor_val = -20.0; cnt_thresh = [ >15 ]; cnt_logic = UNION; ens_ssvar_bin_size = 50.0; ens_phist_bin_size = 0.05;' # First item converts from km to kft
+    SFC:
+      - fcst_name: TMP
+        fcst_levels: [Z2]
+        fcst_thresholds: ['ge268', 'ge273', 'ge278', 'ge293', 'ge298', 'ge303']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: DPT
+        fcst_levels: [Z2]
+        fcst_thresholds: ['ge263', 'ge268', 'ge273', 'ge288', 'ge293', 'ge298']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: WIND
+        fcst_levels: [Z10]
+        fcst_thresholds: ['ge5', 'ge10', 'ge15']
+        fcst_options: 'GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: TCDC
+        fcst_levels: [L0]
+        fcst_thresholds: ['lt25', 'gt75']
+        fcst_options: 'GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+      - fcst_name: VIS
+        fcst_levels: [L0]
+        fcst_thresholds: ['lt1609', 'lt8045', 'ge8045']
+        fcst_options: 'interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+        obs_options: ''
+      - fcst_name: HGT
+        obs_name: CEILING
+        fcst_levels: [L0]
+        fcst_thresholds: ['lt152', 'lt305', 'lt914']
+        fcst_options: 'GRIB_lvl_typ = 215; desc = "CEILING";'
+        obs_options: 'GRIB_lvl_typ = 215;'
+    UPA:
+      - fcst_name: TMP
+        fcst_levels: [P850]
+        fcst_thresholds: ['ge288', 'ge293', 'ge298']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: TMP
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge273', 'ge278', 'ge283']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: TMP
+        fcst_levels: [P500]
+        fcst_thresholds: ['ge258', 'ge263', 'ge268']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: DPT
+        fcst_levels: [P850]
+        fcst_thresholds: ['ge273', 'ge278', 'ge283']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: DPT
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge263', 'ge268', 'ge273']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: WIND
+        fcst_levels: [P850]
+        fcst_thresholds: ['ge5', 'ge10', 'ge15']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: WIND
+        fcst_levels: [P700]
+        fcst_thresholds: ['ge10', 'ge15', 'ge20']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: WIND
+        fcst_levels: [P500]
+        fcst_thresholds: ['ge15', 'ge21', 'ge26']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: WIND
+        fcst_levels: [P250]
+        fcst_thresholds: ['ge26', 'ge31', 'ge36', 'ge46', 'ge62']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: HGT
+        fcst_levels: [P500]
+        fcst_thresholds: ['ge5400', 'ge5600', 'ge5880']
+        obs_options: 'obs_error = { flag = TRUE; dist_type = NONE; dist_parm = []; inst_bias_scale = 1.0; inst_bias_offset = 0.0; min = NA; max = NA; }'
+      - fcst_name: CAPE
+        fcst_levels: [L0]
+        obs_levels: [L0-100000]
+        fcst_thresholds: ['le1000', 'gt1000&&lt2500', 'ge2500&&lt4000', 'ge2500']
+        fcst_options: 'cnt_thresh = [ >0 ];'
+        obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+      - fcst_name: HPBL
+        obs_name: PBL
+        fcst_levels: [Z0]
+        obs_levels: [L0]
+        fcst_thresholds: ['lt500', 'lt1500', 'gt1500']
+        obs_options: 'desc = "TKE";'
 
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
@@ -1048,6 +1382,7 @@ regriddataplane:
     tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
     memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
+    tries: 1
   # Number of REGRIDDATAPLANE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
   
@@ -1061,12 +1396,16 @@ regriddataplane:
 mode:
   # Runtime settings for MODE jobs
   execution:
-    # Number of MODE instances to run in parallel. Currently no support for multi-node jobs
+    # Number of MODE tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
     tasks_per_node: '{{ mode.TASKS }}'
     # Wallclock time to allocate to submitted MODE job
     walltime: 01:00:00
     # Memory to allocate to MODE job
     memory: '{{ 10 * mode.TASKS }}G'
+    # Number of threads to assign to each task
+    threads: 4
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   # Number of MODE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1116,6 +1455,8 @@ tcpairs:
     walltime: 00:10:00
     # Memory to allocate to TCPAIRS job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
   #
   # TECH_ID_VX:
   # The identifier for the best track data to use for TCPAIRS comparison, as read in from the
@@ -1138,6 +1479,8 @@ tcstat:
     walltime: 00:10:00
     # Memory to allocate to TCSTAT job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # SUMMARY_FILE:
   # Filename for TCstat summary output
@@ -1156,9 +1499,250 @@ tcrmw:
     walltime: 00:30:00
     # Memory to allocate to TCRMW job
     memory: '2G'
+    # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
+    tries: 1
 
   # OUTPUT_TEMPLATE:
   # Template for output file(s) from TCRMW. {cyclone} and {date} are substituted in the
   # METplus process, not in the workflow.
   OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
 
+#
+# The fields: section the field groups (e.g. APCP, fields, levels,
+# and thresholds to use for DETERMINISTIC verification.  The format is
+# as follows:
+#
+# FIELD_GROUP1:
+#     FIELD1:
+#         LEVEL1: list_of_thresholds
+#         LEVEL2: list_of_thresholds
+#         ...
+#     FIELD2:
+#         LEVEL1: list_of_thresholds
+#         LEVEL2: list_of_thresholds
+#         ...
+#     ...
+#             
+# FIELD_GROUP2:
+#     FIELD1:
+#         LEVEL1: list_of_thresholds
+#         LEVEL2: list_of_thresholds
+#         ...
+#     FIELD2:
+#         LEVEL1: list_of_thresholds
+#         LEVEL2: list_of_thresholds
+#         ...
+#     ...
+#
+#  ...
+#
+# If the threshold list for a given combination of field group, field,
+# and level is set to the empty string ([]), then all values of that
+# field will be included in the verification.
+# 
+# For each level of the dictionary, if the value for both forecast and obs
+# are the same, then a single key is used as above. But if there is a
+# difference between the two, either in field name, level, or threshold,
+# then the forecast value will be specified by the additional key
+# `obs_field_name:`, `obs_level_name:`, or `obs_thresholds` at the
+# appropriate level.
+#
+# For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary
+# found in the ensemble: section will be used (see above). You can also 
+# overwrite the thresholds used for any individual task by including a
+# fields: section in the dictionary for that task
+#
+fields:
+  APCP:
+    - fcst_name: APCP_01
+      fcst_levels: [A1]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_03
+      fcst_levels: [A3]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_06
+      fcst_levels: [A6]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: APCP_24
+      fcst_levels: [A24]
+      fcst_thresholds: ['gt0.0', 'ge0.254', 'ge0.508', 'ge1.27', 'ge2.54', 'ge3.810', 'ge6.350', 'ge8.890', 'ge12.700', 'ge25.400']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+  ASNOW:
+    - fcst_name: ASNOW_06
+      fcst_levels: [A6]
+      fcst_thresholds: ['gt0.0', 'ge2.54', 'ge5.08', 'ge10.16', 'ge20.32']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+      obs_options: 'convert(x) = 100.0*x;'
+    - fcst_name: ASNOW_24
+      fcst_levels: [A24]
+      fcst_thresholds: ['gt0.0', 'ge2.54', 'ge10.16', 'ge20.32', 'ge30.48']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+      obs_options: 'convert(x) = 100.0*x;'
+  REFC:
+    - fcst_name: REFC
+      obs_name: MergedReflectivityQCComposite
+      fcst_levels: [L0]
+      obs_levels: [Z500]
+      fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+      obs_options: 'censor_thresh = [eq-999, <-20]; censor_val = [-9999, -20]; cnt_thresh = [ >15 ]; cnt_logic = UNION;'
+  RETOP:
+    - fcst_name: RETOP
+      obs_name: EchoTop18
+      fcst_levels: [L0]
+      obs_levels: [Z500]
+      fcst_thresholds: ['ge20', 'ge30', 'ge40', 'ge50']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; convert(x) = x * 3.28084 * 0.001; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+      obs_options: 'convert(x) = x * 3280.84 * 0.001; censor_thresh = [<=-9.84252,eq-3.28084]; censor_val = [-9999,-16.4042]; cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+  SFC:
+    - fcst_name: TMP
+      fcst_levels: [Z2]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: DPT
+      fcst_levels: [Z2]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: RH
+      fcst_levels: [Z2]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: UGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: VGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: WIND
+      fcst_levels: [Z10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB2_pdt = 0;' # GRIB2_pbt Derives instantaneous 10-m wind from U/V components, overriding the 10-m wind from forecast
+      obs_options: 'GRIB2_pdt = 0;'
+    - fcst_name: PRMSL
+      fcst_levels: [Z0]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: TCDC
+      fcst_levels: [L0]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 200; GRIB2_ipdtmpl_index=[27]; GRIB2_ipdtmpl_val=[255]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+    - fcst_name: VIS
+      fcst_levels: [L0]
+      fcst_thresholds: ['lt805', 'lt1609', 'lt4828', 'lt8045', 'ge8045', 'lt16090']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+      obs_options: 'censor_thresh = [>16090]; censor_val = [16090]; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+    - fcst_name: GUST
+      fcst_levels: [Z0]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: HGT
+      obs_name: CEILING
+      fcst_levels: [L0]
+      fcst_thresholds: ['lt152', 'lt305', 'lt914', 'lt1520', 'lt3040', 'ge914']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 215; desc = "CEILING";'
+      obs_options: 'GRIB_lvl_typ = 215; interp = { type = [ { method = NEAREST; width = 1; } ]; }'
+    - fcst_name: SPFH
+      fcst_levels: [Z2]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: CRAIN
+      obs_name: PRWE
+      fcst_levels: [L0]
+      obs_levels: [Z0]
+      fcst_thresholds: ['ge1.0']
+      obs_thresholds: ['ge161&&le163']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: CSNOW
+      obs_name: PRWE
+      fcst_levels: [L0]
+      obs_levels: [Z0]
+      fcst_thresholds: ['ge1.0']
+      obs_thresholds: ['ge171&&le173']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: CFRZR
+      obs_name: PRWE
+      fcst_levels: [L0]
+      obs_levels: [Z0]
+      fcst_thresholds: ['ge1.0']
+      obs_thresholds: ['ge164&&le166']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: CICEP
+      obs_name: PRWE
+      fcst_levels: [L0]
+      obs_levels: [Z0]
+      fcst_thresholds: ['ge1.0']
+      obs_thresholds: ['ge174&&le176']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+  UPA:
+    - fcst_name: TMP
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: RH
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: DPT
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: UGRD
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: VGRD
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: WIND
+      fcst_levels: [P1000, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_thresholds: ['ge2.572', 'ge2.572&&lt5.144', 'ge5.144', 'ge10.288', 'ge15.433', 'ge20.577', 'ge25.722']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: HGT
+      fcst_levels: [P1000, P950, P925, P850, P700, P500, P400, P300, P250, P200, P150, P100, P50, P20, P10]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: SPFH
+      fcst_levels: [P1000, P850, P700, P500, P400, P300]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}";'
+    - fcst_name: CAPE
+      fcst_levels: [L0]
+      obs_levels: [L0-100000]
+      fcst_thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
+      obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+    - fcst_name: HPBL
+      obs_name: PBL
+      fcst_levels: [Z0]
+      obs_levels: [L0]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"'
+      obs_options: 'desc = "TKE";'
+    - fcst_name: HGT
+      obs_name: PBL
+      fcst_levels: [L0]
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; GRIB_lvl_typ = 220;'
+      obs_options: 'desc = "RI";'
+    - fcst_name: CAPE
+      obs_name: MLCAPE
+      fcst_levels: [L0-90]
+      obs_levels: [L0]
+      fcst_thresholds: ['gt500', 'gt1000', 'gt1500', 'gt2000', 'gt3000', 'gt4000']
+      fcst_options: 'set_attr_lead = "{lead?fmt=%H%M%S}"; cnt_thresh = [ >0 ];'
+      obs_options: 'cnt_thresh = [ >0 ]; cnt_logic = UNION;'
+  AOD:
+    - fcst_name: AOTK
+      obs_name: AOD
+      fcst_levels: [L0]
+      obs_levels: [L550]
+      fcst_thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']
+      obs_options: 'censor_thresh = <0; censor_val = -9999;'
+  PM25:
+    - fcst_name: PM25
+      fcst_levels: [Z8]
+      obs_levels: [A1]
+      fcst_thresholds: ['gt9.0', 'gt35.4', 'gt55.4', 'gt125.4', 'gt225.4']
+  PM10:
+    - fcst_name: PM10
+      fcst_levels: [Z8]
+      obs_levels: [A1]
+      fcst_thresholds: ['gt54', 'gt154', 'gt254', 'gt354', 'gt424']
+  GOESAOD:
+    - fcst_name: AOTK
+      obs_name: AOD
+      fcst_levels: [L0]
+      obs_levels: [L550]
+      fcst_thresholds: ['ge0.5', 'ge1.0', 'ge2.0', 'ge3.0']

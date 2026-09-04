@@ -30,7 +30,6 @@ def pcpcombine(
     obtype: str,
     accum_hh: int,
     fcst_level: str,
-    fcst_thresh: str,
     fcst_or_obs: str,
     ensmem_index: int,
 ) -> None:
@@ -52,12 +51,10 @@ def pcpcombine(
         Target accumulation period in hours.
     fcst_level : str
         METplus forecast level (e.g. A06).
-    fcst_thresh : str
-        Forecast threshold set (usually "all" or "none").
     fcst_or_obs : str
         Whether this task processes forecast (``"FCST"``) or observation (``"OBS"``) data.
     ensmem_index : int
-        Ensemble member index (0 for deterministic, 1-based for ensemble members).
+        Ensemble member index (0 for deterministic).
     """
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
@@ -95,13 +92,12 @@ def pcpcombine(
     time_lag = 0
     if fcst_or_obs == "FCST":
         if do_ensemble:
-            time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index - 1]) * 3600
+            time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index]) * 3600
 
         subvars["time_lag"]=time_lag
-        fcst_subdir = Template(vxcfg.get("FCST_SUBDIR_TEMPLATE", "")).safe_substitute(subvars)
-        fcst_fn = Template(vxcfg["FCST_FN_TEMPLATE"]).safe_substitute(subvars)
+        input_fn_template = Template(
+                vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
-        input_fn_template = str(Path(fcst_subdir, fcst_fn)) if fcst_subdir else fcst_fn
         output_fn_template = Template(
             vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
         ).safe_substitute(subvars)
@@ -250,7 +246,6 @@ def pcpcombine(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "input_thresh_fcst": fcst_thresh,
         "pcp_combine_method": pcp_combine_method,
         "pcp_combine_command": pcp_combine_command,
     }
@@ -287,12 +282,10 @@ if __name__ == "__main__":
         help="Target accumulation period in hours")
     parser.add_argument("--fcst_level", default="", type=str,
         help="METplus forecast level (e.g. A06)")
-    parser.add_argument("--fcst_thresh", default="", type=str,
-        help="Forecast thresholds to verify against (e.g. all, none)")
     parser.add_argument("--fcst_or_obs", required=True, type=str,
         help="Whether processing forecast (FCST) or observation (OBS) data")
     parser.add_argument("--ensmem_index", type=int, default=0,
-        help="Ensemble member index (0 for deterministic, 1-based for ensemble members)")
+        help="Ensemble member index (0 for deterministic)")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
     args = parser.parse_args()
@@ -302,6 +295,6 @@ if __name__ == "__main__":
 
     pcpcombine(
         args.config, args.cycle_date, args.obs_dir, args.field_group,
-        args.obtype, args.accum_hh, args.fcst_level, args.fcst_thresh,
+        args.obtype, args.accum_hh, args.fcst_level,
         args.fcst_or_obs, args.ensmem_index,
     )

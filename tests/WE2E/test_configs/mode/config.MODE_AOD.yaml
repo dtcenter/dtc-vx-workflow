@@ -11,9 +11,10 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-  - parm/wflow/verify_pre.yaml
-  - parm/wflow/verify_det.yaml
-  - parm/wflow/mode.yaml
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
+    - parm/wflow/verify_det.yaml
+    - parm/wflow/mode.yaml
 verification:
   METPLUS_VERBOSITY_LEVEL: 4
   VX_FIELD_GROUPS:
@@ -29,8 +30,7 @@ verification:
   - GOESAOD
   VX_FCST_MODEL_NAME: RRFS_verification
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/RRFS'
-  FCST_SUBDIR_TEMPLATE: '{init?fmt=%Y%m%d%H}'
-  FCST_FN_TEMPLATE: 'rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
+  FCST_FN_TEMPLATE: '{init?fmt=%Y%m%d%H}/rrfs.t12z.prslev.f{lead?fmt=%HHH}.conus.grib2'
   CCPA_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/ccpa"
   NOHRSC_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/nohrsc"
   MRMS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/mrms"

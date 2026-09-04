@@ -111,6 +111,11 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     taskgroups = default_config["workflow"]["taskgroups"]
     default_config["rocoto"]["tasks"] = {}
     for taskgroup in taskgroups:
+        if "verify_pre.yaml" in taskgroup:
+            logger.error("The `verify_pre.yaml` task group has been split into two task groups:")
+            logger.error("`get_obs.yaml` and `preprocessing.yaml`.")
+            logger.error("Update your config accordingly")
+            raise ValueError(f'{taskgroups=}')
         tasks = get_yaml_config(homedir / taskgroup)
         keep = {k: v for k, v in tasks.items() if not re.search(r"^default_*", k)}
         default_config["rocoto"]["tasks"].update(keep)
@@ -132,56 +137,61 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     return default_config
 
 def check_bad_settings(cfg):
+    # pylint: disable=too-many-statements
     """Checks initial config for deprecated or incorrect settings"""
     logger = logging.getLogger(__name__)
 
     msg=''
     if bad:=cfg.get("global"):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
-        msg+="The `global` section has been renamed to `ensemble`; "
-        msg+="update your config accordingly\n\n"
-        raise KeyError(msg)
+        msg+="The `global` section has been renamed to `ensemble`"
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
-            msg+="these variables for this task have moved to top-level `point2grid` section;"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task have moved to top-level `point2grid` section"
         if bad:=ex.get("regriddataplane"):
             msg+=f"verification_resources:execution contains invalid key `regriddataplane`:\n{bad}"
-            msg+="these variables for this task moved to top-level `regriddataplane` section; \n"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task moved to top-level `regriddataplane` section \n"
         if bad:=ex.get("mode"):
             msg+=f"verification_resources:execution contains invalid key `mode`:\n{bad}\n"
-            msg+="these variables for this task have been moved to top-level `mode` section; \n"
-            msg+="update your config accordingly\n\n"
+            msg+="these variables for this task have been moved to top-level `mode` section\n"
+        if bad:=ex.get("pb2nc"):
+            msg+=f"verification_resources:execution contains invalid key `pb2nc`:\n{bad}\n"
+            msg+="these variables for this task have been moved to top-level `pb2nc` section\n"
         if bad:=ex.get("deterministic"):
             msg+=f"verification_resources:execution contains invalid key `deterministic`:\n{bad}\n"
             if bad.get("gridstat"):
-                msg+="gridstat settings have been moved to top-level `gridstat` section; \n"
+                msg+="gridstat settings have been moved to top-level `gridstat` section\n"
             if bad.get("pointstat"):
-                msg+="pointstat settings have been moved to top-level `pointstat` section; \n"
+                msg+="pointstat settings have been moved to top-level `pointstat` section\n"
             else:
-                msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
-            msg+="update your config accordingly\n\n"
+                msg+="unknown key {bad}, see config_defaults.yaml for valid settings\n"
         if bad:=ex.get("ensemble"):
             if bad.get("genensprod"):
-                msg+="verification_resources:execution:ensemble contains invalid key:\n"
-                msg+="genensprod settings have been moved to top-level `genensprod` section; \n"
-                msg+="update your config accordingly\n\n"
+                msg+="verification_resources:execution:ensemble contains invalid key `genensprod`\n"
+                msg+="These settings have been moved to top-level `genensprod` section\n"
             if bad.get("ensemblestat"):
-                msg+="verification_resources:execution:ensemble contains invalid key:\n"
-                msg+="ensemblestat settings have been moved to top-level `ensemblestat` section; \n"
-                msg+="update your config accordingly\n\n"
-            # No else: here since verification_resources:execution:ensemble still has valid keys
+                msg+="verification_resources:execution:ensemble has invalid key `ensemblestat`\n"
+                msg+="These settings have been moved to top-level `ensemblestat` section\n"
+            if bad.get("gridstat"):
+                msg+="verification_resources:execution:ensemble contains invalid key `gridstat`\n"
+                msg+="These settings have been moved to top-level `gridstat_ens` section\n"
+            if bad.get("pointstat"):
+                msg+="verification_resources:execution:ensemble contains invalid key `pointstat`\n"
+                msg+="These settings have been moved to top-level `pointstat_ens` section\n"
+            else:
+                msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
     if bt:=cfg.get("platform").get("BEST_TRACK"):
         msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
-        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`; "
-        msg+="update your config accordingly\n\n"
-
+        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`"
+    if vf:=cfg.get("verification"):
+        if bad:=vf.get("FCST_SUBDIR_TEMPLATE"):
+            msg+=f"verification: contains deprecated key `FCST_SUBDIR_TEMPLATE`:\n{bad}\n"
+            msg+="Prepend this value to `FCST_FN_TEMPLATE` to restore previous functionality"
     if msg:
         logger.critical("The following problems with your config must be fixed:")
         logger.critical(msg)
-        raise KeyError("Invalid keys found in config; see above messages for details")
+        raise KeyError("Invalid key(s) found in config.yaml file; see above messages for details")
 
     return cfg
 
@@ -271,7 +281,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         workflow_config["VERBOSE"] = True
 
     # The forecast length (in integer hours) cannot contain more than 3 characters.
-    # Thus, its maximum value is 999.
     fcst_len_hrs_max = 999
     fcst_len_hrs = workflow_config["FCST_LEN_HRS"]
     if fcst_len_hrs > fcst_len_hrs_max:
@@ -430,6 +439,43 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # intervals from integer to datetime.timedelta objects.
     fcst_len_dt = datetime.timedelta(hours=fcst_len_hrs)
     vx_fcst_output_intvl_dt = datetime.timedelta(hours=vx_fcst_output_intvl_hrs)
+
+    # Checks for consistency in ensemble settings
+    ens_config = expt_config["ensemble"]
+    do_ensemble = ens_config["DO_ENSEMBLE"]
+
+    nummems = int(ens_config.get("NUM_ENS_MEMBERS"))
+    if nummems < 1:
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 0; set to 1 for deterministic vx")
+    if do_ensemble and nummems < 2:
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 1 if DO_ENSEMBLE=True")
+    if not do_ensemble and nummems > 1:
+        raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) can not be > 1 if DO_ENSEMBLE=False")
+    nbins = int(ens_config["NUM_ENS_BINS"])
+    if do_ensemble and nbins < 2:
+        raise ValueError(f"NUM_ENS_BINS ({nbins}) must be > 1 for ensemble probability binning")
+
+    #
+    # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
+    # If a list, ensure it's the same length as the specified ensemble size
+    #
+    fns = vx_config.get("FCST_FN_TEMPLATE")
+    if isinstance(fns, str):
+        fns = [fns]
+    if isinstance(fns, list):
+        # If list is len==1, make it len==nummems
+        if len(fns) == 1:
+            fns = fns * nummems
+        elif len(fns) != nummems:
+            logger.error(f"NUM_ENS_MEMBERS={nummems}\nFCST_FN_TEMPLATE={fns}")
+            raise ValueError("Number of entries in FCST_FN_TEMPLATE must equal number of members!")
+    else:
+        raise TypeError("Invalid FCST_FN_TEMPLATE entry type {type(fns)}: {fns}")
+
+    # Update dictionary with modified settings
+    ens_config["NUM_ENS_MEMBERS"] = nummems
+    vx_config["FCST_FN_TEMPLATE"] = fns
+
     #
     # -----------------------------------------------------------------------
     #
@@ -526,7 +572,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_PcpCombine_APCP_all_accums_all_mems",
         "metatask_GridStat_APCP_all_accums_all_mems",
         "metatask_GenEnsProd_EnsembleStat_APCP_all_accums",
-        "metatask_GridStat_APCP_all_accums_ensmeanprob",
+        "metatask_GridStat_APCP_all_accums_ensmean",
+        "metatask_GridStat_APCP_all_accums_ensprob",
     ]
 
     vx_field_groups_all_by_obtype["NOHRSC"] = ["ASNOW"]
@@ -536,7 +583,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_PcpCombine_ASNOW_all_accums_all_mems",
         "metatask_GridStat_ASNOW_all_accums_all_mems",
         "metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums",
-        "metatask_GridStat_ASNOW_all_accums_ensmeanprob",
+        "metatask_GridStat_ASNOW_all_accums_ensmean",
+        "metatask_GridStat_ASNOW_all_accums_ensprob",
     ]
 
     vx_field_groups_all_by_obtype["MRMS"] = ["REFC", "RETOP"]
@@ -548,7 +596,9 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
-       "metatask_PointStat_SFC_UPA_ensmeanprob"]
+       "metatask_PointStat_SFC_UPA_ensmean",
+       "metatask_PointStat_SFC_UPA_ensprob",
+    ]
 
     vx_field_groups_all_by_obtype["AERONET"] = ["AOD"]
     vx_metatasks_all_by_obtype["AERONET"] \
@@ -702,9 +752,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             )
 
 
-    # Check to make sure that mandatory forecast variables are set.
-    ensemble_sect = expt_config["ensemble"]
-
     # create experiment dir
     Path(exptdir).mkdir(parents=True)
 
@@ -721,7 +768,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # Get the value of the configuration flag for ensemble mode (DO_ENSEMBLE)
     # and ensure that it is set to True if ensemble vx tasks are included in
     # the workflow (or vice-versa).
-    do_ensemble = ensemble_sect["DO_ENSEMBLE"]
     if (not do_ensemble) and ens_vx_tasks:
         msg = dedent(
             f"""
