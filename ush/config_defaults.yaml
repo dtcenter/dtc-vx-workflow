@@ -486,7 +486,7 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  VERBOSE: true
+  VERBOSE: false
   DEBUG: false
 
 
@@ -587,8 +587,6 @@ verification_resources:
         walltime: 02:00:00
       ndas:
         walltime: 02:00:00
-    pb2nc:
-      walltime: 00:30:00
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -986,6 +984,15 @@ verification:
   # sequential forecast hours, and so can be run simultaneously.
   VX_TASKS: 1
 
+pb2nc:
+  # Runtime settings for PB2NC jobs
+  execution:
+    tasks_per_node: '{{ gridstat.TASKS }}'
+    walltime: 00:30:00
+    memory: '{{ 2 * gridstat.TASKS }}G'
+  # Number of PB2NC instances to run in parallel
+  TASKS: !int '{{ verification.VX_TASKS }}'
+
 gridstat:
   # Runtime settings for deterministic GRIDSTAT jobs
   execution:
@@ -1025,8 +1032,14 @@ genensprod:
     tasks_per_node: '{{ genensprod.TASKS }}'
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
+    threads: 4
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+
+  # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
+  conf:
+    #Verbosity of MET logging output.
+    LOG_GEN_ENS_PROD_VERBOSITY: '{{ verification.METPLUS_VERBOSITY_LEVEL}}'
 
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
@@ -1034,6 +1047,7 @@ ensemblestat:
     tasks_per_node: '{{ ensemblestat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * ensemblestat.TASKS }}G'
+    threads: 4
   # Number of EnsembleStat instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
@@ -1062,6 +1076,9 @@ mode:
     walltime: 01:00:00
     # Memory to allocate to MODE job
     memory: '{{ 10 * mode.TASKS }}G'
+    # Number of threads to assign to each task
+    threads: 4
+
   # Number of MODE instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
 
