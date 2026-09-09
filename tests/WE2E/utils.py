@@ -27,6 +27,7 @@ from python_utils import (
 REPORT_WIDTH = 100
 EXPT_COLUMN_WIDTH = 65
 TASK_COLUMN_WIDTH = 40
+DEFAULT_DELAY = 1
 def print_WE2E_summary(expts_dict: dict, debug: bool = False):
     """Creates a summary of the specified experiment
 
@@ -105,7 +106,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
         for line in expt_details:
             f.write(f"{line}\n")
 
-def create_expts_dict(expt_dir: str, delay: int = 5):
+def create_expts_dict(expt_dir: str, delay: int = DEFAULT_DELAY):
     """
     Takes in a directory, searches that directory for subdirectories containing
     experiments, and creates a skeleton dictionary that can be filled out by ``update_expt_status()``
@@ -228,7 +229,7 @@ def write_monitor_file(monitor_file: str, expts_dict: dict):
         raise
 
 
-def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int = 5,
+def update_expt_status(expt: dict, name: str, refresh: bool = False, delay: int = DEFAULT_DELAY,
                        debug: bool = False, submit: bool = True) -> dict:
     """
     This function reads the dictionary for a given experiment, runs the ``rocotorun`` command to update the experiment (by running new jobs and updating the status of previously submitted ones), and reads the Rocoto database (``.db``) file to update the status of each job in the experiment dictionary. The function then uses a simple set of rules to combine the statuses of every task into a useful summary status for the whole experiment and returns the updated experiment dictionary.

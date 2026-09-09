@@ -16,14 +16,8 @@ platform:
   QUEUE_FCST: batch
   PARTITION_HPSS: service
   QUEUE_HPSS: batch
-  RUN_CMD_FCST: srun --export=ALL
-  RUN_CMD_POST: srun --export=ALL
-  RUN_CMD_PRDGEN: srun --export=ALL
-  RUN_CMD_SERIAL: time
-  RUN_CMD_UTILS: srun --export=ALL
   SCHED_NATIVE_CMD: "--export=NONE"
   SCHED_NATIVE_CMD_HPSS: "-n 1 --export=NONE"
-  PRE_TASK_CMDS: '{ ulimit -s unlimited; ulimit -a; }'
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /scratch3/NCEPDEV/nems/role.epic/hera/UFS_SRW_data/develop/input_model_data
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /scratch3/NCEPDEV/nems/role.epic/hera/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /scratch3/NCEPDEV/nems/role.epic/hera/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir

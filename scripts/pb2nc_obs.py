@@ -12,6 +12,7 @@ import logging
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from multiprocessing import Pool
 
 import uwtools.api.config as uwconfig
 
@@ -107,19 +108,25 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
         "obtype": obtype,
     }
 
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
     # Render the configuration file using the template
     conf_files = render_metplus_confs(
         cfg,
         settings,
         metplus_config_tmpl_fn,
         vx_leadhr_list,
-        int(vxcfg["VX_TASKS"]),
+        numprocs,
     )
+    lgr.debug(f"{conf_files=}")
 
-    # Run METplus for each generated config file
-    common_conf = Path(cfg["user"]["METPLUS_CONF"], "common.conf")
-    for conf_file in conf_files:
-        run_metplus(str(common_conf), conf_file)
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    mpargs = []
+    for config_fn in conf_files:
+        mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    # Call run_metplus function for as many processors as specified
+        lgr.debug(f"{mpargs=}")
+    with Pool(processes=numprocs) as pool:
+        pool.starmap(run_metplus,mpargs)
 
     # ---------------------------------------------------------------------
     # Create completion flag file

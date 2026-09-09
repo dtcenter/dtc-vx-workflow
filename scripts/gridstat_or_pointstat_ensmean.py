@@ -201,13 +201,13 @@ def gridstat_or_pointstat_ensmean(
         "vx_config_dict": vx_config_dict,
     }
 
-    numprocs = 1
+    numprocs = int(vxcfg["VX_TASKS"])
     conf_files = render_metplus_confs(
         cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
     )
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case}_ensmean with METplus")
+    lgr.info(f"Running {metplus_tool_camel_case}_ensmean with METplus for {numprocs} tasks")
     common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])
