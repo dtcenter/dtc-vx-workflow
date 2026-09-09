@@ -129,11 +129,9 @@ def mode(config_file,cdate,field_group,obtype):
     if modecfg.get("fields"):
         vx_config_dict = modecfg.get("fields")
 
-    # Create the entries for forecast and variable names to pass to METplus conf file. This logic
-    # is overkill for now but serves as a template for how this could be done in
-    # gridstat_or_pointstat.py
+    # Create the entries for forecast and variable names to pass to METplus conf file.
 
-    var_list=make_var_list(vx_config_dict,field_group,'all','none')
+    var_list=make_var_list(vx_config_dict,field_group,'all')
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {

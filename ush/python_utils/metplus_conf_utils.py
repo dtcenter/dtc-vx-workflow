@@ -272,8 +272,8 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
     return outconfs
 
 
-def make_ensprob_var_list(vx_config_dict, field_group,
-                          level="all", thresh="all", prob_thresh=None, neighborhood=True):
+def make_ensprob_var_list(vx_config_dict, field_group, level="all",
+                          prob_thresh=None, neighborhood=True):
     """Render the FCST/OBS variable list for ensemble-probability (ensprob) verification of the
     ensemble relative-frequency fields produced by GenEnsProd.
 
@@ -354,8 +354,6 @@ def make_ensprob_var_list(vx_config_dict, field_group,
                     continue
                 level_obs = obs_levels[li]
                 for ti, thresh_fcst in enumerate(fcst_threshes):
-                    if thresh not in ("all", "none") and thresh != thresh_fcst:
-                        continue
                     # Increment only after passing the skip checks so VARn stays contiguous
                     i += 1
                     # MET field names cannot contain '&&' or '||'
@@ -369,8 +367,7 @@ def make_ensprob_var_list(vx_config_dict, field_group,
 
                     obs_var = f"OBS_VAR{i}_NAME = {obsvar}\n"
                     obs_var += f"OBS_VAR{i}_LEVELS = {level_obs}\n"
-                    if thresh != "none":
-                        obs_var += f"OBS_VAR{i}_THRESH = {obs_threshes[ti]}\n"
+                    obs_var += f"OBS_VAR{i}_THRESH = {obs_threshes[ti]}\n"
                     # Base obs options apply on both passes; the neighborhood clause is added only
                     # on the scalar pass.
                     obs_opts = [o.rstrip() for o in

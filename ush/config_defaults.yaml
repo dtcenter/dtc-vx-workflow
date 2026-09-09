@@ -498,7 +498,8 @@ ensemble:
   # The number of ensemble members used to define probability bins for ensemble
   # probability (ensprob) verification. Passed to MET as the "==N" threshold, which
   # (MET 12.0.0+, issue #2280) defines N+1 probability bins centered on n/N for
-  # n = 0..N. Should normally equal NUM_ENS_MEMBERS.
+  # n = 0..N. NUM_ENS_BINS defines this "N+1" value, and Should normally be equal
+  # to NUM_ENS_MEMBERS + 1.
   #
   # ENS_TIME_LAG_HRS:
   # Time lag (in hours) to use for each ensemble member. For a deterministic
@@ -509,7 +510,7 @@ ensemble:
   #
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 1
-  NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS }}'
+  NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS + 1 }}'
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
 
   # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
