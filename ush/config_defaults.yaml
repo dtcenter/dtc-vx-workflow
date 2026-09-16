@@ -1509,49 +1509,52 @@ tcrmw:
   OUTPUT_TEMPLATE: 'tc_rmw_{{ tropical.MODEL }}.{{ tropical.BASIN }}{cyclone}{date?fmt=%Y}.nc'
 
 #
-# The fields: section the field groups (e.g. APCP, fields, levels,
-# and thresholds to use for DETERMINISTIC verification.  The format is
-# as follows:
+# The fields: section defines the field groups (e.g. APCP, SFC) and the fields, levels, and
+# thresholds to use for DETERMINISTIC verification. It is a dictionary keyed by field group, where
+# each field group maps to a LIST of field entries (not a dictionary keyed by field name) -- this
+# allows the same forecast field name to appear more than once in a group (e.g. surface CAPE and
+# MLCAPE, both with forecast name CAPE, or UPA TMP at several pressure levels). The format is:
 #
 # FIELD_GROUP1:
-#     FIELD1:
-#         LEVEL1: list_of_thresholds
-#         LEVEL2: list_of_thresholds
-#         ...
-#     FIELD2:
-#         LEVEL1: list_of_thresholds
-#         LEVEL2: list_of_thresholds
-#         ...
-#     ...
-#             
+#   - fcst_name: FIELD1
+#     fcst_levels: [LEVEL1, LEVEL2, ...]
+#     fcst_thresholds: [THRESH1, THRESH2, ...]
+#   - fcst_name: FIELD2
+#     fcst_levels: [LEVEL1, LEVEL2, ...]
+#     fcst_thresholds: [THRESH1, THRESH2, ...]
+#   ...
+#
 # FIELD_GROUP2:
-#     FIELD1:
-#         LEVEL1: list_of_thresholds
-#         LEVEL2: list_of_thresholds
-#         ...
-#     FIELD2:
-#         LEVEL1: list_of_thresholds
-#         LEVEL2: list_of_thresholds
-#         ...
+#   - fcst_name: FIELD1
 #     ...
 #
 #  ...
 #
-# If the threshold list for a given combination of field group, field,
-# and level is set to the empty string ([]), then all values of that
-# field will be included in the verification.
-# 
-# For each level of the dictionary, if the value for both forecast and obs
-# are the same, then a single key is used as above. But if there is a
-# difference between the two, either in field name, level, or threshold,
-# then the forecast value will be specified by the additional key
-# `obs_field_name:`, `obs_level_name:`, or `obs_thresholds` at the
-# appropriate level.
+# Per-entry keys:
+#   fcst_name        (str, required) : Forecast field name.
+#   fcst_levels      (list, required): Forecast levels.
+#   fcst_thresholds  (list, optional): Forecast thresholds. If omitted or set to the empty list
+#                                      ([]), all values of the field are included in the
+#                                      verification (no threshold subsetting).
+#   obs_name         (str, optional) : Observation field name; defaults to fcst_name.
+#   obs_levels       (list, optional): Observation levels; defaults to fcst_levels. Must be the
+#                                      same length as fcst_levels when provided.
+#   obs_thresholds   (list, optional): Observation thresholds; defaults to fcst_thresholds.
+#   fcst_options     (str, optional) : Extra METplus config appended for the forecast field.
+#   obs_options      (str, optional) : Extra METplus config appended for the observation field.
+#   nbrhd_options    (str, optional) : Neighborhood-verification options (ensemble-probability
+#                                      scalar/neighborhood pass only).
+# In other words, if the forecast and obs values for a given key are the same, only the fcst_*
+# key needs to be given; if they differ (in field name, level, or threshold), add the
+# corresponding obs_* key to specify the obs-side value.
 #
-# For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary
-# found in the ensemble: section will be used (see above). You can also 
-# overwrite the thresholds used for any individual task by including a
-# fields: section in the dictionary for that task
+# For ensemble tasks (genensprod, ensemblestat, etc.) the fields: dictionary found in the
+# ensemble: section is used instead of this top-level one (see above). Any individual task can
+# override this shared field list by including its own fields: section: entries are merged onto
+# the base list by fcst_name (and fcst_levels, to disambiguate duplicate names) -- listing only
+# the keys being changed leaves the rest of the entry unchanged, and a per-entry `omit: true`
+# drops that entry instead of merging (see merge_field_configs() in
+# ush/python_utils/metplus_conf_utils.py for the exact merge/omission rules).
 #
 fields:
   APCP:
