@@ -18,12 +18,11 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs
+from python_utils import setup_logging, render_metplus_confs, make_var_list, merge_field_configs
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
-def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index,
-                          fcst_level,fcst_thresh):
+def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,ensmem_index):
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     """
     Execute a METplus ``GridStat`` or ``PointStat`` verification task.
@@ -44,10 +43,6 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         Accumulation hours for the observation type.
     ensmem_index : int
         Index of the ensemble member to process (``0`` for deterministic runs).
-    fcst_level : str
-        METplus forecast level (e.g., ``L0``, ``A03``).
-    fcst_thresh : str
-        Forecast threshold set to verify against, usually ``"all"`` or ``"none"``.
 
     Returns
     -------
@@ -192,6 +187,9 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         raise ValueError(f"Invalid parameters:\n{obtype=}\n{field_group=}\n{accum_hh=}")
     lgr.debug(f"{fcst_fn_tmpl=}")
 
+    # Need to load gridstat or pointstat config section depending on what we're running
+    taskcfg = cfg[metplus_tool_camel_case.lower()]
+
     if do_ens:
         output_dir=Path(exptdir, cdate, ensmem, "metprd", metplus_tool_camel_case)
         staging_dir=Path(exptdir, cdate, ensmem, "stage", met_filedir_name)
@@ -241,9 +239,17 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     metplus_config_fn=f"{metplus_tool_camel_case}_{met_filedir_name}_{field_group}_{ensmem}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                     f"{vxcfg['VX_CONFIG_DET_FN']}")
+    # Field config for this task: start from the top-level fields: section, then apply this task's
+    # fields: section as per-variable overrides (entries merged by fcst_name).
+    vx_config_dict = merge_field_configs(cfg.get("fields") or {}, taskcfg.get("fields"),
+                                         exclude=vxcfg.get("VX_FIELDS_EXCLUDE"))
+
+    # Create the entries for forecast and variable names to pass to METplus conf file.
+    if field_group in ['APCP', 'ASNOW']:
+        fcst_level=f"A{accum_hh}"
+    else:
+        fcst_level="all"
+    var_list=make_var_list(vx_config_dict,field_group,fcst_level)
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
@@ -277,8 +283,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'accum_no_pad': accum_hh,
                'metplus_templates_dir': cfg['user']['METPLUS_CONF'],
                'input_field_group': field_group,
-               'input_level_fcst': fcst_level,
-               'input_thresh_fcst': fcst_thresh,
+               # Variable list
+               'var_list': var_list,
                # Verification mask settings
                'vx_mask': ', '.join(vx_mask_files),
                # Rest of settings from yaml file
@@ -331,10 +337,6 @@ if __name__ == "__main__":
            help='The index for this ensemble member (0 for deterministic)')
     parser.add_argument('--field_group', required=True, type=str,
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
-    parser.add_argument('--fcst_level', required=True, type=str,
-           help='The "level" of the observation type as expected by MET (e.g. L0, A03, etc.)')
-    parser.add_argument('--fcst_thresh', required=True, type=str,
-           help='Set of forecast thresholds to verify against. Valid options are "all" and "none".')
     parser.add_argument('--obtype', required=True, type=str,
            help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
@@ -348,4 +350,4 @@ if __name__ == "__main__":
     logging.debug(f"{os.environ['METPLUS_ROOT']=}")
 
     gridstat_or_pointstat(args.config,args.cycle_date,args.obs_dir,args.field_group,args.obtype,
-         args.accum_hh,args.ensmem_index,args.fcst_level,args.fcst_thresh)
+         args.accum_hh,args.ensmem_index)

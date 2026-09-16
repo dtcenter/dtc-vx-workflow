@@ -1,19 +1,19 @@
 metadata:
   description: |-
-    First attempt at verifying REFS data, now with EAS calcs and
+    Testing REFS data for first week
     a few more task-specific parallelism settings
 workflow:
   DATE_FIRST_CYCL: '2026042712'
-  DATE_LAST_CYCL: '2026042712'
+  DATE_LAST_CYCL: '2026050112'
   FCST_LEN_HRS: 42
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
-  - parm/wflow/verify_pre.yaml
+  - parm/wflow/get_obs.yaml
+  - parm/wflow/preprocessing.yaml
   - parm/wflow/verify_det.yaml
   - parm/wflow/verify_ens.yaml
-  EXPT_SUBDIR: REFS_test_verification_EAS_moreprocs2
+  EXPT_SUBDIR: REFS_test_first_week
   USE_CRON_TO_RELAUNCH: false
-  EXPT_BASEDIR: rm_subdir
   VERBOSE: true
 ensemble:
   DO_ENSEMBLE: true
@@ -62,8 +62,9 @@ ensemblestat:
   TASKS: 30
 genensprod:
   execution:
-    walltime: 08:00:00
-  TASKS: 30
+    walltime: 03:00:00
+  # 42 hour forecasts plus 00 hours, so every hour gets a dedicated task
+  TASKS: 43
   conf:
     # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
     # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
@@ -92,3 +93,7 @@ gridstat_ensprob:
 user:
   MACHINE: URSA
   ACCOUNT: fv3lam
+platform:
+  MET_INSTALL_DIR: '/contrib/met/13.0.0-beta2'
+  METPLUS_ROOT: '/contrib/METplus/METplus-13.0.0-beta2/'
+

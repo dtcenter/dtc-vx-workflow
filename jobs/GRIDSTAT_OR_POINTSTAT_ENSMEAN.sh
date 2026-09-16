@@ -66,7 +66,6 @@ python $SCRIPTSdir/gridstat_or_pointstat_ensmean.py ${VERBOSE_FLAG} \
   --obs_dir="${OBS_DIR}" \
   --obtype="${OBTYPE}" \
   --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   ${ACCUM_ARG} || \
 print_err_msg_exit "\
 Call to \"gridstat_or_pointstat_ensmean.py\" from \"${scrfunc_fn}\" failed."

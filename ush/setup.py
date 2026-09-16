@@ -451,6 +451,10 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) must be > 1 if DO_ENSEMBLE=True")
     if not do_ensemble and nummems > 1:
         raise ValueError(f"NUM_ENS_MEMBERS ({nummems}) can not be > 1 if DO_ENSEMBLE=False")
+    nbins = int(ens_config["NUM_ENS_BINS"])
+    if do_ensemble and nbins < 2:
+        raise ValueError(f"NUM_ENS_BINS ({nbins}) must be > 1 for ensemble probability binning")
+
     #
     # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
     # If a list, ensure it's the same length as the specified ensemble size
@@ -568,7 +572,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_PcpCombine_APCP_all_accums_all_mems",
         "metatask_GridStat_APCP_all_accums_all_mems",
         "metatask_GenEnsProd_EnsembleStat_APCP_all_accums",
-        "metatask_GridStat_APCP_all_accums_ensmeanprob",
+        "metatask_GridStat_APCP_all_accums_ensmean",
+        "metatask_GridStat_APCP_all_accums_ensprob",
     ]
 
     vx_field_groups_all_by_obtype["NOHRSC"] = ["ASNOW"]
@@ -578,7 +583,8 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_PcpCombine_ASNOW_all_accums_all_mems",
         "metatask_GridStat_ASNOW_all_accums_all_mems",
         "metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums",
-        "metatask_GridStat_ASNOW_all_accums_ensmeanprob",
+        "metatask_GridStat_ASNOW_all_accums_ensmean",
+        "metatask_GridStat_ASNOW_all_accums_ensprob",
     ]
 
     vx_field_groups_all_by_obtype["MRMS"] = ["REFC", "RETOP"]
@@ -590,7 +596,9 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
-       "metatask_PointStat_SFC_UPA_ensmeanprob"]
+       "metatask_PointStat_SFC_UPA_ensmean",
+       "metatask_PointStat_SFC_UPA_ensprob",
+    ]
 
     vx_field_groups_all_by_obtype["AERONET"] = ["AOD"]
     vx_metatasks_all_by_obtype["AERONET"] \

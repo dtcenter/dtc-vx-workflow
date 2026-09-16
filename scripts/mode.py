@@ -15,7 +15,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, make_var_lists, run_metplus
+from python_utils import setup_logging, render_metplus_confs, make_var_list, run_metplus
 from set_leadhrs import set_leadhrs
 
 def mode(config_file,cdate,field_group,obtype):
@@ -50,7 +50,7 @@ def mode(config_file,cdate,field_group,obtype):
       `RuntimeError` is raised.
     * Mask files for verification over specific regions are located from the METplus configuration
       directory or the MET install directory.
-    * Variable names for forecast and observation data are built with `make_var_lists` based on the
+    * Variable names for forecast and observation data are built with `make_var_list` based on the
       field group.
     * A Jinja configuration template (``MODE.conf``) is rendered into a METplus conf file for each
       lead hour, then each rendered file is run with `run_metplus` using a `multiprocessing.Pool`
@@ -123,15 +123,15 @@ def mode(config_file,cdate,field_group,obtype):
     metplus_config_fn=f"{metplus_tool_camel_case}_{field_group}.conf.0"
     metplus_log_fn=f"metplus.log.{metplus_config_fn[:-7]}_{cdate}.0"
 
-    # Load YAML file containing configuration for deterministic verification
-    vx_config_dict = uwconfig.get_yaml_config(config=f"{cfg['user']['METPLUS_CONF']}/"\
-                                                     f"{vxcfg['VX_CONFIG_DET_FN']}")
+    # If user provided a fields: section for this task, use the thresholds defined there. Otherwise,
+    # use the top-level fields: section
+    vx_config_dict = cfg.get("fields")
+    if modecfg.get("fields"):
+        vx_config_dict = modecfg.get("fields")
 
-    # Create the entries for forecast and variable names to pass to METplus conf file. This logic
-    # is overkill for now but serves as a template for how this could be done in
-    # gridstat_or_pointstat.py
+    # Create the entries for forecast and variable names to pass to METplus conf file.
 
-    fcst_var_list,obs_var_list=make_var_lists(vx_config_dict,field_group)
+    var_list=make_var_list(vx_config_dict,field_group,'all')
 
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
@@ -155,9 +155,8 @@ def mode(config_file,cdate,field_group,obtype):
                'fcst_input_dir': fcst_in_dir,
                'fcst_input_fn_template': fcst_in_fn_template,
                'vx_fcst_model_name': vxcfg['VX_FCST_MODEL_NAME'],
-               # Variable lists
-               'fcst_var_list': fcst_var_list,
-               'obs_var_list': obs_var_list,
+               # Variable list
+               'var_list': var_list,
                # Field information.
                'obtype': obtype,
                # Verification mask settings

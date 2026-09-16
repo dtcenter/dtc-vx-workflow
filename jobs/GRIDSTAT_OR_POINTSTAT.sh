@@ -62,8 +62,6 @@ python $SCRIPTSdir/gridstat_or_pointstat.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
   --field_group="${FIELD_GROUP}" \
-  --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   --obtype="${OBTYPE}" \
   --obs_dir="${OBS_DIR}" \
   ${ACCUM_ARG} ${ENSMEM_ARG} || \
