@@ -88,14 +88,23 @@ fi
 
 conda activate
 
-# if first argument is vx_diff, create that environment
-# otherwise create vx_workflow
+# Select which conda environment to create/load based on the (optional) first argument:
+#   (none)   -> vx_workflow (main workflow environment)
+#   vx_diff  -> vx_diff      (regression-test diff utility)
+#   vcast    -> vcast        (VCasT plotting/statistics tool)
 ENV_NAME=$1
-ENV_YAML=${SCRIPT_DIR}/environment.yml
 if [ "${ENV_NAME}" == vx_diff ]; then
   ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
+elif [ "${ENV_NAME}" == vcast ]; then
+  ENV_YAML=${SCRIPT_DIR}/vcast_environment.yml
+  # VCasT's dependencies are all installed from conda-forge (see vcast_environment.yml).
+  # Tell the pip step run by conda to install VCasT alone, without re-resolving/building
+  # those dependencies. --no-deps can't be expressed in a conda pip: list, so pass it via
+  # pip's environment variable, which the pip subprocess honors.
+  export PIP_NO_DEPS=1
 else
   ENV_NAME=vx_workflow
+  ENV_YAML=${SCRIPT_DIR}/environment.yml
 fi
 
 if ! conda env list 2>/dev/null | grep -q "^${ENV_NAME}\s" ; then
@@ -109,5 +118,8 @@ else
     mamba env update -n ${ENV_NAME} --file "${ENV_YAML}" --prune --quiet
   fi
 fi
+
+# Avoid leaking PIP_NO_DEPS (set above for the vcast build) into the sourcing shell.
+unset PIP_NO_DEPS
 
 conda activate ${ENV_NAME}

@@ -133,7 +133,7 @@ platform:
   #
   WORKFLOW_MANAGER: ""
   NCORES_PER_NODE: ""
-  TASKTHROTTLE: 1000
+  TASKTHROTTLE: 500
   CYCLETHROTTLE: 200
   SCHED: ""
   PARTITION_DEFAULT: ""
@@ -512,6 +512,43 @@ ensemble:
   NUM_ENS_MEMBERS: 1
   NUM_ENS_BINS: !int '{{ ensemble.NUM_ENS_MEMBERS + 1 }}'
   ENS_TIME_LAG_HRS: !list '[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+
+    # Config file settings for these various metrics are described in the GenEnsProd chapter of the MET Users Guide:
+    # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
+  # NMEP settings
+  NMEP:
+    # Turns on NMEP calculations, Sets GEN_ENS_PROD_ENSEMBLE_FLAG_NMEP in GenEnsProd
+    FLAG_NMEP: false
+    # The following settings all end up in the GenEnsProd conf file, prepended with "GEN_ENS_PROD_NMEP_SMOOTH_"
+    # A list of candidate widths (in number of gridpoints) in increasing order
+    WIDTH: 1
+    # Valid shapes are CIRCLE or SQUARE
+    SHAPE: 'CIRCLE'
+    # A number between 0 and 1 specifying the required ratio of valid data in the neighborhood for an output value to be computed
+    VLD_THRESH: 0.0
+    METHOD: 'GAUSSIAN'
+    # Definitions for gaussian smoother applied to raw NMEP probability values
+    GAUSSIAN_DX: 81.27
+    GAUSSIAN_RADIUS: 120
+
+  # EAS settings
+  EAS:
+    # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
+    # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
+    # Turns on EAS calculations, Sets GEN_ENS_PROD_ENSEMBLE_FLAG_EAS in GenEnsProd
+    FLAG_EAS: True
+    # The following settings all end up in the GenEnsProd conf file, prepended with "GEN_ENS_PROD_EAS_PROB_"
+    # A list of candidate widths (in number of gridpoints) in increasing order
+    WIDTH: '[ 3, 5, 7, 9, 11, 13, 15 ]'
+    # Valid shapes are CIRCLE or SQUARE
+    SHAPE: 'CIRCLE'
+    # A number between 0 and 1 specifying the required ratio of valid data in the neighborhood for an output value to be computed
+    VLD_THRESH: 0.0
+    # Similarity criteria parameter α: related to the amount of bias tolerated. 0.5 is recommended.
+    ALPHA: 0.5
+    # Definitions for gaussian smoother applied to raw EAS probability values
+    GAUSSIAN_DX: 81.27
+    GAUSSIAN_RADIUS: 120
 
   # These are the verification thresholds that will be used for ensemble tasks: genensprod, ensemblestat,
   # gridstat_ensmean and gridstat_ensprob, and pointstat_ensmean and pointstat_ensprob
@@ -1232,6 +1269,10 @@ genensprod:
     tries: 1
   # Number of GenEnsProd instances to run in parallel
   TASKS: !int '{{ verification.VX_TASKS }}'
+  # Neighborhood settings for NEP and NMEP calculations
+  NBRHD_PROB_WIDTH: 27
+  NBRHD_PROB_SHAPE: CIRCLE
+  NBRHD_PROB_VLD_THRESH: 0.0
 
   # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
   conf:
@@ -1376,6 +1417,29 @@ ensemblestat:
         obs_levels: [L0]
         fcst_thresholds: ['lt500', 'lt1500', 'gt1500']
         obs_options: 'desc = "TKE";'
+
+vcast:
+  # Settings for VCasT plotting/aggregation tasks. Each plot type is its own subsection; add future
+  # VCasT plot types as sibling subsections here. VCasT is installed in its own conda environment
+  # (see vcast_environment.yml); run scripts invoke it via 'conda run -n vcast'.
+  reliability:
+    # For each grid field group, VCasT aggregates the GridStat_ensprob PCT stats across all cycles
+    # and draws one reliability diagram per forecast variable.
+    execution:
+      tasks_per_node: 1
+      walltime: 00:30:00
+      memory: 8G
+      tries: 1
+    # Lead hours (integers) to overlay as separate curves on each reliability diagram.
+    PLOT_LEAD_HRS: [1, 3, 6, 12, 24, 36]
+    # Optional line styling. If left empty, sensible defaults are cycled to match the number of
+    # entries in PLOT_LEAD_HRS. If specified, each list must have the same length as PLOT_LEAD_HRS.
+    line_color: []
+    line_marker: []
+    line_type: []
+    line_width: []
+    # Optional per-task fields: override, merged onto ensemble.fields the same way as the ensprob
+    # tasks (see merge_field_configs). Leave unset to use the shared ensemble field definitions.
 
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs

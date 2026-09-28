@@ -428,6 +428,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         date_first_cycl_dt, date_last_cycl_dt, cycl_intvl_dt, return_type="datetime"
     )
 
+    # Number of cycles in the experiment.  Exposed to the Rocoto XML (via jinja) so that
+    # dependencies can compute expected per-experiment file counts (e.g. GridStat ensprob
+    # stat files = forecast-output-times-per-cycle * NUM_CYCLES).
+    workflow_config["NUM_CYCLES"] = len(cycle_start_times)
+
     # Call function that runs the consistency checks on the vx parameters.
     vx_config, _ = check_temporal_consistency_cumul_fields(
         vx_config, cycle_start_times, fcst_len_dt, vx_fcst_output_intvl_dt
@@ -574,6 +579,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         "metatask_GenEnsProd_EnsembleStat_APCP_all_accums",
         "metatask_GridStat_APCP_all_accums_ensmean",
         "metatask_GridStat_APCP_all_accums_ensprob",
+        "metatask_vcast_APCP_all_accums",
     ]
 
     vx_field_groups_all_by_obtype["NOHRSC"] = ["ASNOW"]
@@ -590,12 +596,16 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     vx_field_groups_all_by_obtype["MRMS"] = ["REFC", "RETOP"]
     vx_metatasks_all_by_obtype["MRMS"] \
     = ["task_get_obs_mrms",
-       "metatask_GridStat_REFC_RETOP_all_mems"]
+       "metatask_GridStat_REFC_RETOP_all_mems",
+       "metatask_GenEnsProd_EnsembleStat_REFC_RETOP",
+       "metatask_GridStat_REFC_RETOP_ensprob",
+       "metatask_vcast_REFC_RETOP",]
 
     vx_field_groups_all_by_obtype["NDAS"] = ["SFC", "UPA"]
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
+       "metatask_GenEnsProd_EnsembleStat_SFC_UPA",
        "metatask_PointStat_SFC_UPA_ensmean",
        "metatask_PointStat_SFC_UPA_ensprob",
     ]
