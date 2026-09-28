@@ -1,0 +1,31 @@
+metadata:
+  description: |-
+    This it the conf file that was used for retrieving obs data from HPSS for verification of data from the 2026 HWT spring forecasting experiment
+workflow:
+  DATE_FIRST_CYCL: '2026042712'
+  DATE_LAST_CYCL: '2026053112'
+  INCR_CYCL_FREQ: 24
+  FCST_LEN_HRS: 42
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+  - parm/wflow/get_obs.yaml
+  EXPT_SUBDIR: get_obs
+  USE_CRON_TO_RELAUNCH: false
+  EXPT_BASEDIR: rm_subdir
+  VERBOSE: true
+ensemble:
+  DO_ENSEMBLE: true
+  NUM_ENS_MEMBERS: 14
+  ENS_TIME_LAG_HRS: !list '[ 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6 ]'
+verification:
+  VX_FCST_MODEL_NAME: REFS
+  VX_FIELD_GROUPS:
+  - APCP
+  - REFC
+  - RETOP
+  - SFC
+  - UPA
+  VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/data/'
+user:
+  MACHINE: URSA
+  ACCOUNT: fv3lam

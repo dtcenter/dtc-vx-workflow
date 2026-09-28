@@ -65,7 +65,6 @@ python $SCRIPTSdir/genensprod_or_ensemblestat.py ${VERBOSE_FLAG} \
   --obs_dir="${OBS_DIR}" \
   --obtype="${OBTYPE}" \
   --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   --metplus_tool="${METPLUSTOOLNAME}" \
   ${ACCUM_ARG} || \
 print_err_msg_exit "\

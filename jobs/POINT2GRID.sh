@@ -62,7 +62,6 @@ python $SCRIPTSdir/point2grid.py ${VERBOSE_FLAG} \
   --cycle_date="${YYMMDD}${HH}" \
   --field_group="${FIELD_GROUP}" \
   --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   --obtype="${OBTYPE}" \
   --obs_dir="${OBS_DIR}" || \
 print_err_msg_exit "\

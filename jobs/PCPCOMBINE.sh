@@ -68,7 +68,6 @@ python $SCRIPTSdir/pcpcombine.py ${VERBOSE_FLAG} \
   --obs_dir="${OBS_DIR}" \
   --obtype="${OBTYPE}" \
   --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   ${ACCUM_ARG} ${ENSMEM_ARG} || \
 print_err_msg_exit "\
 Call to \"pcpcombine.py\" from \"${scrfunc_fn}\" failed."
