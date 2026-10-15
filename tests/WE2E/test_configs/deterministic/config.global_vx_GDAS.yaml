@@ -1,0 +1,21 @@
+metadata:
+  description: |-
+    This is a simple test for MET deterministic verification
+workflow:
+  DATE_FIRST_CYCL: '2026030100'
+  DATE_LAST_CYCL: '2026030100'
+  FCST_LEN_HRS: 6
+#  FCST_LEN_HRS: 240
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+    - parm/wflow/verify_pre.yaml
+#    - parm/wflow/verify_det.yaml
+verification:
+  VX_FCST_MODEL_NAME: gfs
+  VX_MASK: ['FULL']
+  VX_FCST_OUTPUT_INTVL_HRS: 3
+  #VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_verification'
+  #VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test/GFS/2026/20260301'
+  VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test'
+  FCST_SUBDIR_TEMPLATE: ''
+  FCST_FN_TEMPLATE: '{{verification.VX_FCST_MODEL_NAME.upper()}}/{init?fmt=%Y}/{init?fmt=%Y%m%d}/{{verification.VX_FCST_MODEL_NAME.lower()}}.0p25.{init?fmt=%Y%m%d%H}.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
