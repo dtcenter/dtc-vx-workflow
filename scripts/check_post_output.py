@@ -63,6 +63,8 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     lgr.debug(f"{fn_template=}")
     lgr.debug(f"{time_lag=}")
 
+    # Always use verbose output so that the log file lists which files were
+    # and were not found, not just the ones missing when the check fails.
     set_leadhrs(
         date_init=cdate,
         lhr_min=0,
@@ -72,6 +74,7 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
         time_lag=time_lag,
         fn_template=fn_template,
         num_missing_files_max=vxcfg["NUM_MISSING_FCST_FILES_MAX"],
+        verbose=True,
     )
 
     lgr.info(f"Post-processed output file check completed successfully for cycle {cdate}.")
