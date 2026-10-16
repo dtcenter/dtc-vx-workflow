@@ -89,8 +89,9 @@ fi
 conda activate
 
 # if first argument is vx_diff, create that environment
-# otherwise create vx_workflow
-ENV_NAME=$1
+# otherwise create vx_workflow.  Default to an empty string so that sourcing
+# this script with no arguments works in callers that use "set -u".
+ENV_NAME=${1:-}
 ENV_YAML=${SCRIPT_DIR}/environment.yml
 if [ "${ENV_NAME}" == vx_diff ]; then
   ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
