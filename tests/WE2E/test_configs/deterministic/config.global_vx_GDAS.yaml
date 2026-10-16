@@ -12,11 +12,19 @@ workflow:
     - parm/wflow/preprocessing.yaml
 #    - parm/wflow/verify_det.yaml
 verification:
+  #
+  NDAS_OBS_DIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test/GDAS'
+  OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', 'gdas.{valid?fmt=%Y%m%d}/{valid?fmt=%H}/atmos/gdas.t{valid?fmt=%H}z.prepbufr.nr' ]
+  OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT: 'prepbufr.gdas.{valid?fmt=%Y%m%d%H}.nc'
+  NDAS_OBS_AVAIL_INTVL_HRS: 6
+  #
   VX_FCST_MODEL_NAME: gfs
   VX_MASK: ['FULL']
-  VX_FCST_OUTPUT_INTVL_HRS: 3
+  #VX_FCST_OUTPUT_INTVL_HRS: 3
+  VX_FCST_OUTPUT_INTVL_HRS: 6
   #VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_verification'
-  #VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test/GFS/2026/20260301'
   VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test'
   FCST_SUBDIR_TEMPLATE: ''
   FCST_FN_TEMPLATE: '{{verification.VX_FCST_MODEL_NAME.upper()}}/{init?fmt=%Y}/{init?fmt=%Y%m%d}/{{verification.VX_FCST_MODEL_NAME.lower()}}.0p25.{init?fmt=%Y%m%d%H}.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  #
+  VX_FIELD_GROUPS: [ "SFC", "UPA" ]
