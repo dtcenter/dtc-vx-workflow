@@ -342,7 +342,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         launch_log_fn = workflow_config["WFLOW_LAUNCH_LOG_FN"]
         workflow_config["CRONTAB_LINE"] = (
             f"""*/{intvl_mnts} * * * * cd {exptdir} && """
-            f"""./{launch_script_fn} called_from_cron="True" >> ./{launch_log_fn} 2>&1"""
+            f"""./{launch_script_fn} --called_from_cron="True" >> ./{launch_log_fn} 2>&1"""
         )
     #
     # -----------------------------------------------------------------------
