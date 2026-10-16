@@ -12,11 +12,6 @@ platform:
   QUEUE_DEFAULT: main
   QUEUE_FCST: main 
   QUEUE_HPSS: main
-  RUN_CMD_FCST: mpiexec -n ${nprocs}
-  RUN_CMD_POST: mpiexec -n ${nprocs}
-  RUN_CMD_PRDGEN: mpiexec -n ${nprocs}
-  RUN_CMD_SERIAL: time
-  PRE_TASK_CMDS: '{ ulimit -s unlimited; ulimit -a; }'
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/input_model_data
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir

@@ -49,7 +49,7 @@ scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
-print_info_msg "
+printf "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
@@ -62,7 +62,6 @@ python $SCRIPTSdir/point2grid.py ${VERBOSE_FLAG} \
   --cycle_date="${YYMMDD}${HH}" \
   --field_group="${FIELD_GROUP}" \
   --fcst_level="${FCST_LEVEL}" \
-  --fcst_thresh="${FCST_THRESH}" \
   --obtype="${OBTYPE}" \
   --obs_dir="${OBS_DIR}" || \
 print_err_msg_exit "\

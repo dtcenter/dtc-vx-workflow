@@ -1,0 +1,2 @@
+BASELINE_COMMIT = "84b78ac3"
+BASELINE_BRANCH = "develop"

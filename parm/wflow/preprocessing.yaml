@@ -1,4 +1,4 @@
-default_task_verify_pre: &default_task_verify_pre
+default_task_preprocessing: &default_task_preprocessing
   account: '&ACCOUNT;'
   attrs:
     cycledefs: cycledefs_obs_days_inst
@@ -27,115 +27,18 @@ default_task_verify_pre: &default_task_verify_pre
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
   queue: '&QUEUE_DEFAULT;'
 
-task_get_obs_goes_aod:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'GOESAOD'
-    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
-  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
-  queue: "&QUEUE_HPSS;"
-  walltime: 02:00:00
-
-task_get_obs_goes_adp:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'GOESADP'
-    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
-  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
-  queue: "&QUEUE_HPSS;"
-  walltime: 02:00:00
-
-task_get_obs_aeronet:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'AERONET'
-    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  queue: "&QUEUE_HPSS;"
-  walltime: '{{ verification_resources.execution.get_obs.aeronet.walltime }}'
-
-task_get_obs_airnow:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'AIRNOW'
-    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  queue: "&QUEUE_HPSS;"
-  walltime: '{{ verification_resources.execution.get_obs.airnow.walltime }}'
-
-
-task_get_obs_ccpa:
-  <<: *default_task_verify_pre
-  attrs:
-    cycledefs: cycledefs_obs_days_cumul
-    maxtries: 1
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'CCPA'
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification_resources.execution.get_obs.ccpa.walltime }}"
-
-task_get_obs_nohrsc:
-  <<: *default_task_verify_pre
-  attrs:
-    cycledefs: cycledefs_obs_days_cumul
-    maxtries: 1
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'NOHRSC'
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification_resources.execution.get_obs.nohrsc.walltime }}"
-
-task_get_obs_mrms:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'MRMS'
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification_resources.execution.get_obs.mrms.walltime }}"
-
-task_get_obs_ndas:
-  <<: *default_task_verify_pre
-  command: "&JOBSdir;/GET_VERIF_OBS.sh"
-  envars:
-    <<: *default_vars
-    OBTYPE: 'NDAS'
-  queue: "&QUEUE_HPSS;"
-  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
-  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
-  walltime: "{{ verification_resources.execution.get_obs.ndas.walltime }}"
-
 task_run_MET_Pb2nc_obs_NDAS:
-  <<: *default_task_verify_pre
+  <<: *default_task_preprocessing
   attrs:
     cycledefs: cycledefs_obs_days_inst
-    maxtries: 2
+    maxtries: !int "{{ pb2nc.execution.tries }}"
   command: "&JOBSdir;/PB2NC_OBS.sh"
   envars:
     <<: *default_vars
     OBTYPE: NDAS
-  walltime: "{{ verification_resources.execution.pb2nc.walltime }}"
+  memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.execution.tasks_per_node }}'
+  walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
       datadep:
@@ -155,7 +58,7 @@ metatask_ASCII2nc_obs:
     METAOBS_DIR: '{% for var in verification.VX_FIELD_GROUPS %}{% if var =="AOD" %}&AERONET_OBS_DIR; {% elif var in ["PM25", "PM10"] %}&AIRNOW_OBS_DIR; {% endif %}{% endfor %}'
     TASKDEP: '{% for var in verification.VX_FIELD_GROUPS %}{% if var =="AOD" %}get_obs_aeronet {% elif var in ["PM25", "PM10"] %}get_obs_airnow {% endif %}{% endfor %}'
   task_run_MET_ASCII2nc_obs_#METAOBTYPE#:
-    <<: *default_task_verify_pre
+    <<: *default_task_preprocessing
     attrs:
       cycledefs: cycledefs_obs_days_inst
       maxtries: 2
@@ -180,10 +83,10 @@ metatask_ASCII2nc_obs:
               task: '#TASKDEP#'
 
 task_run_MET_Point2Grid_GOESAOD:
-  <<: *default_task_verify_pre
+  <<: *default_task_preprocessing
   attrs:
     cycledefs: forecast
-    maxtries: 2
+    maxtries: !int "{{ point2grid.execution.tries }}"
   command: "&JOBSdir;/POINT2GRID.sh"
   memory: '{{  point2grid.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   walltime: "{{ point2grid.execution.walltime }}"
@@ -219,7 +122,7 @@ metatask_PcpCombine_APCP_all_accums_obs_CCPA:
   var:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_PcpCombine_APCP#ACCUM_HH#h_obs_CCPA:
-    <<: *default_task_verify_pre
+    <<: *default_task_preprocessing
     attrs:
       cycledefs: forecast
       maxtries: 2
@@ -252,7 +155,7 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
   var:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   task_run_MET_PcpCombine_ASNOW#ACCUM_HH#h_obs_NOHRSC:
-    <<: *default_task_verify_pre
+    <<: *default_task_preprocessing
     attrs:
       cycledefs: forecast
       maxtries: 2
@@ -283,9 +186,9 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
 
 metatask_check_post_output_all_mems:
   var:
-    mem: '{% if ensemble.DO_ENSEMBLE %}{% for m in range(1, ensemble.NUM_ENS_MEMBERS+1) %}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
+    mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
   task_check_post_output_mem#mem#:
-    <<: *default_task_verify_pre
+    <<: *default_task_preprocessing
     attrs:
       cycledefs: forecast
       maxtries: 1
@@ -306,9 +209,9 @@ metatask_PcpCombine_APCP_all_accums_all_mems:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   metatask_PcpCombine_APCP#ACCUM_HH#h_all_mems:
     var:
-      mem: '{% if ensemble.DO_ENSEMBLE %}{% for m in range(1, ensemble.NUM_ENS_MEMBERS+1) %}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
+      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_APCP#ACCUM_HH#h_fcst_mem#mem#:
-      <<: *default_task_verify_pre
+      <<: *default_task_preprocessing
       attrs:
         cycledefs: forecast
         maxtries: 2
@@ -336,9 +239,9 @@ metatask_PcpCombine_ASNOW_all_accums_all_mems:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   metatask_PcpCombine_ASNOW#ACCUM_HH#h_all_mems:
     var:
-      mem: '{% if ensemble.DO_ENSEMBLE %}{% for m in range(1, ensemble.NUM_ENS_MEMBERS+1) %}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
+      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_ASNOW#ACCUM_HH#h_fcst_mem#mem#:
-      <<: *default_task_verify_pre
+      <<: *default_task_preprocessing
       attrs:
         cycledefs: forecast
         maxtries: 2
@@ -366,9 +269,9 @@ metatask_PcpCombine_fcst_PM_all_mems:
     PM: '{% for var in verification.VX_FIELD_GROUPS %}{{ ("%s " % var) if var in ["PM25", "PM10"] }}{% endfor %}'
   metatask_PcpCombine_fcst_#PM#_all_mems:
     var:
-      mem: '{% if ensemble.DO_ENSEMBLE %}{% for m in range(1, ensemble.NUM_ENS_MEMBERS+1) %}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
+      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_fcst_#PM#_mem#mem#:
-      <<: *default_task_verify_pre
+      <<: *default_task_preprocessing
       attrs:
         cycledefs: forecast
         maxtries: 2

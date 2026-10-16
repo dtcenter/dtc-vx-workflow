@@ -1,0 +1,127 @@
+default_task_get_obs: &default_task_get_obs
+  account: '&ACCOUNT;'
+  attrs:
+    cycledefs: cycledefs_obs_days_inst
+    maxtries: 1
+  envars: &default_vars
+    GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    YYMMDD:
+      cyclestr:
+        value: '@Y@m@d'
+    HH:
+      cyclestr:
+        value: '@H'
+    MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
+    METPLUS_ROOT: '&METPLUS_ROOT;'
+    LOGDIR:
+      cyclestr:
+        value: '&LOGDIR;'
+    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
+  native: '{{ platform.SCHED_NATIVE_CMD }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
+  queue: '&QUEUE_DEFAULT;'
+
+task_get_obs_goes_aod:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'GOESAOD'
+    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
+  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
+  queue: "&QUEUE_HPSS;"
+  walltime: 02:00:00
+
+task_get_obs_goes_adp:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'GOESADP'
+    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
+  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
+  queue: "&QUEUE_HPSS;"
+  walltime: 02:00:00
+
+task_get_obs_aeronet:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'AERONET'
+    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
+  walltime: '{{ verification_resources.execution.get_obs.aeronet.walltime }}'
+
+task_get_obs_airnow:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'AIRNOW'
+    FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
+  walltime: '{{ verification_resources.execution.get_obs.airnow.walltime }}'
+
+
+task_get_obs_ccpa:
+  <<: *default_task_get_obs
+  attrs:
+    cycledefs: cycledefs_obs_days_cumul
+    maxtries: 1
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'CCPA'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
+  walltime: "{{ verification_resources.execution.get_obs.ccpa.walltime }}"
+
+task_get_obs_nohrsc:
+  <<: *default_task_get_obs
+  attrs:
+    cycledefs: cycledefs_obs_days_cumul
+    maxtries: 1
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'NOHRSC'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
+  walltime: "{{ verification_resources.execution.get_obs.nohrsc.walltime }}"
+
+task_get_obs_mrms:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'MRMS'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  queue: "&QUEUE_HPSS;"
+  walltime: "{{ verification_resources.execution.get_obs.mrms.walltime }}"
+
+task_get_obs_ndas:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'NDAS'
+  queue: "&QUEUE_HPSS;"
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  walltime: "{{ verification_resources.execution.get_obs.ndas.walltime }}"

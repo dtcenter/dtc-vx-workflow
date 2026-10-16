@@ -39,7 +39,7 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-# Sets up PYTHONPATH, VERBOSE and ACCUM_ARG environment variables
+# Sets up PYTHONPATH and VERBOSE environment variables
 . $USHdir/set_job_env.sh
 #
 #-----------------------------------------------------------------------
@@ -54,7 +54,7 @@ scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 
-print_info_msg "
+printf "
 ========================================================================
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
@@ -62,12 +62,13 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-python $SCRIPTSdir/check_post_output.py \
+python $SCRIPTSdir/check_post_output.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
-  --ensmem_index="${ENSMEM_INDX}" \
-  --cycle_date="${YYMMDD}${HH}" || \
+  --cycle_date="${YYMMDD}${HH}" \
+  ${ENSMEM_ARG} || \
 print_err_msg_exit "\
 Call to \"check_post_output.py\" from \"${scrfunc_fn}\" failed."
+
 #
 #-----------------------------------------------------------------------
 #
