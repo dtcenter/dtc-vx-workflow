@@ -630,21 +630,27 @@ def get_obs_retrieve_times_by_day(
     # or instantaneous fields), and a list of the field groups that the obs
     # type may be used to verify.
     obs_info \
-    = [{'obtype': 'CCPA',   'time_type': 'cumul', 'field_groups': ['APCP']},
-       {'obtype': 'NOHRSC', 'time_type': 'cumul', 'field_groups': ['ASNOW']},
-       {'obtype': 'MRMS',   'time_type': 'inst',  'field_groups': ['REFC', 'RETOP']},
-       {'obtype': 'NDAS',   'time_type': 'inst',  'field_groups': ['SFC', 'UPA']},
-       {'obtype': 'AERONET',   'time_type': 'inst',   'field_groups': ['AOD']},
-       {'obtype': 'AIRNOW',   'time_type': 'inst',  'field_groups': ['PM25', 'PM10']},
-       {'obtype': 'GOESAOD',   'time_type': 'inst',  'field_groups': ['GOESAOD']},
-       {'obtype': 'GOESADP',   'time_type': 'inst',  'field_groups': ['GOESADP']},
+    = [{'obtype': 'CCPA',    'time_type': 'cumul', 'field_groups': ['APCP']},
+       {'obtype': 'NOHRSC',  'time_type': 'cumul', 'field_groups': ['ASNOW']},
+       {'obtype': 'MRMS',    'time_type': 'inst',  'field_groups': ['REFC', 'RETOP']},
+       {'obtype': 'NDAS',    'time_type': 'inst',  'field_groups': ['SFC', 'UPA']},
+#       {'obtype': 'GDAS',    'time_type': 'inst',  'field_groups': ['SFC', 'UPA']},
+       {'obtype': 'GDAS',    'time_type': 'inst',  'field_groups': []},  # Temporary
+       {'obtype': 'AERONET', 'time_type': 'inst',  'field_groups': ['AOD']},
+       {'obtype': 'AIRNOW',  'time_type': 'inst',  'field_groups': ['PM25', 'PM10']},
+       {'obtype': 'GOESAOD', 'time_type': 'inst',  'field_groups': ['GOESAOD']},
+       {'obtype': 'GOESADP', 'time_type': 'inst',  'field_groups': ['GOESADP']},
       ]
 
-    # Remove obs_info entries that don't have field groups to verify based on user settings
+    # For each obtype-specific dictionary in obs_info, keep only those field
+    # groups that have been requested for verification in the workflow config
+    # file.
     for obs_dict in obs_info:
         obs_dict['field_groups'] = [fg for fg in obs_dict['field_groups'] if fg in vx_field_groups]
 
-    # Remove any obs_dict with empty field_groups
+    # After the filtering above, some of the obtype-specific dictionaries
+    # in obs_info may end up with no field groups at all.  Remove those 
+    # dictionaries.
     obs_info = [obs_dict for obs_dict in obs_info if obs_dict['field_groups']]
 
     # For convenience, define timedelta object representing a single day.

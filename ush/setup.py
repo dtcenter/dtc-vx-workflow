@@ -600,6 +600,16 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
        "metatask_PointStat_SFC_UPA_ensprob",
     ]
 
+    # Temporary: GDAS has no field groups (so all GDAS tasks are removed from
+    # the workflow) until NDAS-or-GDAS selection for SFC/UPA is added.  The
+    # SFC/UPA ensemble PointStat metatasks are not listed here because they
+    # are shared with NDAS and must not be removed when NDAS is used.
+    vx_field_groups_all_by_obtype["GDAS"] = []
+    vx_metatasks_all_by_obtype["GDAS"] \
+    = ["task_get_obs_gdas",
+       "task_run_MET_Pb2nc_obs_GDAS",
+    ]
+
     vx_field_groups_all_by_obtype["AERONET"] = ["AOD"]
     vx_metatasks_all_by_obtype["AERONET"] \
     = ["task_get_obs_aeronet"]
