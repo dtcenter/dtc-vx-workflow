@@ -120,7 +120,24 @@ FV3GFS:
     file_names:
       <<: *gfs_file_names
 
+# GDAS obs.
 GDAS:
+  hpss:
+    protocol: htar
+    archive_format: tar
+    archive_path:
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+    archive_file_names:
+      - "com_obsproc_v1.2_gdas.{yyyy}{mm}{dd}_{hh}.obsproc_gdas.tar"
+    archive_internal_dir:
+      - "./gdas.{yyyy}{mm}{dd}/{hh}/atmos"
+    file_names:
+      obs:
+        - "gdas.t{hh}z.prepbufr.nr"
+
+# Short-range forecasts from the GDAS EnKF ensemble members (formerly used
+# for regional ICs/LBCs in the SRW App).
+GDAS-ENKF-FCST:
   hpss:
     protocol: htar
     archive_path:
