@@ -17,7 +17,7 @@ def set_leadhrs(date_init, lhr_min, lhr_max, lhr_intvl, base_dir, time_lag, fn_t
         lhr_max               (int): Maximum lead hour to check
         lhr_intvl             (int): Interval between lead hours
         base_dir              (str): Base directory for forecast/observation file
-        time_lag              (int): Hours of time lag for a time-lagged ensemble member
+        time_lag              (int): Time lag for a time-lagged ensemble member, in seconds
         fn_template           (str): The METplus filename template for finding the files
         verbose              (bool): By default this script only outputs the list of forecast hours
                                      (for easier parsing from bash contexts). Set the verbose flag
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     parser.add_argument("-min", "--lhr_min", help="Minimum lead hour to check", type=int, required=True)
     parser.add_argument("-max", "--lhr_max", help="Maximum lead hour to check", type=int, required=True)
     parser.add_argument("-int", "--lhr_intvl", help="Interval between lead hours", type=int, required=True)
-    parser.add_argument("-tl", "--time_lag", help="Hours of time lag for a time-lagged ensemble member", type=int, default=0)
+    parser.add_argument("-tl", "--time_lag", help="Time lag for a time-lagged ensemble member, in seconds", type=int, default=0)
     parser.add_argument("-bd", "--base_dir", help="Base directory for forecast/observation file", type=str, default='')
     parser.add_argument("-ft", "--fn_template", help="Template for file names to search; see ??? for details on template settings", type=str, default='')
     parser.add_argument("-n", "--num_missing_files_max", type=int, default=5,

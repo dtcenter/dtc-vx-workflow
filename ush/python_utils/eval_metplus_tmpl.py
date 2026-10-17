@@ -15,7 +15,7 @@ def eval_metplus_timestr_tmpl(fn_template, init_time=None, lhr=None, time_lag=No
         init_time   (str): Date string for initial time in YYYYMMDD[mmss] format, where minutes and
                            seconds are optional.
         lhr         (int): [optional] Lead hour (number of hours since init_time)
-        time_lag    (int): [optional] Hours of time lag for a time-lagged ensemble member
+        time_lag    (int): [optional] Time lag for a time-lagged ensemble member, in seconds
         basin       (str): [optional] The basin ID for a given tropical cyclone
         cyclone     (int): [optional] The cyclone number for a given tropical cyclone
     Returns:
@@ -75,7 +75,7 @@ def eval_metplus_dt_tmpl(fn_template, initdate=None, validdate=None, time_lag=No
         fn_template (str): The METplus filename template for finding the files
         initdate     (dt): Datetime object of initial time
         validdate    (dt): [optional] Datetime object for valid time
-        time_lag    (int): [optional] Hours of time lag for a time-lagged ensemble member
+        time_lag    (int): [optional] Time lag for a time-lagged ensemble member, in seconds
         basin       (str): [optional] The basin ID for a given tropical cyclone
         cyclone     (int): [optional] The cyclone number for a given tropical cyclone
     Returns:
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", help="Verbose output", action="store_true")
     parser.add_argument("-i", "--init_time", help="Initial date in YYYYMMDDHH[mmss] format", type=str, default='')
     parser.add_argument("-l", "--lhr", help="Lead hour", type=int, required=True)
-    parser.add_argument("-tl", "--time_lag", help="Hours of time lag for a time-lagged ensemble member", type=int, default=0)
+    parser.add_argument("-tl", "--time_lag", help="Time lag for a time-lagged ensemble member, in seconds", type=int, default=0)
     parser.add_argument("-ft", "--fn_template", help="Template for file names to search; see ??? for details on template settings", type=str, default='')
 
     args = parser.parse_args()
