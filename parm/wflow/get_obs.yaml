@@ -75,7 +75,6 @@ task_get_obs_airnow:
   queue: "&QUEUE_HPSS;"
   walltime: '{{ verification_resources.execution.get_obs.airnow.walltime }}'
 
-
 task_get_obs_ccpa:
   <<: *default_task_get_obs
   attrs:
@@ -125,3 +124,14 @@ task_get_obs_ndas:
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
   walltime: "{{ verification_resources.execution.get_obs.ndas.walltime }}"
+
+task_get_obs_gdas:
+  <<: *default_task_get_obs
+  command: "&JOBSdir;/GET_VERIF_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: 'GDAS'
+  queue: "&QUEUE_HPSS;"
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+  walltime: "{{ verification_resources.execution.get_obs.gdas.walltime }}"
