@@ -494,6 +494,8 @@ def get_obs(config, obtype, yyyymmdd_task):
                     File already exists on disk:
                         {fp_proc = }
                     """)
+                # Use INFO (not DEBUG) so that the log file always lists the
+                # obs files that were found, not just the ones that are missing.
                 logging.info(msg)
             else:
                 arcv_hr_start = get_obs_arcv_hr(obtype, arcv_intvl_hrs, yyyymmddhh.hour)

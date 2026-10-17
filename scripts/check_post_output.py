@@ -63,8 +63,8 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     lgr.debug(f"{fn_template=}")
     lgr.debug(f"{time_lag=}")
 
-    # Always use verbose output so that the log file lists which files were
-    # and were not found, not just the ones missing when the check fails.
+    # Use verbose output so that the log file always lists which files
+    # were/weren't found, not just the ones missing when the check fails.
     set_leadhrs(
         date_init=cdate,
         lhr_min=0,
