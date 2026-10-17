@@ -153,6 +153,13 @@
             }
           ],
           "type": "array"
+        },
+        "VX_OBTYPE_SFC_UPA": {
+          "enum": [
+            "NDAS",
+            "GDAS"
+          ],
+          "type": "string"
         }
       }
     },

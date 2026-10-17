@@ -728,6 +728,21 @@ verification:
   #
   VX_FIELD_GROUPS: [ "APCP", "REFC", "RETOP", "SFC", "UPA" ]
   #
+  # VX_OBTYPE_SFC_UPA:
+  # The type of observations to use for verifying the surface (SFC) and
+  # upper-air (UPA) field groups.  Valid values are:
+  #
+  #   * "NDAS": NAM Data Assimilation System prepbufr obs (regional, North
+  #     America).
+  #   * "GDAS": Global Data Assimilation System prepbufr obs (global).
+  #
+  # Only the obs of the type selected here are retrieved and processed, and
+  # only they are used in the SFC and UPA verification tasks.  The interval
+  # at which each obs type is available is set by NDAS_OBS_AVAIL_INTVL_HRS
+  # and GDAS_OBS_AVAIL_INTVL_HRS, respectively.
+  #
+  VX_OBTYPE_SFC_UPA: "NDAS"
+  #
   # VX_FIELDS_EXCLUDE:
   # A list of forecast field names (fcst_name) to exclude from ALL verification
   # tasks. This is an experiment-wide "omit this variable everywhere" switch: any

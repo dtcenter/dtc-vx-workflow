@@ -623,6 +623,13 @@ def get_obs_retrieve_times_by_day(
     # Get list of field groups to be verified.
     vx_field_groups = vx_config['VX_FIELD_GROUPS']
 
+    # The SFC and UPA field groups (fgs) are verified against either NDAS or
+    # GDAS obs, as specified by VX_OBTYPE_SFC_UPA.  Set the fgs of each of
+    # these two obs types accordingly.  The obs type not selected gets an
+    # empty list of fgs.
+    fgs_sfc_upa = {obtype: ['SFC', 'UPA'] if obtype == vx_config['VX_OBTYPE_SFC_UPA'] else []
+                   for obtype in ['NDAS', 'GDAS']}
+
     # Define a list of dictionaries containing information about all the obs
     # types that can possibly be used for verification in the workflow.  Each
     # dictionary in the list contains the name of the obs type, the temporal
@@ -633,9 +640,8 @@ def get_obs_retrieve_times_by_day(
     = [{'obtype': 'CCPA',    'time_type': 'cumul', 'field_groups': ['APCP']},
        {'obtype': 'NOHRSC',  'time_type': 'cumul', 'field_groups': ['ASNOW']},
        {'obtype': 'MRMS',    'time_type': 'inst',  'field_groups': ['REFC', 'RETOP']},
-       {'obtype': 'NDAS',    'time_type': 'inst',  'field_groups': ['SFC', 'UPA']},
-#       {'obtype': 'GDAS',    'time_type': 'inst',  'field_groups': ['SFC', 'UPA']},
-       {'obtype': 'GDAS',    'time_type': 'inst',  'field_groups': []},  # Temporary
+       {'obtype': 'NDAS',    'time_type': 'inst',  'field_groups': fgs_sfc_upa['NDAS']},
+       {'obtype': 'GDAS',    'time_type': 'inst',  'field_groups': fgs_sfc_upa['GDAS']},
        {'obtype': 'AERONET', 'time_type': 'inst',  'field_groups': ['AOD']},
        {'obtype': 'AIRNOW',  'time_type': 'inst',  'field_groups': ['PM25', 'PM10']},
        {'obtype': 'GOESAOD', 'time_type': 'inst',  'field_groups': ['GOESAOD']},
