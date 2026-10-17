@@ -120,17 +120,41 @@ FV3GFS:
     file_names:
       <<: *gfs_file_names
 
-# GDAS obs.
+# GDAS conventional obs (prepbufr, non-restricted ".nr" version).  The archive
+# names and internal layouts below were checked on HPSS; together they cover
+# 2017-07-20 to present.  Older archives (com2_..., before 2017-07-20) name
+# the file gdas1.tHHz.prepbufr.nr, which get_obs.py does not yet support.
 GDAS:
   hpss:
     protocol: htar
     archive_format: tar
     archive_path:
       - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
+      - /NCEPPROD/hpssprod/runhistory/rh{yyyy}/{yyyy}{mm}/{yyyy}{mm}{dd}
     archive_file_names:
+      # 2024-05-21 to present
       - "com_obsproc_v1.2_gdas.{yyyy}{mm}{dd}_{hh}.obsproc_gdas.tar"
+      # 2022-11-29 to 2024-05-20
+      - "com_obsproc_v1.1_gdas.{yyyy}{mm}{dd}_{hh}.obsproc_gdas.tar"
+      # 2022-06-27 to 2022-11-28
+      - "com_obsproc_v1.0_gdas.{yyyy}{mm}{dd}_{hh}.obsproc_gdas.tar"
+      # 2020-02-26 to 2022-06-26
+      - "com_gfs_prod_gdas.{yyyy}{mm}{dd}_{hh}.gdas.tar"
+      # 2019-06-12 to 2020-02-25
+      - "gpfs_dell1_nco_ops_com_gfs_prod_gdas.{yyyy}{mm}{dd}_{hh}.gdas.tar"
+      # 2017-07-20 to 2019-06-11
+      - "gpfs_hps_nco_ops_com_gfs_prod_gdas.{yyyy}{mm}{dd}{hh}.tar"
     archive_internal_dir:
+      # 2021-03-21 to present
       - "./gdas.{yyyy}{mm}{dd}/{hh}/atmos"
+      # 2019-06-12 to 2021-03-20
+      - "./gdas.{yyyy}{mm}{dd}/{hh}"
+      # 2017-07-20 to 2019-06-11
+      - "./"
     file_names:
       obs:
         - "gdas.t{hh}z.prepbufr.nr"
