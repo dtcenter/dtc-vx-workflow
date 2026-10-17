@@ -172,7 +172,7 @@ These directories are used only by the ``run_WE2E_tests.py`` script, so they are
 ``TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS``, ``TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS``: (Default: "")
    These parameters are used by the testing script to test the mechanism that allows users to point to a data stream on disk. They set up a sandbox location that mimics the stream in a more controlled way and test the ability to access :term:`ICS` or :term:`LBCS`, respectively. 
 
-``TEST_CCPA_OBS_DIR``, ``TEST_MRMS_OBS_DIR``, ``TEST_NDAS_OBS_DIR``, ``TEST_NOHRSC_OBS_DIR``, ``TEST_AERONET_OBS_DIR``, ``TEST_AIRNOW_OBS_DIR``: (Default: "")
+``TEST_CCPA_OBS_DIR``, ``TEST_MRMS_OBS_DIR``, ``TEST_NDAS_OBS_DIR``, ``TEST_GDAS_OBS_DIR``, ``TEST_NOHRSC_OBS_DIR``, ``TEST_AERONET_OBS_DIR``, ``TEST_AIRNOW_OBS_DIR``: (Default: "")
 These parameters are used by the testing script to test the mechanism that allows user to point to data streams on disk for observation data for verification tasks. They test the ability for users to set ``CCPA_OBS_DIR``, ``MRMS_OBS_DIR``, ``NDAS_OBS_DIR``, etc.
 
 ``TEST_VX_FCST_INPUT_BASEDIR``: (Default: "") 
@@ -459,6 +459,7 @@ VX Parameters for Observations
       * NOHRSC (National Operational Hydrologic Remote Sensing Center)
       * MRMS (Multi-Radar Multi-Sensor)
       * NDAS (NAM Data Assimilation System)
+      * GDAS (Global Data Assimilation System)
       * AERONET (Aerosol Robotic Network)
       * AIRNOW (AirNow air quality reports)
       * GOESAOD (GOES satellite Aerosol Optical Depth)
@@ -467,15 +468,15 @@ VX Parameters for Observations
    The script ``ush/get_obs.py`` contains further details on the files and
    directory structure of each obs type.
 
-``[CCPA|NOHRSC|MRMS|NDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_OBS_AVAIL_INTVL_HRS``: (Defaults: [1|6|1|1|1|1|1|1])
+``[CCPA|NOHRSC|MRMS|NDAS|GDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_OBS_AVAIL_INTVL_HRS``: (Defaults: [1|6|1|1|6|1|1|1|1])
   Time interval (in hours) at which the various types of obs are available
   in the default location (see ``OBS_DATA_STORE_`` variables)
 
   Note that MRMS and GOES files are in fact available every few minutes, but here
   we set the obs availability interval to 1 hour because verification of sub-hourly forecast output is not yet supported.
 
-``[CCPA|NOHRSC|MRMS|NDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_OBS_DIR``: (Default: ``"{{ workflow.EXPTDIR }}/obs_data/[ccpa|nohrsc|mrms|ndas|aeronet|airnow|goesaod|goesadp]"``)
-   Base directory in which CCPA, NOHRSC, MRMS, NDAS, AERONET, AIRNOW, or GOES obs files needed by
+``[CCPA|NOHRSC|MRMS|NDAS|GDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_OBS_DIR``: (Default: ``"{{ workflow.EXPTDIR }}/obs_data/[ccpa|nohrsc|mrms|ndas|gdas|aeronet|airnow|goesaod|goesadp]"``)
+   Base directory in which CCPA, NOHRSC, MRMS, NDAS, GDAS, AERONET, AIRNOW, or GOES obs files needed by
    the verification tasks are located.  If the files do not exist, they
    will be retrieved and placed under this directory.  Note that:
 
@@ -488,7 +489,7 @@ VX Parameters for Observations
      that need to be corrected during obs retrieval.  This is described
      in more detail in the script ``ush/get_obs.py``.
 
-``OBS_[CCPA|NOHRSC|MRMS|NDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_FN_TEMPLATES``:
+``OBS_[CCPA|NOHRSC|MRMS|NDAS|GDAS|AERONET|AIRNOW|GOESAOD|GOESADP]_FN_TEMPLATES``:
      **Defaults:**
 
      ``OBS_CCPA_FN_TEMPLATES``:
@@ -513,6 +514,11 @@ VX Parameters for Observations
         .. code-block:: console
 
            [ 'SFCandUPA', 'prepbufr.ndas.{valid?fmt=%Y%m%d%H}' ]
+
+     ``OBS_GDAS_FN_TEMPLATES``:
+        .. code-block:: console
+
+           [ 'SFCandUPA', 'prepbufr.gdas.{valid?fmt=%Y%m%d%H}' ]
 
      ``OBS_AERONET_FN_TEMPLATES``:
         .. code-block:: console
@@ -560,7 +566,7 @@ VX Parameters for Observations
    * The file name templates are relative to the obs base directories given in
      the variables
 
-         ``[CCPA|NOHRSC|MRMS|NDAS]_OBS_DIR``
+         ``[CCPA|NOHRSC|MRMS|NDAS|GDAS]_OBS_DIR``
 
      defined above.  Thus, the template for the full path to the obs files
      is given, e.g. for CCPA obs, by
@@ -574,8 +580,8 @@ VX Parameters for Observations
    * The file name templates may represent file names only, or they may
      include leading relative directories.
 
-   * The default values of these variables for the CCPA, NOHRSC, and NDAS
-     obs types contain only one pair of values (because these obs types
+   * The default values of these variables for the CCPA, NOHRSC, NDAS, and
+     GDAS obs types contain only one pair of values (because these obs types
      contain only one set of files that we use in the verification) while
      the default value for the MRMS obs type contains two pairs of values,
      one for the set of files that contains composite reflectivity data
@@ -599,7 +605,7 @@ VX Parameters for Observations
      obs type is needed at at least some hours.  That ``get_obs`` task first
      checks whether all the necessary obs files for that day already exist
      at the locations specified by the full path template(s) (which are
-     obtained by combining the base directories [CCPA|NOHRSC|MRMS|NDAS]_OBS_DIR
+     obtained by combining the base directories [CCPA|NOHRSC|MRMS|NDAS|GDAS]_OBS_DIR
      with the file name template(s)).  If for a given day one or more of
      these obs files do not exist on disk, the ``get_obs`` task will retrieve
      "raw" versions of these files from a data store (e.g. NOAA's HPSS)
@@ -679,7 +685,7 @@ VX Parameters for Observations
    Different forecast model data have different particulate matter variables that must be verified differently
    with AIRNOW observations.  Valid options are ``RRFS`` and ``HRRR``.
 
-``OBS_DATA_STORE_[CCPA|NOHRSC|MRMS|NDAS|AERONET|AIRNOW|GOESAOD|GOESADP]``: (Defaults: ``[hpss|hpss|hpss|hpss|hpss|hpss|aws|aws]``)
+``OBS_DATA_STORE_[CCPA|NOHRSC|MRMS|NDAS|GDAS|AERONET|AIRNOW|GOESAOD|GOESADP]``: (Defaults: ``[hpss|hpss|hpss|hpss|hpss|hpss|hpss|aws|aws]``)
    Data repository to retrieve observation data from. Valid values are "aws" and/or "hpss", see
    ``parm/data_locations.yaml`` for info on these data stores.
 
@@ -689,6 +695,10 @@ VX Parameters for Observations
    prepbufr files in NDAS observations.  These files will contain the
    observed surface (SFC) and upper-air (UPA) fields in NetCDF format
    (instead of NDAS's native prepbufr format).
+
+``OBS_GDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT``: (Default: ``'{{ verification.OBS_GDAS_FN_TEMPLATES[1] }}.nc'``)
+   Same as ``OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT`` but for GDAS
+   observations.
 
 ``NUM_MISSING_OBS_FILES_MAX``: (Default: 0)
    For verification tasks that need observational data, this specifies
