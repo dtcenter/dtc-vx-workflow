@@ -8,12 +8,37 @@
 # (conda_loc, conda/, environment.yml) work regardless of the caller's CWD.
 SCRIPT_DIR=$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Parse arguments.  This script accepts the following (in any order):
+#
+# - The name of the conda environment to activate (vx_workflow or vx_diff;
+#   default: vx_workflow).
+# - The flag --non-interactive.  When sourcing this script from other
+#   scripts that run non-interactively (e.g. from a cron job or a batch
+#   job), this script should also run non-interactively.  With this flag,
+#   instead of prompting the user, this script uses the following answers:
+#     - Use existing conda build under "${SCRIPT_DIR}/conda"?  Yes
+#     - Use existing system-level conda?  No
+#     - Check existing environment for updates?  No
+ENV_NAME=""
+NON_INTERACTIVE=false
+for arg in "$@"; do
+  case "${arg}" in
+    --non-interactive) NON_INTERACTIVE=true ;;
+    *) ENV_NAME="${arg}" ;;
+  esac
+done
+unset arg
+
 # If the conda location file does not exist but a conda installation exists under
 # dtc-vx-workflow/ from a previous installation, check if user wants to use it.
 # This is a legacy check for environments created with an older version of this script
 if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && [ -d "${SCRIPT_DIR}/conda" ] ; then
   echo "Found existing conda installation in conda/ subdirectory"
-  read -p "Do you want to use the existing conda build? (y/n) " -r
+  if [ "${NON_INTERACTIVE}" = true ] ; then
+    REPLY="y"
+  else
+    read -p "Do you want to use the existing conda build? (y/n) " -r
+  fi
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
     EXISTING_CONDA_BUILD="$(builtin cd "${SCRIPT_DIR}/conda" && pwd)"
@@ -27,7 +52,11 @@ USE_SYSTEM_CONDA=false
 if [ ! -f "${SCRIPT_DIR}/conda_loc" ] && command -v conda &> /dev/null ; then
   CONDA_BASE=$(conda info --base)
   echo "Found existing conda installation at: ${CONDA_BASE}"
-  read -p "Do you want to use your existing system conda? (y/n) " -r
+  if [ "${NON_INTERACTIVE}" = true ] ; then
+    REPLY="n"
+  else
+    read -p "Do you want to use your existing system conda? (y/n) " -r
+  fi
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
     USE_SYSTEM_CONDA=true
@@ -88,9 +117,8 @@ fi
 
 conda activate
 
-# if first argument is vx_diff, create that environment
+# if the environment name argument is vx_diff, create that environment
 # otherwise create vx_workflow
-ENV_NAME=$1
 ENV_YAML=${SCRIPT_DIR}/environment.yml
 if [ "${ENV_NAME}" == vx_diff ]; then
   ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
@@ -102,7 +130,11 @@ if ! conda env list 2>/dev/null | grep -q "^${ENV_NAME}\s" ; then
   echo "Creating ${ENV_NAME} environment..."
   mamba env create -n ${ENV_NAME} --file "${ENV_YAML}" --quiet
 else
-  read -p "${ENV_NAME} environment has already been built. Check for updates using environment.yml? (y/n) " -r
+  if [ "${NON_INTERACTIVE}" = true ] ; then
+    REPLY="n"
+  else
+    read -p "${ENV_NAME} environment has already been built. Check for updates using environment.yml? (y/n) " -r
+  fi
   echo
   if [[ $REPLY =~ ^[Yy]$ ]] ; then
     echo "Updating ${ENV_NAME} environment..."
