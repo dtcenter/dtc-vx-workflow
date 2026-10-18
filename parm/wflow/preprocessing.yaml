@@ -186,7 +186,7 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
 
 metatask_check_post_output_all_mems:
   var:
-    mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
+    mem: '{% for m in range(ensemble.ENSMEM_INDX_MIN, ensemble.ENSMEM_INDX_MAX+1) %}{{ "%03d "%m }}{%- endfor -%}'
   task_check_post_output_mem#mem#:
     <<: *default_task_preprocessing
     attrs:
@@ -209,7 +209,7 @@ metatask_PcpCombine_APCP_all_accums_all_mems:
     ACCUM_HH: '{% for ah in verification.VX_APCP_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   metatask_PcpCombine_APCP#ACCUM_HH#h_all_mems:
     var:
-      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
+      mem: '{% for m in range(ensemble.ENSMEM_INDX_MIN, ensemble.ENSMEM_INDX_MAX+1) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_APCP#ACCUM_HH#h_fcst_mem#mem#:
       <<: *default_task_preprocessing
       attrs:
@@ -239,7 +239,7 @@ metatask_PcpCombine_ASNOW_all_accums_all_mems:
     ACCUM_HH: '{% for ah in verification.VX_ASNOW_ACCUMS_HRS %}{% if workflow.FCST_LEN_HRS >= ah %}{{ "%02d " % ah }}{% endif %}{% endfor %}'
   metatask_PcpCombine_ASNOW#ACCUM_HH#h_all_mems:
     var:
-      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
+      mem: '{% for m in range(ensemble.ENSMEM_INDX_MIN, ensemble.ENSMEM_INDX_MAX+1) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_ASNOW#ACCUM_HH#h_fcst_mem#mem#:
       <<: *default_task_preprocessing
       attrs:
@@ -269,7 +269,7 @@ metatask_PcpCombine_fcst_PM_all_mems:
     PM: '{% for var in verification.VX_FIELD_GROUPS %}{{ ("%s " % var) if var in ["PM25", "PM10"] }}{% endfor %}'
   metatask_PcpCombine_fcst_#PM#_all_mems:
     var:
-      mem: '{% for m in range(0, ensemble.NUM_ENS_MEMBERS) %}{{ "%03d "%m }}{%- endfor -%}'
+      mem: '{% for m in range(ensemble.ENSMEM_INDX_MIN, ensemble.ENSMEM_INDX_MAX+1) %}{{ "%03d "%m }}{%- endfor -%}'
     task_run_MET_PcpCombine_fcst_#PM#_mem#mem#:
       <<: *default_task_preprocessing
       attrs:
