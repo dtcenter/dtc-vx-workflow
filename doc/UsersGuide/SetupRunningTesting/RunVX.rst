@@ -671,10 +671,10 @@ fields they include are given in :numref:`Table %s <VXFieldGroupDescsTable>`.
      - MRMS
      - Echo top
    * - SFC
-     - NDAS
+     - NDAS or GDAS (see ``VX_OBTYPE_SFC_UPA``)
      - Various surface and near-surface fields (e.g. at the surface, 2 m, 10 m, etc)
    * - UPA
-     - NDAS
+     - NDAS or GDAS (see ``VX_OBTYPE_SFC_UPA``)
      - Various upper-air fields (e.g. at 800 mb, 500 mb, etc)
    * - AOD
      - AERONET
@@ -706,11 +706,25 @@ associated with the :term:`NOHRSC` obs type and the ``'ASNOW'`` field group.  Us
 ``VX_FIELD_GROUPS`` in this way for example because the forecast experiment they are verifying is for a
 summer period for which ``ASNOW`` is not relevant.
 
+The ``SFC`` and ``UPA`` field groups can be verified against either :term:`NDAS` obs (the default;
+regional, covering North America) or :term:`GDAS` obs (global), as specified by ``VX_OBTYPE_SFC_UPA``
+in the ``verification:`` section of ``config.yaml``.  For example, to verify a global forecast, set:
+
+.. code-block:: console
+
+   VX_OBTYPE_SFC_UPA: 'GDAS'
+
+Only the tasks for the selected obs type are included in the Rocoto XML.  Note that GDAS obs are
+available less often than NDAS obs (see ``GDAS_OBS_AVAIL_INTVL_HRS`` and ``NDAS_OBS_AVAIL_INTVL_HRS``).
+``VX_FCST_OUTPUT_INTVL_HRS`` should be chosen so that the forecast output times line up with the
+times at which the obs are available; otherwise, the verification tasks will treat the forecast output
+times for which no obs are available as having missing obs (see ``NUM_MISSING_OBS_FILES_MAX``).
+
 
 Staging Observation Files
 ``````````````````````````````````
 The taskgroup in ``verify_pre.yaml`` defines a set of workflow tasks named ``get_obs_*``, where the ``*``
-represents any one of the supported obs types: :term:`CCPA`, :term:`NOHRSC`, :term:`MRMS`, :term:`NDAS`, :term:`AERONET`, and :term:`AIRNOW`. These ``get_obs_*`` tasks 
+represents any one of the supported obs types: :term:`CCPA`, :term:`NOHRSC`, :term:`MRMS`, :term:`NDAS`, :term:`GDAS`, :term:`AERONET`, and :term:`AIRNOW`. These ``get_obs_*`` tasks
 will first check on disk for the existence of the obs files required for VX using the locations specified
 by the variables ``*_OBS_DIR`` and ``OBS_*_FN_TEMPLATES[1,3,...]`` in the ``verification:`` section of
 ``config.yaml``. The ``*_OBS_DIR``  are the base directories in which the obs files are or should be
@@ -739,7 +753,7 @@ that attempt is successful, the workflow will move on to subsequent tasks.  Thus
      and ``OBS_*_FN_TEMPLATES[1,3,...]`` in ``config.yaml`` to match those staging locations and file names.
    
    * Users who do not have the obs files available on their systems and do not have access to NOAA HPSS
-     need to download :term:`CCPA`, :term:`NOHRSC`, :term:`MRMS`, :term:`NDAS`, :term:`AERONET`, and/or
+     need to download :term:`CCPA`, :term:`NOHRSC`, :term:`MRMS`, :term:`NDAS`, :term:`GDAS`, :term:`AERONET`, and/or
      :term:`AIRNOW` files manually from collections of publicly available data.
      Then, as above, they must set ``*_OBS_DIR`` and ``OBS_*_FN_TEMPLATES[1,3,...]`` to match those
      staging locations and file names.
@@ -976,51 +990,64 @@ The METplus verification tasks and metatasks that are included by default in ``v
    * - Workflow (Meta)Task (``taskgroup``)
      - Task Description
 
-   * - :bolditalic:`task_get_obs_ccpa` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_ccpa` (``get_obs.yaml``)
      - Checks for existence of staged :term:`CCPA` obs files at locations specified by ``CCPA_OBS_DIR``
        and ``OBS_CCPA_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
        in the workflow only if ``'APCP'`` is included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`task_get_obs_nohrsc` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_nohrsc` (``get_obs.yaml``)
      - Checks for existence of staged :term:`NOHRSC` obs files at locations specified by ``NOHRSC_OBS_DIR``
        and ``OBS_NOHRSC_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
        in the workflow only if ``'ASNOW'`` is included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`task_get_obs_mrms` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_mrms` (``get_obs.yaml``)
      - Checks for existence of staged :term:`MRMS` obs files at locations specified by ``MRMS_OBS_DIR``
        and ``OBS_MRMS_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
        in the workflow only if ``'REFC'`` and/or ``'RETOP'`` are included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`task_get_obs_ndas` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_ndas` (``get_obs.yaml``)
      - Checks for existence of staged :term:`NDAS` obs files at locations specified by ``NDAS_OBS_DIR``
        and ``OBS_NDAS_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
-       in the workflow only if ``'SFC'`` and/or ``'UPA'`` are included in ``VX_FIELD_GROUPS``.
+       in the workflow only if ``'SFC'`` and/or ``'UPA'`` are included in ``VX_FIELD_GROUPS`` and
+       ``VX_OBTYPE_SFC_UPA`` is ``'NDAS'``.
 
-   * - :bolditalic:`task_get_obs_aeronet` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_gdas` (``get_obs.yaml``)
+     - Checks for existence of staged :term:`GDAS` obs files at locations specified by ``GDAS_OBS_DIR``
+       and ``OBS_GDAS_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
+       from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
+       in the workflow only if ``'SFC'`` and/or ``'UPA'`` are included in ``VX_FIELD_GROUPS`` and
+       ``VX_OBTYPE_SFC_UPA`` is ``'GDAS'``.
+
+   * - :bolditalic:`task_get_obs_aeronet` (``get_obs.yaml``)
      - Checks for existence of staged :term:`AERONET` obs files at locations specified by ``AERONET_OBS_DIR``
        and ``OBS_AERONET_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
        in the workflow only if ``'AOD'``is included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`task_get_obs_airnow` (``verify_pre.yaml``)
+   * - :bolditalic:`task_get_obs_airnow` (``get_obs.yaml``)
      - Checks for existence of staged :term:`AIRNOW` obs files at locations specified by ``AIRNOW_OBS_DIR``
        and ``OBS_AIRNOW_FN_TEMPLATES``.  If any files do not exist, it attempts to retrieve all the files
        from a data store (e.g. NOAA :term:`HPSS`) and place them in those locations.  This task is included
        in the workflow only if ``'PM25'`` and/or ``'PM10'`` are included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`task_run_MET_Pb2nc_obs_NDAS` (``verify_pre.yaml``)
-     - Converts NDAS obs prepbufr files to NetCDF format.
+   * - :bolditalic:`task_run_MET_Pb2nc_obs_NDAS` (``preprocessing.yaml``)
+     - Converts NDAS obs prepbufr files to NetCDF format.  This task is included in the workflow only if
+       ``'SFC'`` and/or ``'UPA'`` are included in ``VX_FIELD_GROUPS`` and ``VX_OBTYPE_SFC_UPA`` is ``'NDAS'``.
 
-   * - :bolditalic:`metatask_ASCII2nc_obs` (``verify_pre.yaml``)
+   * - :bolditalic:`task_run_MET_Pb2nc_obs_GDAS` (``preprocessing.yaml``)
+     - Converts GDAS obs prepbufr files to NetCDF format.  This task is included in the workflow only if
+       ``'SFC'`` and/or ``'UPA'`` are included in ``VX_FIELD_GROUPS`` and ``VX_OBTYPE_SFC_UPA`` is ``'GDAS'``.
+
+   * - :bolditalic:`metatask_ASCII2nc_obs` (``preprocessing.yaml``)
      - Set of tasks that convert observations in ASCII text format to NetCDF files that can be processed by
        :term:`METplus`; these observation types include AERONET and AIRNOW. This metatask is included in the
        workflow only if ``'AOD'``, ``'PM25'``, or ``'PM10'`` are included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_PcpCombine_APCP_all_accums_obs_CCPA` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_PcpCombine_APCP_all_accums_obs_CCPA` (``preprocessing.yaml``)
      - Set of tasks that generate NetCDF files containing observed APCP for the accumulation intervals
        specified in ``VX_APCP_ACCUMS_HRS``.  Files for accumulation intervals larger than the one
        provided in the obs are obtained by adding APCP values over multiple obs accumulation intervals.
@@ -1031,7 +1058,7 @@ The METplus verification tasks and metatasks that are included by default in ``v
        for which the task is being run.  This metatask is included in the workflow only if ``'APCP'`` is
        included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC` (``preprocessing.yaml``)
      - Set of tasks that generate NetCDF files containing observed ASNOW for the accumulation intervals
        specified in ``VX_ASNOW_ACCUMS_HRS``.  Files for accumulation intervals larger than the one
        provided in the obs are obtained by adding ASNOW values over multiple obs accumulation intervals.
@@ -1042,12 +1069,12 @@ The METplus verification tasks and metatasks that are included by default in ``v
        the task is being run.  This metatask is included in the workflow only if ``'ASNOW'`` is included in
        ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_PcpCombine_fcst_PM_all_mems` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_PcpCombine_fcst_PM_all_mems` (``preprocessing.yaml``)
      - Set of tasks that convert the raw forecast output of particulate matter into the appropriate bins for
        PM 2.5 and PM10. This metatask is included in the workflow only if ``'PM25'`` or ``'PM10'`` is included in
        ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_check_post_output_all_mems` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_check_post_output_all_mems` (``preprocessing.yaml``)
      - Set of tasks that ensure that the post-processed forecast files required for verification exist in
        the locations specified by ``VX_FCST_INPUT_BASEDIR``, ``FCST_SUBDIR_TEMPLATE``, and ``FCST_FN_TEMPLATE``.
        In Rocoto, the tasks under this metatask are named ``check_post_output_mem{mem_indx}``, where ``{mem_indx}``
@@ -1055,7 +1082,7 @@ The METplus verification tasks and metatasks that are included by default in ``v
        ensemble of forecasts or just ``000`` for a single deterministic forecast.  This metatask is included
        in the workflow if at least one other verification task or metatask is included.
 
-   * - :bolditalic:`metatask_PcpCombine_APCP_all_accums_all_mems` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_PcpCombine_APCP_all_accums_all_mems` (``preprocessing.yaml``)
      - Set of tasks that generate NetCDF files containing forecast APCP for the accumulation intervals
        specified in ``VX_APCP_ACCUMS_HRS``.  Files for accumulation intervals larger than the one
        provided in the forecasts are obtained by adding APCP values over multiple forecast accumulation
@@ -1068,7 +1095,7 @@ The METplus verification tasks and metatasks that are included by default in ``v
        which the task is being run. This metatask is included in the workflow only if ``'APCP'`` is
        included in ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_PcpCombine_ASNOW_all_accums_all_mems` (``verify_pre.yaml``)
+   * - :bolditalic:`metatask_PcpCombine_ASNOW_all_accums_all_mems` (``preprocessing.yaml``)
      - Set of tasks that generate NetCDF files containing forecast ASNOW for the accumulation intervals
        specified in ``VX_ASNOW_ACCUMS_HRS``.  Files for accumulation intervals larger than the one
        provided in the forecasts are obtained by adding ASNOW values over multiple forecast accumulation

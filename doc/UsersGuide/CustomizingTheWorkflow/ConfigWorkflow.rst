@@ -415,6 +415,17 @@ General VX Parameters
   to run verification. Valid values:
   ``"AOD"`` |``"APCP"`` | ``"ASNOW"`` | ``"GOESADP"`` | ``"GOESAOD"`` | ``"PM10"`` | ``"PM25"`` | ``"REFC"`` | ``"RETOP"`` | ``"SFC"`` | ``"UPA"``
 
+``VX_OBTYPE_SFC_UPA``: (Default: ``"NDAS"``)
+   The type of observations to use for verifying the surface (``"SFC"``) and
+   upper-air (``"UPA"``) field groups.  Only the obs of the type selected here
+   are retrieved and processed, and only they are used in the SFC and UPA
+   verification tasks.  The interval at which each obs type is available is set
+   by ``NDAS_OBS_AVAIL_INTVL_HRS`` and ``GDAS_OBS_AVAIL_INTVL_HRS``, respectively.
+   Valid values: ``"NDAS"`` | ``"GDAS"``
+
+   * ``"NDAS"``: :term:`NDAS` prepbufr obs (regional, North America).
+   * ``"GDAS"``: :term:`GDAS` prepbufr obs (global).
+
 ``VX_APCP_ACCUMS_HRS``: (Default: [ 1, 3, 6, 24 ])
    The accumulation intervals (in hours) to include in the verification of
    accumulated precipitation (APCP).  If ``VX_FIELD_GROUPS`` contains ``"APCP"``,
