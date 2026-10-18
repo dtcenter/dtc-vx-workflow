@@ -98,6 +98,8 @@ def get_obs_arcv_hr(obtype, arcv_intvl_hrs, hod):
         arcv_hr = (floor(hod/arcv_intvl_hrs))*arcv_intvl_hrs
     elif obtype in ['NDAS']:
         arcv_hr = (floor(hod/arcv_intvl_hrs) + 1)*arcv_intvl_hrs
+    elif obtype in ['GDAS']:
+        arcv_hr = (floor(hod/arcv_intvl_hrs))*arcv_intvl_hrs
     elif obtype in ['AERONET']:
         arcv_hr = (floor(hod/arcv_intvl_hrs))*arcv_intvl_hrs
     elif obtype in ['AIRNOW']:
@@ -308,6 +310,19 @@ def get_obs(config, obtype, yyyymmdd_task):
     disk, this sequence will be [6, 12, 18, 24].  In other cases, the
     sequence we loop over will be a subset of [6, 12, 18, 24].
 
+    GDAS (Global Data Assimilation System) conventional observations
+    ----------------------------------------------------------------
+    For GDAS, the archive interval is 6 hours, i.e. there is one archive for
+    each GDAS cycle (hours 0, 6, 12, and 18 of the day).  The archive for a
+    given cycle contains a single (non-restricted) prepbufr file valid at the
+    cycle time, so the obs availability interval is 6 hours.  Unlike for NDAS,
+    the archive for a given hour contains the obs valid at that hour (not
+    at earlier hours).  Thus, to obtain the obs at hours 0, 6, 12, and 18 of
+    the current day, we must extract one file from each of the archives
+    corresponding to those hours.  This corresponds to an archive hour
+    sequence of [0, 6, 12, 18].  In other cases, the sequence we loop over
+    will be a subset of [0, 6, 12, 18].
+
     AERONET Aerosol Optical Depth (AOD) observations:
     -------------------------------------------------
     For AERONET, the archive interval is 24 hours. There is one archive per day
@@ -434,6 +449,8 @@ def get_obs(config, obtype, yyyymmdd_task):
     elif obtype == 'MRMS':
         arcv_intvl_hrs = 24
     elif obtype == 'NDAS':
+        arcv_intvl_hrs = 6
+    elif obtype == 'GDAS':
         arcv_intvl_hrs = 6
     elif obtype == 'AERONET':
         arcv_intvl_hrs = 24
@@ -629,7 +646,7 @@ def get_obs(config, obtype, yyyymmdd_task):
         # Since we will only ever need this one archive for a given day,
         # for simplicity we simply do not create a raw archive subdirectory.
         #
-        # NDAS:
+        # NDAS, GDAS:
         # Same as for CCPA.
         #
         # AERONET, AIRNOW:
@@ -637,7 +654,7 @@ def get_obs(config, obtype, yyyymmdd_task):
         #
 
         arcv_subdir_raw = ''
-        if obtype in ['CCPA', 'NDAS', 'GOESAOD', 'GOESADP']:
+        if obtype in ['CCPA', 'NDAS', 'GDAS', 'GOESAOD', 'GOESADP']:
             arcv_subdir_raw = yyyymmddhh_arcv_str
         elif obtype == 'NOHRSC':
             arcv_subdir_raw = yyyymmdd_arcv_str
@@ -656,7 +673,7 @@ def get_obs(config, obtype, yyyymmdd_task):
         elif obtype == 'NDAS':
             arcv_contents_start = yyyymmddhh_arcv - num_obs_times_per_arcv*obs_avail_intvl
             arcv_contents_end = yyyymmddhh_arcv - obs_avail_intvl
-        elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC']:
+        elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC', 'GDAS']:
             arcv_contents_end = yyyymmddhh_arcv + (num_obs_times_per_arcv - 1)*obs_avail_intvl
 
         do_retrieve = False
@@ -725,7 +742,7 @@ def get_obs(config, obtype, yyyymmdd_task):
             elif obtype == 'NDAS':
                 obs_times_in_arcv = [yyyymmddhh_arcv - (i+1)*obs_avail_intvl
                                      for i in range(0,num_obs_times_per_arcv)]
-            elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC']:
+            elif obtype in ['AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP', 'MRMS', 'NOHRSC', 'GDAS']:
                 obs_times_in_arcv = [yyyymmddhh_arcv + i*obs_avail_intvl
                                      for i in range(0,num_obs_times_per_arcv)]
             obs_times_in_arcv.sort()
@@ -755,7 +772,7 @@ def get_obs(config, obtype, yyyymmdd_task):
             # error in the metadata of the raw file and writing the corrected data
             # to a new grib2 file in the processed location.
             #
-            # NOHRSC, AERONET, AIRNOW:
+            # NOHRSC, AERONET, AIRNOW, GDAS:
             # Generating the processed obs files consists of simply copying or moving
             # the files from the raw archive directory to the processed directory,
             # possibly renaming them in the process.
@@ -889,6 +906,8 @@ def get_obs(config, obtype, yyyymmdd_task):
                             hrs_ago = int(time_ago.seconds/3600)
                             hh_arcv_str = dt.datetime.strftime(yyyymmddhh_arcv, '%H')
                             fn_raw = f'nam.t{hh_arcv_str}z.prepbufr.tm{hrs_ago:02d}.nr'
+                        elif obtype == 'GDAS':
+                            fn_raw = f'gdas.t{hr:02d}z.prepbufr.nr'
                         elif obtype == 'AERONET':
                             fn_raw = f'{yyyymmdd_task_str}.lev15'
                             # Special logic for AERONET pulled from http: internet archives result
@@ -997,7 +1016,7 @@ def parse_args(argv):
         "--obtype",
         type=str,
         required=True,
-        choices=['CCPA', 'NOHRSC', 'MRMS', 'NDAS', 'AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP'],
+        choices=['CCPA', 'NOHRSC', 'MRMS', 'NDAS', 'GDAS', 'AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP'],
         help="Observation type.",
     )
 

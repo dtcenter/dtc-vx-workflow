@@ -124,10 +124,12 @@ class FunctionalTesting(unittest.TestCase):
                 files_on_disk = glob.glob(path)
                 self.assertEqual(len(files_on_disk), 2)
 
-    # GDAS Tests
+    # GDAS-ENKF-FCST Tests
+    # The GDAS-ENKF-FCST files are forecast files, not to be confused with
+    # the GDAS obs files (in prepbufr format).
     def test_gdas_ics_from_aws(self):
 
-        """In real time, GDAS is used for LBCS with a 6 hour offset."""
+        """In real time, GDAS-ENKF-FCST is used for LBCS with a 6 hour offset."""
 
         with tempfile.TemporaryDirectory(dir=self.path) as tmp_dir:
             os.chdir(tmp_dir)
@@ -140,7 +142,7 @@ class FunctionalTesting(unittest.TestCase):
                 '--config', self.config,
                 '--cycle_date', '2022052512',
                 '--data_stores', 'aws',
-                '--data_type', 'GDAS',
+                '--data_type', 'GDAS-ENKF-FCST',
                 '--fcst_hrs', '6', '9', '3',
                 '--output_path', out_path_tmpl,
                 '--ics_or_lbcs', 'LBCS',

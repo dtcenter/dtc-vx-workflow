@@ -31,7 +31,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
     cycle_date : str
         Eight‑digit cycle date in ``YYMMDDHH`` format.
     obtype : str
-        Observation type (e.g. ``NDAS``).
+        Observation type (``NDAS`` or ``GDAS``).
     verbose : bool, optional
         Enable debug logging.
     """
@@ -52,8 +52,8 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
     # ---------------------------------------------------------------------
     obs_dir = vxcfg[f"{obtype}_OBS_DIR"]
     obs_input_fn_template = vxcfg[f"OBS_{obtype}_FN_TEMPLATES"][1]
-    if obtype == "NDAS":
-        output_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+    if obtype in ["NDAS", "GDAS"]:
+        output_fn_template = vxcfg[f"OBS_{obtype}_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
     else:
         raise ValueError(f"Invalid obtype for PB2NC: {obtype}")
 
@@ -62,8 +62,8 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
     # ---------------------------------------------------------------------
     metplus_tool_camel_case = "Pb2nc"
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}_obs.conf"
-    metplus_config_fn = f"{metplus_config_tmpl_fn}_NDAS_{cycle_date}.conf"
-    metplus_log_fn = f"metplus.log.{metplus_config_fn}_NDAS"
+    metplus_config_fn = f"{metplus_config_tmpl_fn}_{obtype}_{cycle_date}.conf"
+    metplus_log_fn = f"metplus.log.{metplus_config_fn}_{obtype}"
 
     # ---------------------------------------------------------------------
     # Output directories
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--config", default="config.yaml", help="YAML experiment config file")
     parser.add_argument("--cycle_date", required=True, help="Eight‑digit cycle date (YYMMDDHH)")
-    parser.add_argument("--obtype", required=True, help="Observation type (e.g., NDAS)")
+    parser.add_argument("--obtype", required=True, help="Observation type (NDAS or GDAS)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose debug output")
     args = parser.parse_args()
 

@@ -52,6 +52,31 @@ task_run_MET_Pb2nc_obs_NDAS:
           attrs:
             task: get_obs_ndas
 
+task_run_MET_Pb2nc_obs_GDAS:
+  <<: *default_task_preprocessing
+  attrs:
+    cycledefs: cycledefs_obs_days_inst
+    maxtries: !int "{{ pb2nc.execution.tries }}"
+  command: "&JOBSdir;/PB2NC_OBS.sh"
+  envars:
+    <<: *default_vars
+    OBTYPE: GDAS
+  memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.execution.tasks_per_node }}'
+  walltime: "{{ pb2nc.execution.walltime }}"
+  dependency:
+    and:
+      datadep:
+        value: "&GDAS_OBS_DIR;"
+      or:
+        not:
+          taskvalid:
+            attrs:
+              task: get_obs_gdas
+        taskdep:
+          attrs:
+            task: get_obs_gdas
+
 metatask_ASCII2nc_obs:
   var:
     METAOBTYPE: '{% for var in verification.VX_FIELD_GROUPS %}{% if var =="AOD" %}AERONET {% elif var in ["PM25", "PM10"] %}AIRNOW {% endif %}{% endfor %}'

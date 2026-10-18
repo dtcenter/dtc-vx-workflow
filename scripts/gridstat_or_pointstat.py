@@ -38,7 +38,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     field_group : str
         Group of observation fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
     obtype : str
-        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``).
+        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``, ``GDAS``).
     accum_hh : int
         Accumulation hours for the observation type.
     ensmem_index : int
@@ -150,10 +150,10 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     elif geom == "point":
         metplus_tool_name = "point_stat"
         metplus_tool_camel_case = "PointStat"
-        if obtype == "NDAS":
+        if obtype in ["NDAS", "GDAS"]:
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
-            obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+            obs_in_fn_template = vxcfg[f"OBS_{obtype}_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
             fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     parser.add_argument('--field_group', required=True, type=str,
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--obtype', required=True, type=str,
-           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
+           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, GDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
            help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',
