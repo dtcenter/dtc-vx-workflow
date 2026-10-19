@@ -15,7 +15,9 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, make_var_list, run_metplus
+from python_utils import (
+    get_ensmem_info, setup_logging, render_metplus_confs, make_var_list, run_metplus
+)
 from set_leadhrs import set_leadhrs
 
 def mode(config_file,cdate,field_group,obtype):
@@ -67,10 +69,18 @@ def mode(config_file,cdate,field_group,obtype):
     vxcfg = cfg["verification"]
     modecfg = cfg["mode"]
 
+    # This tool is run only for a single (deterministic) forecast, i.e. it does not loop over
+    # ensemble members; the forecast is taken to be the member with index ENSMEM_INDX_MIN. For
+    # consistency with the other vx scripts, get_ensmem_info() is called to get the member's name
+    # and forecast file name template, so that FCST_FN_TEMPLATE may contain ${ensmem_name}.
+    # The time lag is kept at 0 (time-lagged forecasts are not supported by this script).
+    ensmem_info = get_ensmem_info(cfg, cfg["ensemble"]["ENSMEM_INDX_MIN"])
+
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
     subvars = {
+            "ensmem_name": ensmem_info.name,
             "time_lag": 0,
               }
 
@@ -83,7 +93,7 @@ def mode(config_file,cdate,field_group,obtype):
         obs_in_dir = Path(exptdir, cdate, "metprd", "RegridDataPlane")
         obs_in_fn_template = f'regrid_{vxcfg["OBS_GOES_AOD_FN_TEMPLATE_POINT2GRID_OUTPUT"]}'
         fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
-        fcst_in_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][0]).substitute(subvars)
+        fcst_in_fn_template = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         # Get the list of all the times in the current day at which to retrieve obs.
     else:
         raise ValueError(f"Invalid OBTYPE for {metplus_tool_camel_case}: {obtype}")

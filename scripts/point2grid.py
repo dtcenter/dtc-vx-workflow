@@ -15,7 +15,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import render_metplus_confs, run_metplus, setup_logging
+from python_utils import get_ensmem_info, render_metplus_confs, run_metplus, setup_logging
 from set_leadhrs import set_leadhrs
 
 def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
@@ -69,10 +69,18 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
     if not Path(obs_dir).is_dir():
         raise FileNotFoundError(f"OBS_DIR does not exist or is not a directory:\n{obs_dir=}")
 
+    # This tool is run only for a single (deterministic) forecast, i.e. it does not loop over
+    # ensemble members; the forecast is taken to be the member with index ENSMEM_INDX_MIN. For
+    # consistency with the other vx scripts, get_ensmem_info() is called to get the member's name
+    # and forecast file name template, so that FCST_FN_TEMPLATE may contain ${ensmem_name}.
+    # The time lag is kept at 0 because this tool does not honor time lag shifts.
+    ensmem_info = get_ensmem_info(cfg, cfg["ensemble"]["ENSMEM_INDX_MIN"])
+
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
     subvars = {
+            "ensmem_name": ensmem_info.name,
             "time_lag": 0,
               }
 
@@ -93,7 +101,7 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
     #Point2Grid does not honor "time lag" shifts, so remove from template
     fcst_fn_template=Path(
                      vxcfg["VX_FCST_INPUT_BASEDIR"],
-                     Template(vxcfg["FCST_FN_TEMPLATE"][0]).substitute(subvars)
+                     Template(ensmem_info.fcst_fn_template).substitute(subvars)
                      )
     output_dir=Path(exptdir, cdate, "metprd", metplus_tool_camel_case)
     # Make sure the MET/METplus output directory(ies) exists.
