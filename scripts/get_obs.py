@@ -1014,7 +1014,8 @@ def parse_args(argv):
         "--obtype",
         type=str,
         required=True,
-        choices=['CCPA', 'NOHRSC', 'MRMS', 'NDAS', 'GDAS', 'AERONET', 'AIRNOW', 'GOESAOD', 'GOESADP'],
+        choices=['CCPA', 'NOHRSC', 'MRMS', 'NDAS', 'GDAS', 'AERONET', 'AIRNOW',
+                 'GOESAOD', 'GOESADP'],
         help="Observation type.",
     )
 
