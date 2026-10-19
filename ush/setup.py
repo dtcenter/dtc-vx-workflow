@@ -454,6 +454,16 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     nbins = int(ens_config["NUM_ENS_BINS"])
     if do_ensemble and nbins < 2:
         raise ValueError(f"NUM_ENS_BINS ({nbins}) must be > 1 for ensemble probability binning")
+    ensmem_indx_min = int(ens_config["ENSMEM_INDX_MIN"])
+    ensmem_indx_max = int(ens_config["ENSMEM_INDX_MAX"])
+    if ensmem_indx_min < 0:
+        raise ValueError(f"ENSMEM_INDX_MIN ({ensmem_indx_min}) must be >= 0")
+    if ensmem_indx_max != ensmem_indx_min + nummems - 1:
+        raise ValueError(
+            f"ENSMEM_INDX_MAX ({ensmem_indx_max}) must equal ENSMEM_INDX_MIN + NUM_ENS_MEMBERS - 1 "
+            f"({ensmem_indx_min} + {nummems} - 1 = {ensmem_indx_min + nummems - 1}); "
+            "ENSMEM_INDX_MAX is calculated automatically and should not be set"
+        )
 
     #
     # If FCST_FN_TEMPLATE is a string, make it a list of strings, one entry per ensemble member.
@@ -470,7 +480,21 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             logger.error(f"NUM_ENS_MEMBERS={nummems}\nFCST_FN_TEMPLATE={fns}")
             raise ValueError("Number of entries in FCST_FN_TEMPLATE must equal number of members!")
     else:
-        raise TypeError("Invalid FCST_FN_TEMPLATE entry type {type(fns)}: {fns}")
+        raise TypeError(f"Invalid FCST_FN_TEMPLATE entry type {type(fns)}: {fns}")
+
+    #
+    # Ensure that ENS_TIME_LAG_HRS has exactly one entry per ensemble member, for members
+    # ENSMEM_INDX_MIN through ENSMEM_INDX_MAX (in that order).
+    #
+    time_lags = ens_config["ENS_TIME_LAG_HRS"]
+    if not isinstance(time_lags, list):
+        raise TypeError(f"ENS_TIME_LAG_HRS must be a list; got {type(time_lags)}: {time_lags}")
+    if len(time_lags) != nummems:
+        raise ValueError(
+            f"ENS_TIME_LAG_HRS has {len(time_lags)} entries but must have exactly one entry per "
+            f"ensemble member, i.e. NUM_ENS_MEMBERS = {nummems} entries (for members "
+            f"{ensmem_indx_min} through {ensmem_indx_max}):\n  {time_lags = }"
+        )
 
     # Update dictionary with modified settings
     ens_config["NUM_ENS_MEMBERS"] = nummems
