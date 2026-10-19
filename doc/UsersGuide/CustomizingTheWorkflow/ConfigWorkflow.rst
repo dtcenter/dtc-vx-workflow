@@ -22,7 +22,8 @@ Mathematical and Jinja logical experssions are also supported:
 
    ensemble:
      NUM_ENS_MEMBERS: 3
-     ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}' # Filled in as 'mem001, mem002, mem003'
+     ENSMEM_INDX_MIN: 1
+     ENSMEM_INDX_MAX: '{{ ensemble.ENSMEM_INDX_MIN + ensemble.NUM_ENS_MEMBERS - 1 }}' # Filled in as string '3'
    regriddataplane:
      execution:
        tasks_per_node: '{{ regriddataplane.TASKS }}' # Filled in as string '1'
@@ -366,14 +367,19 @@ This section describes the valid ``ensemble:`` config settings.
 ``DO_ENSEMBLE``: (Default: false)
    Flag that determines whether we are verifying an ensemble forecast. Valid values: ``True`` | ``False``
 
-``NUM_ENS_MEMBERS``: (Default: 0)
-   The number of ensemble members, if ``DO_ENSEMBLE`` is set to true. This variable also controls the naming of the ensemble member directories. For example, if ``NUM_ENS_MEMBERS`` is set to 8, the member directories will be named *mem1, mem2, ..., mem8*. This variable is not used unless ``DO_ENSEMBLE`` is set to true.
+``NUM_ENS_MEMBERS``: (Default: 1)
+   The number of forecast members to verify.  Must be 1 if ``DO_ENSEMBLE`` is set to false and greater than 1 if ``DO_ENSEMBLE`` is set to true.
 
-``ENSMEM_NAMES``: (Default: ``'{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'``)
-   A list of names for the ensemble member names following the format mem001, mem002, etc.
+``ENSMEM_INDX_MIN``: (Default: 0)
+   The index of the first forecast member.  The members are numbered consecutively starting from this index, and these numbers are used in the member names (e.g. *mem000, mem001, ...*; see ``VX_NDIGITS_ENSMEM_NAMES``) that appear in task names, workflow flag files, and verification output.  A member's name is also available as ``${ensmem_name}`` in ``FCST_FN_TEMPLATE``.
+
+   Set this to match the numbering of the forecast's ensemble members, e.g. to 1 for an ensemble whose member directories are named *mem001, mem002, ...*.  This allows a single ``FCST_FN_TEMPLATE`` containing ``${ensmem_name}`` to be used for all members, and it makes the member names used by the workflow match those of the forecast.
+
+``ENSMEM_INDX_MAX``: (Default: ``'{{ ensemble.ENSMEM_INDX_MIN + ensemble.NUM_ENS_MEMBERS - 1 }}'``)
+   The index of the last forecast member.  This is calculated from ``ENSMEM_INDX_MIN`` and ``NUM_ENS_MEMBERS``, so it does not need to be set; if it is set, it must equal ``ENSMEM_INDX_MIN + NUM_ENS_MEMBERS - 1``.
 
 ``ENS_TIME_LAG_HRS``: (Default: ``'[ {% for m in range([1,ensemble.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'``)
-   Time lag (in hours) to use for each ensemble member. For a deterministic forecast, this is a one-element array. Default values of array elements are zero.
+   List of time lags (in hours), one per forecast member, in order from member ``ENSMEM_INDX_MIN`` to member ``ENSMEM_INDX_MAX`` (i.e. the list must have exactly ``NUM_ENS_MEMBERS`` entries).  A member's time lag is the amount by which its initialization time precedes the cycle time.  The time lag is applied for deterministic forecasts as well (as a one-entry list), except in the MODE, Point2Grid, RegridDataPlane, and TCRMW tasks, which always use a time lag of zero.  The default is a lag of zero for every member.
 
 .. _tropical:
 
@@ -720,7 +726,13 @@ VX Parameters for Forecasts
 
 ``FCST_FN_TEMPLATE``: (Default: ``'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'``)
    METplus template for the names of the forecast files to use as inputs
-   to the verification tasks.
+   to the verification tasks.  This can be a single string, which is then
+   used for all forecast members, or a list of strings with one entry per
+   member, in order from member ``ENSMEM_INDX_MIN`` to member
+   ``ENSMEM_INDX_MAX`` (i.e. with ``NUM_ENS_MEMBERS`` entries).  In either
+   case, the template may contain ``${ensmem_name}``, which is replaced by
+   the member's name (e.g. *mem001*), and ``${time_lag}``, which is replaced
+   by the member's time lag (from ``ENS_TIME_LAG_HRS``) in seconds.
 
 ``FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT``:
    **Default:**

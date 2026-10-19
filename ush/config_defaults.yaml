@@ -505,7 +505,8 @@ ensemble:
   #
   # ENSMEM_INDX_MAX:
   # The index of the last ensemble member.  This is calculated from
-  # ENSMEM_INDX_MIN and NUM_ENS_MEMBERS and should not be changed.
+  # ENSMEM_INDX_MIN and NUM_ENS_MEMBERS, so it does not need to be set; if
+  # it is set, it must equal ENSMEM_INDX_MIN + NUM_ENS_MEMBERS - 1.
   #
   # NUM_ENS_BINS:
   # The number of ensemble members used to define probability bins for ensemble
@@ -515,9 +516,13 @@ ensemble:
   # to NUM_ENS_MEMBERS + 1.
   #
   # ENS_TIME_LAG_HRS:
-  # Time lag (in hours) to use for each ensemble member. For a deterministic
-  # forecast, this is a one-element array. Default values of array elements
-  # are zero.
+  # List of time lags (in hours), one per forecast member, in order from
+  # member ENSMEM_INDX_MIN to member ENSMEM_INDX_MAX (i.e. the list must have
+  # exactly NUM_ENS_MEMBERS entries).  A member's time lag is the amount by
+  # which its initialization time precedes the cycle time.  The time lag is
+  # applied for deterministic forecasts as well (as a one-entry list), except
+  # in the MODE, Point2Grid, RegridDataPlane, and TCRMW tasks, which always
+  # use a time lag of zero.  The default is a lag of zero for every member.
   #
   #-----------------------------------------------------------------------
   #
@@ -1073,9 +1078,13 @@ verification:
   #
   # FCST_FN_TEMPLATE:
   # METplus template for the names of the forecast files to use as inputs
-  # to the verification tasks. This can be a string for deterministic runs
-  # or ensembles with a uniform naming template; otherwise, this should be
-  # a list of strings with length equal to the number of ensemble members
+  # to the verification tasks.  This can be a single string, which is then
+  # used for all forecast members, or a list of strings with one entry per
+  # member, in order from member ENSMEM_INDX_MIN to member ENSMEM_INDX_MAX
+  # (i.e. with NUM_ENS_MEMBERS entries).  In either case, the template may
+  # contain ${ensmem_name}, which is replaced by the member's name (e.g.
+  # mem001), and ${time_lag}, which is replaced by the member's time lag
+  # (from ENS_TIME_LAG_HRS) in seconds.
   #
   # If your directory structure includes METplus wildcards that must be
   # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those

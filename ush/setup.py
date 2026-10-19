@@ -462,7 +462,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError(
             f"ENSMEM_INDX_MAX ({ensmem_indx_max}) must equal ENSMEM_INDX_MIN + NUM_ENS_MEMBERS - 1 "
             f"({ensmem_indx_min} + {nummems} - 1 = {ensmem_indx_min + nummems - 1}); "
-            "ENSMEM_INDX_MAX is calculated automatically and should not be set"
+            "ENSMEM_INDX_MAX is calculated automatically, so it does not need to be set"
         )
 
     #
