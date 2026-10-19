@@ -18,7 +18,9 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging, render_metplus_confs, make_var_list, merge_field_configs
+from python_utils import (
+    get_ensmem_info, setup_logging, render_metplus_confs, make_var_list, merge_field_configs
+)
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -42,7 +44,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     accum_hh : int
         Accumulation hours for the observation type.
     ensmem_index : int
-        Index of the ensemble member to process (``0`` for deterministic runs).
+        Index of the forecast (ensemble) member to process, from ``ENSMEM_INDX_MIN`` to
+        ``ENSMEM_INDX_MAX`` (``ENSMEM_INDX_MIN`` for deterministic runs).
 
     Returns
     -------
@@ -80,15 +83,11 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     # whether we are running GridStat or Pointstat (geom)
     geom, _, _, met_out_name, met_filedir_name = set_vx_params(obtype,field_group,accum_hh)
 
-    ensmem=f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
-
-    # Set ensemble time lag settings
-    lgr.debug(f"{cfg['ensemble']['ENS_TIME_LAG_HRS']=}")
-    lgr.debug(f"{ensmem_index=}")
-    lgr.debug(f"{vxcfg['VX_NDIGITS_ENSMEM_NAMES']=}")
-    time_lag = 0
-    if do_ens:
-        time_lag = cfg['ensemble']['ENS_TIME_LAG_HRS'][ensmem_index]*3600
+    # Get the member's name, time lag (in seconds), and forecast file name template
+    ensmem_info = get_ensmem_info(cfg, ensmem_index)
+    ensmem = ensmem_info.name
+    time_lag = ensmem_info.time_lag
+    lgr.debug(f"{ensmem_info=}")
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
@@ -96,7 +95,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "ensmem_name": f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
+            "ensmem_name": ensmem,
             "time_lag": time_lag,
               }
 
@@ -138,12 +137,12 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][1]
-            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         elif met_filedir_name == "RETOP":
             obs_in_dir = obs_dir
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_MRMS_FN_TEMPLATES"][3]
-            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         else:
             raise ValueError(f"Invalid OBTYPE for GridStat: {obtype}")
 
@@ -154,14 +153,14 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
-            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
             met_filedir_name = "AERONET_AOD"
             obs_in_dir = Path(exptdir, "metprd", "Ascii2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
             obs_in_fn_template = vxcfg["OBS_AERONET_FN_TEMPLATE_ASCII2NC_OUTPUT"]
-            fcst_fn_tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).substitute(subvars)
+            fcst_fn_tmpl = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         elif obtype == "AIRNOW":
             # AIRNOW format has slightly different names for different tasks, and also differs
             # based on ob source
@@ -334,7 +333,7 @@ if __name__ == "__main__":
     parser.add_argument('--cycle_date', required=True, type=str,
            help='Eight-digit cycle date (YYMMDDHH)')
     parser.add_argument('--ensmem_index', required=True, type=int,
-           help='The index for this ensemble member (0 for deterministic)')
+           help='The index for this ensemble member (ENSMEM_INDX_MIN for deterministic)')
     parser.add_argument('--field_group', required=True, type=str,
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--obtype', required=True, type=str,
