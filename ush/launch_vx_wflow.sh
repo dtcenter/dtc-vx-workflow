@@ -107,7 +107,10 @@ expt_name="${EXPT_SUBDIR}"
 # Convert machine name to lowercase
 machine="${MACHINE,,}"
 
-source ${USHdir}/../setup_conda.sh
+# Set up the conda environment.  Call setup_conda.sh in non-interactive
+# mode because this script is usually expected to run non-interactively
+# (e.g. when called from a cron job).
+source ${USHdir}/../setup_conda.sh --non-interactive
 
 #
 #-----------------------------------------------------------------------
