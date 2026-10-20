@@ -137,7 +137,7 @@ def launch_tests(args: argparse.Namespace, workflow_repo_dir: Path, output_path:
     # Commands to set up conda and run the tests
 
     cmd = (
-        f"source {workflow_repo_dir}/setup_conda.sh &&"
+        f"source {workflow_repo_dir}/setup_conda.sh --non-interactive &&"
         f" {test_script} --account {args.account} --machine {args.machine}"
         f" --tests {' '.join(args.tests)} --expt_basedir {output_path}"
     )
