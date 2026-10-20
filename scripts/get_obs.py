@@ -491,10 +491,10 @@ def get_obs(config, obtype, yyyymmdd_task):
             if os.path.isfile(fp_proc):
                 num_existing_files += 1
                 msg = dedent(f"""
-                    File already exists on disk:
+                    File exists on disk:
                         {fp_proc = }
                     """)
-                logging.debug(msg)
+                logging.info(msg)
             else:
                 arcv_hr_start = get_obs_arcv_hr(obtype, arcv_intvl_hrs, yyyymmddhh.hour)
                 msg = dedent(f"""
