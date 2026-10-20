@@ -17,7 +17,7 @@ def set_leadhrs(date_init, lhr_min, lhr_max, lhr_intvl, base_dir, time_lag, fn_t
         lhr_max               (int): Maximum lead hour to check
         lhr_intvl             (int): Interval between lead hours
         base_dir              (str): Base directory for forecast/observation file
-        time_lag              (int): Hours of time lag for a time-lagged ensemble member
+        time_lag              (int): Time lag for a time-lagged ensemble member, in seconds
         fn_template           (str): The METplus filename template for finding the files
         verbose              (bool): By default this script only outputs the list of forecast hours
                                      (for easier parsing from bash contexts). Set the verbose flag
@@ -31,7 +31,7 @@ def set_leadhrs(date_init, lhr_min, lhr_max, lhr_intvl, base_dir, time_lag, fn_t
     # Step 1: Generate lead hours without filtering for missing files
     lhrs_list = list(range(lhr_min, lhr_max + 1, lhr_intvl))
     if verbose:
-        print(f"Initial set of lead hours (relative to {date_init}): {lhrs_list}")
+        print(f"Initial set of lead hours (for an init time of {date_init}): {lhrs_list}")
 
     if skip_check_files:
         return lhrs_list
@@ -52,18 +52,18 @@ def set_leadhrs(date_init, lhr_min, lhr_max, lhr_intvl, base_dir, time_lag, fn_t
         fp = os.path.join(base_dir, fn)
         if os.path.isfile(fp):
             if verbose:
-                print(f"Found file for lead hour {lhr} (relative to {date_init}): {fp}")
+                print(f"Found file for lead hour {lhr} (for an init time of {date_init}): {fp}")
             final_list.append(lhr)
         else:
             num_missing_files += 1
-            newerrmsg = f"File for lead hour {lhr} (relative to {date_init}) is MISSING: {fp}"
+            newerrmsg = f"File for lead hour {lhr} (for an init time of {date_init}) is MISSING: {fp}"
             if verbose:
                 print(newerrmsg)
             else:
                 errmsg = "\n".join([errmsg, newerrmsg])
 
     if verbose:
-        print(f"Final set of lead hours relative to {date_init}: {final_list}")
+        print(f"Final set of lead hours (for an init time of {date_init}): {final_list}")
 
     # Step 3: Check if the number of missing files exceeds the maximum allowed
     if num_missing_files > num_missing_files_max:
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     parser.add_argument("-min", "--lhr_min", help="Minimum lead hour to check", type=int, required=True)
     parser.add_argument("-max", "--lhr_max", help="Maximum lead hour to check", type=int, required=True)
     parser.add_argument("-int", "--lhr_intvl", help="Interval between lead hours", type=int, required=True)
-    parser.add_argument("-tl", "--time_lag", help="Hours of time lag for a time-lagged ensemble member", type=int, default=0)
+    parser.add_argument("-tl", "--time_lag", help="Time lag for a time-lagged ensemble member, in seconds", type=int, default=0)
     parser.add_argument("-bd", "--base_dir", help="Base directory for forecast/observation file", type=str, default='')
     parser.add_argument("-ft", "--fn_template", help="Template for file names to search; see ??? for details on template settings", type=str, default='')
     parser.add_argument("-n", "--num_missing_files_max", type=int, default=5,

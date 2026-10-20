@@ -30,7 +30,7 @@
 #
 #-----------------------------------------------------------------------
 #
-. $USHdir/../setup_conda.sh
+. $USHdir/../setup_conda.sh --non-interactive
 . $USHdir/source_util_funcs.sh
 sections=(
   user

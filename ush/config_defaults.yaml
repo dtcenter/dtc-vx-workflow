@@ -184,7 +184,7 @@ platform:
   # 
   # TEST_*_OBS_DIR:
   # These parameters are used by the WE2E testing script to test the mechanism
-  # that allows user to point to data streams on disk for observation data 
+  # that allows the user to point to data streams on disk for observation data 
   # for verification tasks. They test the ability for users to manually set 
   # these observation directories.
   # 
@@ -199,6 +199,7 @@ platform:
   TEST_CCPA_OBS_DIR: ""
   TEST_MRMS_OBS_DIR: ""
   TEST_NDAS_OBS_DIR: ""
+  TEST_GDAS_OBS_DIR: ""
   TEST_NOHRSC_OBS_DIR: ""
   TEST_AERONET_OBS_DIR: ""
   TEST_AIRNOW_OBS_DIR: ""
@@ -715,6 +716,8 @@ verification_resources:
         walltime: 02:00:00
       ndas:
         walltime: 02:00:00
+      gdas:
+        walltime: 01:00:00
     ascii2nc:
       walltime: 00:30:00
     pcpcombine:
@@ -744,6 +747,21 @@ verification:
   # include the verification tasks for ASNOW in the workflow. 
   #
   VX_FIELD_GROUPS: [ "APCP", "REFC", "RETOP", "SFC", "UPA" ]
+  #
+  # VX_OBTYPE_SFC_UPA:
+  # The type of observations to use for verifying the surface (SFC) and
+  # upper-air (UPA) field groups.  Valid values are:
+  #
+  #   * "NDAS": NAM Data Assimilation System prepbufr obs (regional, North
+  #     America).
+  #   * "GDAS": Global Data Assimilation System prepbufr obs (global).
+  #
+  # Only the obs of the type selected here are retrieved and processed, and
+  # only they are used in the SFC and UPA verification tasks.  The interval
+  # at which each obs type is available is set by NDAS_OBS_AVAIL_INTVL_HRS
+  # and GDAS_OBS_AVAIL_INTVL_HRS, respectively.
+  #
+  VX_OBTYPE_SFC_UPA: "NDAS"
   #
   # VX_FIELDS_EXCLUDE:
   # A list of forecast field names (fcst_name) to exclude from ALL verification
@@ -809,6 +827,7 @@ verification:
   #   * NOHRSC (National Operational Hydrologic Remote Sensing Center)
   #   * MRMS (Multi-Radar Multi-Sensor)
   #   * NDAS (NAM Data Assimilation System)
+  #   * GDAS (Global Data Assimilation System)
   #   * AERONET (Aerosol Robotic Network)
   #   * AIRNOW (AirNow air quality reports)
   #   * GOESAOD (GOES satellite Aerosol Optical Depth)
@@ -830,6 +849,7 @@ verification:
   NOHRSC_OBS_AVAIL_INTVL_HRS: 6
   MRMS_OBS_AVAIL_INTVL_HRS: 1
   NDAS_OBS_AVAIL_INTVL_HRS: 1
+  GDAS_OBS_AVAIL_INTVL_HRS: 6
   AERONET_OBS_AVAIL_INTVL_HRS: 1
   AIRNOW_OBS_AVAIL_INTVL_HRS: 1
   GOESAOD_OBS_AVAIL_INTVL_HRS: 1
@@ -856,12 +876,13 @@ verification:
   NOHRSC_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/nohrsc"
   MRMS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/mrms"
   NDAS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/ndas"
+  GDAS_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/gdas"
   AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
   AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
   GOESAOD_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesaod"
   GOESADP_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesadp"
   #
-  # OBS_[CCPA|NOHRSC|MRMS|NDAS]_FN_TEMPLATES:
+  # OBS_[CCPA|NOHRSC|MRMS|NDAS|GDAS]_FN_TEMPLATES:
   # File name templates for various obs types.  These are meant to be used
   # in METplus configuration files and thus contain METplus time formatting
   # strings.  Each of these variables is a python list containing pairs of
@@ -888,7 +909,7 @@ verification:
   # * The file name templates are relative to the base directories given in
   #   the variables
   #
-  #       [CCPA|NOHRSC|MRMS|NDAS]_OBS_DIR
+  #       [CCPA|NOHRSC|MRMS|NDAS|GDAS]_OBS_DIR
   #
   #   defined above.  Thus, the template for the full path to the obs files
   #   is given, e.g. for CCPA obs, by
@@ -900,8 +921,8 @@ verification:
   # * The file name templates may represent file names only, or they may
   #   include leading relative directories.
   #
-  # * The default values of these variables for the CCPA, NOHRSC, and NDAS
-  #   obs types contain only one pair of values (because these obs types
+  # * The default values of these variables for the CCPA, NOHRSC, NDAS, and
+  #   GDAS obs types contain only one pair of values (because these obs types
   #   contain only one set of files that we use in the verification) while
   #   the default value for the MRMS obs type contains two pairs of values,
   #   one for the set of files that contains composite reflectivity data
@@ -925,7 +946,7 @@ verification:
   #   obs type is needed at at least some hours.  That "get_obs" task first
   #   checks whether all the necessary obs files for that day already exist
   #   at the locations specified by the full path template(s) (which are
-  #   obtained by combining the base directories [CCPA|NOHRSC|MRMS|NDAS]_OBS_DIR
+  #   obtained by combining the base directories [CCPA|NOHRSC|MRMS|NDAS|GDAS]_OBS_DIR
   #   with the file name template(s)).  If for a given day one or more of
   #   these obs files do not exist on disk, the "get_obs" task will retrieve
   #   "raw" versions of these files from a data store (e.g. NOAA's HPSS)
@@ -957,6 +978,7 @@ verification:
   OBS_MRMS_FN_TEMPLATES: [ 'REFC', '{valid?fmt=%Y%m%d}/MergedReflectivityQCComposite_00.50_{valid?fmt=%Y%m%d}-{valid?fmt=%H%M%S}.grib2',
                            'RETOP', '{valid?fmt=%Y%m%d}/EchoTop_18_00.50_{valid?fmt=%Y%m%d}-{valid?fmt=%H%M%S}.grib2' ]
   OBS_NDAS_FN_TEMPLATES: [ 'SFCandUPA', 'prepbufr.ndas.{valid?fmt=%Y%m%d%H}' ]
+  OBS_GDAS_FN_TEMPLATES: [ 'SFCandUPA', 'prepbufr.gdas.{valid?fmt=%Y%m%d%H}' ]
   OBS_AERONET_FN_TEMPLATES: [ 'AOD', '{valid?fmt=%Y%m%d}/{valid?fmt=%Y%m%d}.lev15' ]
   # NOTE: for files retrieved from AWS (see OBS_DATA_STORE variable), the
   # default value for OBS_AIRNOW_FN_TEMPLATES should be replaced with
@@ -1029,6 +1051,7 @@ verification:
   OBS_DATA_STORE_NOHRSC: hpss
   OBS_DATA_STORE_MRMS: hpss
   OBS_DATA_STORE_NDAS: hpss
+  OBS_DATA_STORE_GDAS: hpss
   OBS_DATA_STORE_AERONET: hpss
   OBS_DATA_STORE_AIRNOW: hpss
   OBS_DATA_STORE_GOESAOD: aws
@@ -1042,6 +1065,12 @@ verification:
   # (instead of NDAS's native prepbufr format).
   #
   OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT: '{{ verification.OBS_NDAS_FN_TEMPLATES[1] }}.nc'
+  #
+  # OBS_GDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT:
+  # Same as OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT but for GDAS
+  # observations.
+  #
+  OBS_GDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT: '{{ verification.OBS_GDAS_FN_TEMPLATES[1] }}.nc'
   #
   # NUM_MISSING_OBS_FILES_MAX:
   # For verification tasks that need observational data, this specifies

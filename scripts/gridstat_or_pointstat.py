@@ -34,13 +34,14 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     config_file : str
         Path to the experiment YAML configuration file.
     cdate : str
-        Eight‑digit cycle date in ``YYYYMMDDHH`` format.
+        Eight-digit cycle date in ``YYYYMMDDHH`` format.
     obs_dir : str
         Directory containing observation files for the chosen ``obtype``.
     field_group : str
         Group of observation fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
     obtype : str
-        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``).
+        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``,
+        ``NDAS``, ``GDAS``).
     accum_hh : int
         Accumulation hours for the observation type.
     ensmem_index : int
@@ -62,7 +63,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     * For each parallel task, it builds a list of valid lead hours, renders a configuration file
       based on the Jinja template in parm/metplus/, and executes the METplus tasks in parallel
       using ``multiprocessing.Pool``.
-    * Errors are raised for missing observation directories, empty lead‑hour lists, or unsupported
+    * Errors are raised for missing observation directories, empty lead-hour lists, or unsupported
       task/observation type combinations.
     * A METplus log file is written for each parallel task.
     """
@@ -149,10 +150,10 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     elif geom == "point":
         metplus_tool_name = "point_stat"
         metplus_tool_camel_case = "PointStat"
-        if obtype == "NDAS":
+        if obtype in ["NDAS", "GDAS"]:
             obs_in_dir = Path(exptdir, "metprd", "Pb2nc_obs")
             fcst_in_dir = vxcfg["VX_FCST_INPUT_BASEDIR"]
-            obs_in_fn_template = vxcfg["OBS_NDAS_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
+            obs_in_fn_template = vxcfg[f"OBS_{obtype}_SFCandUPA_FN_TEMPLATE_PB2NC_OUTPUT"]
             fcst_fn_tmpl = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         elif obtype == "AERONET":
             #AERONET format has slightly different names for different tasks
@@ -337,7 +338,7 @@ if __name__ == "__main__":
     parser.add_argument('--field_group', required=True, type=str,
            help='Group of fields for this verification task (e.g. APCP, REFC, SFC, etc.)')
     parser.add_argument('--obtype', required=True, type=str,
-           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, etc.)')
+           help='Observation type for this verification task (e.g. NOHRSC, CCPA, NDAS, GDAS, etc.)')
     parser.add_argument('--obs_dir', required=True, type=str,
            help='Observation directory for this obtype')
     parser.add_argument('-v', '--verbose', action='store_true',

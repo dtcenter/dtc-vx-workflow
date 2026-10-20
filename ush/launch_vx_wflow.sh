@@ -74,6 +74,8 @@ export USHdir=$USHdir
 #
 #-----------------------------------------------------------------------
 #
+# Default for when this script is run by hand rather than from cron.
+called_from_cron="False"
 while [ $# -gt 0 ]; do
   case "$1" in
     --called_from_cron=*)
@@ -104,10 +106,16 @@ expt_name="${EXPT_SUBDIR}"
 #
 #-----------------------------------------------------------------------
 #
-# Convert machine name to lowercase
-machine="${MACHINE,,}"
+# Convert machine name to lowercase.  MACHINE is filled in by generate_wflow.py
+# using string.Template, which does not recognize "${MACHINE,,}" as a
+# placeholder, so do the substitution and the lowercasing in separate steps.
+machine="${MACHINE}"
+machine="${machine,,}"
 
-source ${USHdir}/../setup_conda.sh
+# Set up the conda environment.  Call setup_conda.sh in non-interactive
+# mode because this script is usually expected to run non-interactively
+# (e.g. when called from a cron job).
+source ${USHdir}/../setup_conda.sh --non-interactive
 
 #
 #-----------------------------------------------------------------------
