@@ -7,6 +7,7 @@ rocoto:
     AERONET_OBS_DIR: '{{ verification.AERONET_OBS_DIR }}'
     AIRNOW_OBS_DIR: '{{ verification.AIRNOW_OBS_DIR }}'
     CCPA_OBS_DIR: '{{ verification.CCPA_OBS_DIR }}'
+    GDAS_OBS_DIR: '{{ verification.GDAS_OBS_DIR }}'
     GLOBAL_VAR_DEFNS_FP: '{{ workflow.GLOBAL_VAR_DEFNS_FP }}'
     GOESAOD_OBS_DIR: '{{ verification.GOESAOD_OBS_DIR }}'
     GOESADP_OBS_DIR: '{{ verification.GOESADP_OBS_DIR }}'

@@ -592,12 +592,24 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     = ["task_get_obs_mrms",
        "metatask_GridStat_REFC_RETOP_all_mems"]
 
-    vx_field_groups_all_by_obtype["NDAS"] = ["SFC", "UPA"]
+    # The SFC and UPA field groups are verified against either NDAS or GDAS
+    # obs, as specified by VX_OBTYPE_SFC_UPA.  The obs type not selected gets
+    # no field groups, so its tasks are removed from the workflow.  (The
+    # SFC/UPA ensemble mean and probabilistic PointStat metatasks are used
+    # with either obs type, so they are handled separately below.)
+    vx_obtype_sfc_upa = vx_config["VX_OBTYPE_SFC_UPA"]
+    for obtype in ["NDAS", "GDAS"]:
+        vx_field_groups_all_by_obtype[obtype] \
+        = ["SFC", "UPA"] if obtype == vx_obtype_sfc_upa else []
+
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
-       "metatask_PointStat_SFC_UPA_ensmean",
-       "metatask_PointStat_SFC_UPA_ensprob",
+    ]
+
+    vx_metatasks_all_by_obtype["GDAS"] \
+    = ["task_get_obs_gdas",
+       "task_run_MET_Pb2nc_obs_GDAS",
     ]
 
     vx_field_groups_all_by_obtype["AERONET"] = ["AOD"]
@@ -640,6 +652,28 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                         )
                     )
                     rocoto_config["tasks"].pop(metatask)
+
+    # Remove the SFC/UPA ensemble mean and probabilistic PointStat metatasks
+    # if neither the SFC nor the UPA field group is specified for verification.
+    # These metatasks are used with whichever obs type (NDAS or GDAS) is
+    # selected for SFC and UPA, so they cannot be listed under either obs type
+    # in vx_metatasks_all_by_obtype above: the loop above would then remove
+    # them whenever that obs type is not the selected one, even though they
+    # are still needed for the other.
+    if not set(vx_field_groups) & {"SFC", "UPA"}:
+        for metatask in ["metatask_PointStat_SFC_UPA_ensmean",
+                         "metatask_PointStat_SFC_UPA_ensprob"]:
+            if metatask in rocoto_config["tasks"]:
+                logging.info(
+                    dedent(
+                        f"""
+                    Removing verification (meta)task
+                      "{metatask}"
+                    from workflow since neither the SFC nor the UPA field group is
+                    specified for verification."""
+                    )
+                )
+                rocoto_config["tasks"].pop(metatask)
     #
     # -----------------------------------------------------------------------
     #
@@ -650,7 +684,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
     if vx_field_groups:
-        obtypes_all = ["CCPA", "NOHRSC", "MRMS", "NDAS", "AERONET", "AIRNOW", "GOESAOD"]
+        obtypes_all = ["CCPA", "NOHRSC", "MRMS", "NDAS", "GDAS", "AERONET", "AIRNOW", "GOESAOD"]
         obs_basedir_var_names = [f"{obtype}_OBS_DIR" for obtype in obtypes_all]
         obs_basedirs_dict = {key: vx_config[key] for key in obs_basedir_var_names}
         obs_basedirs_orig = list(obs_basedirs_dict.values())

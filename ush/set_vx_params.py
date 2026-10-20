@@ -39,7 +39,7 @@ def set_vx_params(obtype,field_group,accum_hh):
             fieldname_in_fcst_in = field_group
             fieldname_in_met_out = field_group
             fieldname_in_met_filedir_names = field_group
-        case "NDAS":
+        case "NDAS" | "GDAS":
             grid_or_point = "point"
             if field_group in ["SFC", "UPA"]:
                 fieldname_in_obs_in = ""

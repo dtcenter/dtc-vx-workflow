@@ -102,6 +102,7 @@ def run_we2e_tests(args) -> None:
             "CCPA_OBS_DIR",
             "MRMS_OBS_DIR",
             "NDAS_OBS_DIR",
+            "GDAS_OBS_DIR",
             "NOHRSC_OBS_DIR",
             'AERONET_OBS_DIR',
             'AIRNOW_OBS_DIR',
