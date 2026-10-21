@@ -38,7 +38,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     field_group : str
         Group of observation fields to verify (e.g., ``APCP``, ``REFC``, ``SFC``).
     obtype : str
-        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``, ``NDAS``, ``GDAS``).
+        Observation type for this verification task (e.g., ``NOHRSC``, ``CCPA``,
+        ``NDAS``, ``GDAS``).
     accum_hh : int
         Accumulation hours for the observation type.
     ensmem_index : int
