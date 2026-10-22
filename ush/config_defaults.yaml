@@ -1105,6 +1105,32 @@ verification:
   #
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'srw.t{init?fmt=%H}z.prslev.{{ verification.VX_FCST_MODEL_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc'
   #
+  # VX_CLIMO_MEAN_INPUT_DIR, VX_CLIMO_MEAN_INPUT_TEMPLATE:
+  # Directory and METplus file name template of the files containing the
+  # mean of the climatology to use in the GridStat and PointStat
+  # verification tasks, e.g. for anomaly statistics.  The template is
+  # relative to the directory and may include subdirectories, which may
+  # contain METplus time templates (e.g. '{valid?fmt=%m}/...'); any
+  # time-dependent subdirectories should be included in the template
+  # rather than in the directory.  For example, for the NCEP 1x1-degree
+  # daily climatology, these may be set to '/path/to/climo' and
+  # 'cmean_1d.1979{valid?fmt=%m%d}'.  If these are left empty (the default),
+  # no climatology is used.
+  #
+  # VX_CLIMO_STDEV_INPUT_DIR, VX_CLIMO_STDEV_INPUT_TEMPLATE:
+  # Same as VX_CLIMO_MEAN_INPUT_DIR and VX_CLIMO_MEAN_INPUT_TEMPLATE but for
+  # the standard deviation of the climatology (e.g. '/path/to/climo' and
+  # 'cstdv_1d.1979{valid?fmt=%m%d}' for the NCEP 1x1-degree climatology).
+  #
+  # If VX_CLIMO_MEAN_INPUT_DIR is set, the PointStat tasks also write
+  # SAL1L2 lines (partial sums of anomalies from the climatological mean)
+  # to their output.
+  #
+  VX_CLIMO_MEAN_INPUT_DIR: ''
+  VX_CLIMO_MEAN_INPUT_TEMPLATE: ''
+  VX_CLIMO_STDEV_INPUT_DIR: ''
+  VX_CLIMO_STDEV_INPUT_TEMPLATE: ''
+  #
   # VX_NDIGITS_ENSMEM_NAMES:
   # Number of digits to assume/use in the forecast ensemble member identifier
   # string used in directory and file names and other instances in which the
