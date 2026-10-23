@@ -37,4 +37,62 @@ verification:
   FCST_SUBDIR_TEMPLATE: ''
   FCST_FN_TEMPLATE: '{{verification.VX_FCST_MODEL_NAME.upper()}}/{init?fmt=%Y}/{init?fmt=%Y%m%d}/{{verification.VX_FCST_MODEL_NAME.lower()}}.0p25.{init?fmt=%Y%m%d%H}.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
   #
+  # NCEP 1x1-degree daily climatology (mean and standard deviation), used
+  # for anomaly statistics.
+  VX_CLIMO_MEAN_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/climo'
+  VX_CLIMO_MEAN_INPUT_TEMPLATE: 'cmean_1d.1979{valid?fmt=%m%d}'
+  VX_CLIMO_STDEV_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/climo'
+  VX_CLIMO_STDEV_INPUT_TEMPLATE: 'cstdv_1d.1979{valid?fmt=%m%d}'
+  #
   VX_FIELD_GROUPS: [ "SFC", "UPA" ]
+fields:
+  #
+  SFC:
+    - fcst_name: TMP
+      fcst_levels: [Z2]
+      fcst_thresholds: []
+    #
+    - fcst_name: DPT
+      fcst_levels: [Z2]
+      fcst_thresholds: []
+    #
+    - fcst_name: UGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: []
+      fcst_options: 'is_u_wind = TRUE;'
+      obs_options: 'is_u_wind = TRUE;'
+    #
+    - fcst_name: VGRD
+      fcst_levels: [Z10]
+      fcst_thresholds: []
+      fcst_options: 'is_v_wind = TRUE;'
+      obs_options: 'is_v_wind = TRUE;'
+    #
+    - fcst_name: PRMSL
+      fcst_levels: [L0]
+      fcst_thresholds: []
+  #
+  UPA:
+    - fcst_name: TMP
+      fcst_levels: [P850]
+      fcst_thresholds: []
+    #
+    - fcst_name: SPFH
+      fcst_levels: [P850, P700]
+      fcst_thresholds: []
+    #
+    - fcst_name: UGRD
+      fcst_levels: [P850, P500, P250]
+      fcst_thresholds: []
+      fcst_options: 'is_u_wind = TRUE;'
+      obs_options: 'is_u_wind = TRUE;'
+    #
+    - fcst_name: VGRD
+      fcst_levels: [P850, P500, P250]
+      fcst_thresholds: []
+      fcst_options: 'is_v_wind = TRUE;'
+      obs_options: 'is_v_wind = TRUE;'
+    #
+    - fcst_name: HGT
+      fcst_levels: [P700, P500, P250]
+      fcst_thresholds: []
