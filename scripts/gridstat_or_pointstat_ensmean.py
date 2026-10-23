@@ -190,6 +190,18 @@ def gridstat_or_pointstat_ensmean(
     # {fcst_name}_{level}_ENS_MEAN to match GenEnsProd's ensemble-mean output.
     var_list=make_ensmean_var_list(vx_config_dict, field_group, level=fcst_level)
 
+    # Determine whether any field in this field group is given forecast or
+    # observation thresholds.  Categorical statistics (e.g. contingency table
+    # counts and statistics) can only be meaningfully computed for fields with
+    # thresholds.  For fields without thresholds, MET would write the line
+    # types for categorical statistics (e.g. the FHO, CTC, and CTS line types)
+    # with a threshold of NA, which results in all matched pairs being counted
+    # as hits, so these line types would contain no useful information.  Thus,
+    # these line types are requested in the output only if at least one field
+    # in the group has thresholds.
+    has_thresholds = any(field.get('fcst_thresholds') or field.get('obs_thresholds')
+                         for field in vx_config_dict.get(field_group, []))
+
     settings = {
         "metplus_tool_name": metplus_tool_name,
         "MetplusToolName": metplus_tool_camel_case,
@@ -224,6 +236,8 @@ def gridstat_or_pointstat_ensmean(
         "vx_config_dict": vx_config_dict,
         # Variable list
         'var_list': var_list,
+        # Whether to write categorical (threshold-based) statistics
+        'write_categorical_stats': has_thresholds,
     }
 
     numprocs = int(vxcfg["VX_TASKS"])
