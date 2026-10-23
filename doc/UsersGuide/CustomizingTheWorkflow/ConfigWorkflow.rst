@@ -765,9 +765,11 @@ VX Parameters for Forecasts
    rather than in the directory.  For example, for the NCEP 1x1-degree
    daily climatology, these may be set to ``'/path/to/climo'`` and
    ``'cmean_1d.1979{valid?fmt=%m%d}'``.  If these are left empty, no
-   climatology is used.  If ``VX_CLIMO_MEAN_INPUT_DIR`` is set, the
-   PointStat tasks also write SAL1L2 lines (partial sums of anomalies from
-   the climatological mean) to their output.
+   climatology is used.  The climatology files are assumed to contain the
+   verified fields with the same names and levels as in the forecast
+   files.  If ``VX_CLIMO_MEAN_INPUT_DIR`` is set, the PointStat tasks also
+   write SAL1L2 lines (partial sums of anomalies from the climatological
+   mean) to their output.
 
 ``VX_CLIMO_STDEV_INPUT_DIR``, ``VX_CLIMO_STDEV_INPUT_TEMPLATE``: (Default: ``''``)
    Same as ``VX_CLIMO_MEAN_INPUT_DIR`` and ``VX_CLIMO_MEAN_INPUT_TEMPLATE``

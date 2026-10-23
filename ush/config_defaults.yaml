@@ -1122,9 +1122,11 @@ verification:
   # the standard deviation of the climatology (e.g. '/path/to/climo' and
   # 'cstdv_1d.1979{valid?fmt=%m%d}' for the NCEP 1x1-degree climatology).
   #
-  # If VX_CLIMO_MEAN_INPUT_DIR is set, the PointStat tasks also write
-  # SAL1L2 lines (partial sums of anomalies from the climatological mean)
-  # to their output.
+  # The climatology files are assumed to contain the verified fields with
+  # the same names and levels as in the forecast files.  If
+  # VX_CLIMO_MEAN_INPUT_DIR is set, the PointStat tasks also write SAL1L2
+  # lines (partial sums of anomalies from the climatological mean) to their
+  # output.
   #
   VX_CLIMO_MEAN_INPUT_DIR: ''
   VX_CLIMO_MEAN_INPUT_TEMPLATE: ''
