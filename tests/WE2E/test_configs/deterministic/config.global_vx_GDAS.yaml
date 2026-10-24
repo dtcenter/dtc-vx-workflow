@@ -7,7 +7,6 @@ workflow:
   DATE_FIRST_CYCL: '2026030100'
   DATE_LAST_CYCL: '2026030100'
   FCST_LEN_HRS: 6
-#  FCST_LEN_HRS: 240
   PREEXISTING_DIR_METHOD: rename
   taskgroups:
     - parm/wflow/get_obs.yaml
@@ -31,17 +30,16 @@ verification:
   REMOVE_RAW_OBS_DIRS: false
   #
   VX_FCST_MODEL_NAME: gfs
-  #VX_FCST_OUTPUT_INTVL_HRS: 3
   VX_FCST_OUTPUT_INTVL_HRS: 6
-  VX_FCST_INPUT_BASEDIR: '/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_RRFSbench/global_WE2E_test'
+  VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/dtc/dtc-vx-workflow_testing/vx_test_data_global_tmp'
   FCST_SUBDIR_TEMPLATE: ''
   FCST_FN_TEMPLATE: '{{verification.VX_FCST_MODEL_NAME.upper()}}/{init?fmt=%Y}/{init?fmt=%Y%m%d}/{{verification.VX_FCST_MODEL_NAME.lower()}}.0p25.{init?fmt=%Y%m%d%H}.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
   #
   # NCEP 1x1-degree daily climatology (mean and standard deviation), used
   # for anomaly statistics.
-  VX_CLIMO_MEAN_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/climo'
+  VX_CLIMO_MEAN_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/NCEP_climo'
   VX_CLIMO_MEAN_INPUT_TEMPLATE: 'cmean_1d.1979{valid?fmt=%m%d}'
-  VX_CLIMO_STDEV_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/climo'
+  VX_CLIMO_STDEV_INPUT_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/NCEP_climo'
   VX_CLIMO_STDEV_INPUT_TEMPLATE: 'cstdv_1d.1979{valid?fmt=%m%d}'
   #
   VX_FIELD_GROUPS: [ "SFC", "UPA" ]
