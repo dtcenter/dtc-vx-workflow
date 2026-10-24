@@ -43,3 +43,4 @@ from .config_parser import (
 from .metplus_conf_utils import render_metplus_confs, make_var_list, make_ensprob_var_list, make_ensmean_var_list, merge_field_configs
 from .eval_metplus_tmpl import eval_metplus_timestr_tmpl, eval_metplus_dt_tmpl
 from .parse_test_list import get_tests_to_run, get_pretty_list
+from .ensmem_info import EnsmemInfo, get_ensmem_info

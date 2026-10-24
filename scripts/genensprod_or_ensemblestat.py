@@ -19,7 +19,7 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     make_var_list, merge_field_configs, render_metplus_confs,
+     get_ensmem_info, make_var_list, merge_field_configs, render_metplus_confs,
                          run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
@@ -140,13 +140,14 @@ def genensprod_or_ensemblestat(
         raise ValueError(f"Invalid parameters: {obtype=}, {field_group=}, {accum_hh=}")
 
     fcst_in_fn_templates = []
-    for i in range(enscfg["NUM_ENS_MEMBERS"]):
+    for ensmem_index in range(enscfg["ENSMEM_INDX_MIN"], enscfg["ENSMEM_INDX_MAX"] + 1):
         # Build per-member forecast filename templates (comma-separated list for METplus)
-        ensmem = f"mem{str(i).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+        ensmem_info = get_ensmem_info(cfg, ensmem_index)
+        ensmem = ensmem_info.name
         subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "time_lag": int(enscfg["ENS_TIME_LAG_HRS"][i]) * 3600,
+            "time_lag": ensmem_info.time_lag,
             "ensmem_name": ensmem,
         }
         if field_group in ("APCP", "ASNOW"):
@@ -155,7 +156,7 @@ def genensprod_or_ensemblestat(
                 Template(vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]).safe_substitute(subvars),
             ))
         else:
-            tmpl = Template(vxcfg["FCST_FN_TEMPLATE"][i]).safe_substitute(subvars)
+            tmpl = Template(ensmem_info.fcst_fn_template).safe_substitute(subvars)
         fcst_in_fn_templates.append(tmpl)
     fcst_in_fn_template = ", ".join(fcst_in_fn_templates)
 

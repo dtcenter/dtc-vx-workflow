@@ -14,10 +14,11 @@ import os
 from multiprocessing import Pool
 from pathlib import Path
 from string import Template
+from typing import Optional
 
 import uwtools.api.config as uwconfig
 
-from python_utils import run_metplus, render_metplus_confs, setup_logging
+from python_utils import get_ensmem_info, run_metplus, render_metplus_confs, setup_logging
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -31,7 +32,7 @@ def pcpcombine(
     accum_hh: int,
     fcst_level: str,
     fcst_or_obs: str,
-    ensmem_index: int,
+    ensmem_index: Optional[int] = None,
 ) -> None:
     """Execute a METplus PcpCombine task for obs or forecast accumulation fields.
 
@@ -53,8 +54,10 @@ def pcpcombine(
         METplus forecast level (e.g. A06).
     fcst_or_obs : str
         Whether this task processes forecast (``"FCST"``) or observation (``"OBS"``) data.
-    ensmem_index : int
-        Ensemble member index (0 for deterministic).
+    ensmem_index : int or None
+        Index of the forecast (ensemble) member, from ENSMEM_INDX_MIN to ENSMEM_INDX_MAX
+        (ENSMEM_INDX_MIN for deterministic runs).  Required when processing forecast data;
+        not used when processing observation data.
     """
     # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-statements
     lgr = logging.getLogger(__name__)
@@ -75,7 +78,16 @@ def pcpcombine(
 
     exptdir = vxcfg["VX_OUTPUT_BASEDIR"]
     do_ensemble = enscfg["DO_ENSEMBLE"]
-    ensmem = f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}"
+
+    # Get the forecast member's name, time lag (in seconds), and forecast file name template.
+    # Observations are not associated with a member.
+    if fcst_or_obs == "FCST":
+        if ensmem_index is None:
+            raise ValueError("ensmem_index must be specified when processing forecast data")
+        ensmem_info = get_ensmem_info(cfg, ensmem_index)
+        ensmem = ensmem_info.name
+    else:
+        ensmem = ""
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
@@ -83,7 +95,7 @@ def pcpcombine(
     subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "ensmem_name": f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
+            "ensmem_name": ensmem,
     }
 
     pcp_combine_method = "ADD"
@@ -91,12 +103,11 @@ def pcpcombine(
 
     time_lag = 0
     if fcst_or_obs == "FCST":
-        if do_ensemble:
-            time_lag = int(enscfg["ENS_TIME_LAG_HRS"][ensmem_index]) * 3600
+        time_lag = ensmem_info.time_lag
 
         subvars["time_lag"]=time_lag
         input_fn_template = Template(
-                vxcfg["FCST_FN_TEMPLATE"][ensmem_index]).safe_substitute(subvars)
+                ensmem_info.fcst_fn_template).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
         output_fn_template = Template(
             vxcfg["FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT"]
@@ -284,8 +295,9 @@ if __name__ == "__main__":
         help="METplus forecast level (e.g. A06)")
     parser.add_argument("--fcst_or_obs", required=True, type=str,
         help="Whether processing forecast (FCST) or observation (OBS) data")
-    parser.add_argument("--ensmem_index", type=int, default=0,
-        help="Ensemble member index (0 for deterministic)")
+    parser.add_argument("--ensmem_index", type=int, default=None,
+        help="Ensemble member index (ENSMEM_INDX_MIN for deterministic); "
+             "required if --fcst_or_obs is set to FCST")
     parser.add_argument("-v", "--verbose", action="store_true",
         help="Enable verbose debug output")
     args = parser.parse_args()
