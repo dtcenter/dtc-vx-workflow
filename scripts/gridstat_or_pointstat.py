@@ -251,6 +251,18 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
         fcst_level="all"
     var_list=make_var_list(vx_config_dict,field_group,fcst_level)
 
+    # Determine whether any field in this field group is given forecast or
+    # observation thresholds.  Categorical statistics (e.g. contingency table
+    # counts and statistics) can only be meaningfully computed for fields with
+    # thresholds.  For fields without thresholds, MET would write the line
+    # types for categorical statistics (e.g. the FHO, CTC, and CTS line types)
+    # with a threshold of NA, which results in all matched pairs being counted
+    # as hits, so these line types would contain no useful information.  Thus,
+    # these line types are requested in the output only if at least one field
+    # in the group has thresholds.
+    has_thresholds = any(field.get('fcst_thresholds') or field.get('obs_thresholds')
+                         for field in vx_config_dict.get(field_group, []))
+
     # Define variables that appear in the jinja template, add to existing settings dict.
     settings = {
                'metplus_tool_name': metplus_tool_name,
@@ -285,6 +297,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'input_field_group': field_group,
                # Variable list
                'var_list': var_list,
+               # Whether to write categorical (threshold-based) statistics
+               'write_categorical_stats': has_thresholds,
                # Verification mask settings
                'vx_mask': ', '.join(vx_mask_files),
                # Rest of settings from yaml file
