@@ -240,7 +240,7 @@ def gridstat_or_pointstat_ensmean(
         'write_categorical_stats': has_thresholds,
     }
 
-    numprocs = int(vxcfg["VX_TASKS"])
+    numprocs = int(taskcfg["TASKS"])
     conf_files = render_metplus_confs(
         cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
     )

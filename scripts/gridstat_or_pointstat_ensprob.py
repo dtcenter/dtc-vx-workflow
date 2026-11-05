@@ -237,7 +237,7 @@ def gridstat_or_pointstat_ensprob(
         'var_list': var_list,
     }
 
-    numprocs = int(vxcfg["VX_TASKS"])
+    numprocs = int(taskcfg["TASKS"])
     conf_files = render_metplus_confs(
         cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
     )

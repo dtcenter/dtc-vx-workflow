@@ -1135,11 +1135,11 @@ pb2nc:
   # Runtime settings for PB2NC jobs
   execution:
     # Number of PB2NC tasks; should typically be equal to the number of instances to run in parallel. Currently no support for multi-node jobs
-    tasks_per_node: '{{ gridstat.TASKS }}'
+    tasks_per_node: '{{ pb2nc.TASKS }}'
     # Wallclock time to allocate to submitted PB2NC jobs
     walltime: 00:30:00
     # Memory to allocate to PB2NC jobs
-    memory: '{{ 2 * gridstat.TASKS }}G'
+    memory: '{{ 2 * pb2nc.TASKS }}G'
     # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
     tries: 1
   # Number of PB2NC instances to run in parallel
