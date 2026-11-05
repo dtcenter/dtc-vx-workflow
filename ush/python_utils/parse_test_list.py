@@ -15,16 +15,47 @@ import logging
 import glob
 from textwrap import dedent
 from pathlib import Path
+from typing import Optional
 
 TESTS_WE2E_DIR = Path(__file__).absolute().parents[2] / "tests" / "WE2E"
 
-CONFIG_YAML_GLOB = "test_configs/**/config*.yaml"
-
-ALL_TESTS = glob.glob(CONFIG_YAML_GLOB, recursive=True, root_dir=TESTS_WE2E_DIR)
-TEST_DIRS = next(os.walk(os.path.join(TESTS_WE2E_DIR, "test_configs")))[1]
-
+# Test configuration files are named {TEST_FILE_PREFIX}<test_name>{TEST_FILE_SUFFIX}.
 TEST_FILE_PREFIX = "config."
 TEST_FILE_SUFFIX = ".yaml"
+TEST_FILE_GLOB = f"{TEST_FILE_PREFIX}*{TEST_FILE_SUFFIX}"
+
+CONFIG_YAML_GLOB = f"test_configs/**/{TEST_FILE_GLOB}"
+
+def _glob_test_files(pattern):
+    """
+    Returns the paths (relative to TESTS_WE2E_DIR) of the files matching a glob
+    pattern.  Only files (including symbolic links to files) are returned, not
+    e.g. directories whose names happen to match the pattern.
+    """
+    return [f for f in glob.glob(pattern, recursive=True, root_dir=TESTS_WE2E_DIR)
+            if (TESTS_WE2E_DIR / f).is_file()]
+
+ALL_TESTS = _glob_test_files(CONFIG_YAML_GLOB)
+TEST_DIRS = next(os.walk(os.path.join(TESTS_WE2E_DIR, "test_configs")))[1]
+
+def get_test_name(filename) -> Optional[str]:
+    """
+    Gets the name of a test from the name of its configuration file
+
+    Args:
+        filename (str or Path): Name (or path) of a file
+
+    Returns:
+        test_name: Name of the test if the file name has the form
+            {TEST_FILE_PREFIX}<test_name>{TEST_FILE_SUFFIX} (with a non-empty
+            <test_name>), None otherwise (i.e. if the file is not a test
+            configuration file)
+    """
+    name = Path(filename).name
+    if (name.startswith(TEST_FILE_PREFIX) and name.endswith(TEST_FILE_SUFFIX)
+            and len(name) > len(TEST_FILE_PREFIX) + len(TEST_FILE_SUFFIX)):
+        return name[len(TEST_FILE_PREFIX):-len(TEST_FILE_SUFFIX)]
+    return None
 
 def get_pretty_list(test_list):
     return "\n".join(str(x) for x in test_list)
@@ -65,10 +96,7 @@ def _get_tests_to_check(args_tests):
         logging.debug(
             f"Will run all tests in test_configs/{user_spec_tests[0]}"
         )
-        tests_in_dir = glob.glob(
-            f"test_configs/{user_spec_tests[0]}/config*.yaml", recursive=True,
-            root_dir=TESTS_WE2E_DIR
-        )
+        tests_in_dir = _glob_test_files(f"test_configs/{user_spec_tests[0]}/{TEST_FILE_GLOB}")
         return _get_test_names(tests_in_dir)
 
     # If we have gotten this far then the only option left for user_spec_tests is a
@@ -97,13 +125,11 @@ def _get_tests_to_check(args_tests):
 def _get_test_names(test_list) -> list[str]:
     test_names = []
     for f in test_list:
-        filename = Path(f).name
-        # We just want the test name in this list, so cut out the
-        # "config." prefix and ".yaml" extension
-        if len(filename) > 12 and filename.startswith(TEST_FILE_PREFIX) and filename.endswith(TEST_FILE_SUFFIX):
-            test_names.append(filename[7:-5])
+        test_name = get_test_name(f)
+        if test_name:
+            test_names.append(test_name)
         else:
-            logging.debug(f"Skipping non-test file {filename}")
+            logging.debug(f"Skipping non-test file {Path(f).name}")
 
     return test_names
 
