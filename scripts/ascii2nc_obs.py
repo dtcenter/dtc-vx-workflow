@@ -119,7 +119,7 @@ def ascii2nc_obs(config_file, cdate, obtype):
     run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"), conf_file[0])
 
     lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
-    create_flag_file(cfg, obtype, cdate)
+    create_flag_file(cfg, obtype, cdate[0:8])
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 
 
@@ -140,7 +140,11 @@ def run_metplus(common_config, config_fn):
 
 
 def create_flag_file(cfg, obtype: str, yyyymmdd: str):
-    """Creates the flag file notifying downstream tasks that files are ready"""
+    """Creates the flag file notifying downstream tasks that files are ready.
+
+    This task runs once per obs day, so the flag file name contains only the
+    obs day (yyyymmdd), as expected by ush/check_flag_file_presence.sh.
+    """
     flag_dir = Path(cfg["workflow"]["WFLOW_FLAG_FILES_DIR"])
     flag_dir.mkdir(parents=True, exist_ok=True)
     flag_file = flag_dir / f"{obtype}_nc_obs_{yyyymmdd}_ready.txt"

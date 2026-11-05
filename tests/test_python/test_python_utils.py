@@ -127,6 +127,26 @@ class Testing(unittest.TestCase):
             "regional_workflow", util.get_ini_value(cfg, "regional_workflow", "repo_url")
         )
 
+    def test_parse_test_list_get_test_name(self):
+        """ Test extraction of WE2E test names from a list of file names.
+            Some of the file names in the list have the expected form for
+            a WE2E test configuration file (i.e. config.<test_name>.yaml)
+            while others do not.  In the latter case, get_test_name() should
+            return None."""
+        test_cases = [
+            ("config.MET_verification.yaml", "MET_verification"),
+            ("/path/to/test_configs/deterministic/config.MET_verification.yaml",
+             "MET_verification"),
+            ("config.MET_verification.yaml.old01", None),
+            ("MET_verification.yaml", None),
+            ("config.yaml", None),
+            ("config..yaml", None),
+            ("README.md", None),
+        ]
+        for filename, expected in test_cases:
+            with self.subTest(filename=filename):
+                self.assertEqual(util.get_test_name(filename), expected)
+
     def test_parse_test_list_get_tests_to_run(self):
         """ Test parsing of different --tests arguments formats """
         # get all existing tests from tests/WE2E/test_configs directory
@@ -134,9 +154,15 @@ class Testing(unittest.TestCase):
         test_categories = [f.name for f in os.scandir(test_configs_dir) if f.is_dir()]
         we2e_tests = {}
         for test_category in test_categories:
-            tests = [f.name[7:-5] for f in os.scandir(os.path.join(test_configs_dir, test_category))
-                     if f.is_file()]
-            we2e_tests[test_category] = tests
+            we2e_tests[test_category] = []
+            # Keep the test names of the items in the test category directory that
+            # are test configuration files.  get_test_name() returns None for items
+            # not named config.<test_name>.yaml (e.g. backups), and is_file() is
+            # False for e.g. subdirectories (but True for symbolic links to files).
+            for f in os.scandir(os.path.join(test_configs_dir, test_category)):
+                test_name = util.get_test_name(f.name)
+                if test_name and f.is_file():
+                    we2e_tests[test_category].append(test_name)
 
         total_test_num = sum(len(tests) for tests in we2e_tests.values())
         all_tests = [item for tests in we2e_tests.values() for item in tests]
