@@ -681,6 +681,11 @@ tropical:
 
 verification_resources:
   execution:
+    # Number of nodes on which each job runs.  Do not change this from 1:
+    # jobs running on more than one node are not supported because the
+    # parallel processes of each job are started with Python's
+    # multiprocessing module, which runs them all on the same node.
+    # (setup.py stops with an error if this is not 1.)
     nodes: 1
     tasks_per_node: 1
     get_obs:
