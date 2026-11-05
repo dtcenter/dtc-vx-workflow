@@ -22,7 +22,7 @@ default_task_preprocessing: &default_task_preprocessing
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
   queue: '&QUEUE_DEFAULT;'
 
@@ -36,7 +36,7 @@ task_run_MET_Pb2nc_obs_NDAS:
     <<: *default_vars
     OBTYPE: NDAS
   memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.TASKS }}'
   walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
@@ -61,7 +61,7 @@ task_run_MET_Pb2nc_obs_GDAS:
     <<: *default_vars
     OBTYPE: GDAS
   memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.TASKS }}'
   walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
@@ -113,6 +113,7 @@ task_run_MET_Point2Grid_GOESAOD:
     maxtries: !int "{{ point2grid.execution.tries }}"
   command: "&JOBSdir;/POINT2GRID.sh"
   memory: '{{  point2grid.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ point2grid.TASKS }}'
   walltime: "{{ point2grid.execution.walltime }}"
   envars:
     <<: *default_vars

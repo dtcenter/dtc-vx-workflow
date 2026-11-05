@@ -681,7 +681,6 @@ tropical:
 
 verification_resources:
   execution:
-    tasks_per_node: 1
     get_obs:
       aeronet:
         walltime: 02:00:00
@@ -1135,21 +1134,14 @@ verification:
   # tool-specific sections below) do not refer to Rocoto tasks but to processes
   # running simultaneously within a single job.  The value of VX_TASKS is the
   # default value used for the TASKS setting of each tool-specific section
-  # (e.g. gridstat.TASKS), which can be set separately for each tool.  By
-  # default, a tool's TASKS also determines the number of cores
-  # (execution.tasks_per_node) and the memory (execution.memory) requested for
-  # that tool's jobs.  execution.tasks_per_node should not be set separately:
-  # it must equal TASKS.
+  # (e.g. gridstat.TASKS), which can be set separately for each tool.  A
+  # tool's TASKS also determines the number of cores requested for its jobs
+  # (one per process) and, by default, their memory (execution.memory).
   VX_TASKS: 1
 
 pb2nc:
   # Runtime settings for PB2NC jobs
   execution:
-    # Number of processes per node (Rocoto's ppn; e.g. Slurm's
-    # --tasks-per-node).  Must equal the number of processes to run in
-    # parallel (TASKS), which is the default; do not set it separately.
-    # Currently, no support for multi-node jobs.
-    tasks_per_node: '{{ pb2nc.TASKS }}'
     # Wallclock time to allocate to submitted PB2NC jobs
     walltime: 00:30:00
     # Memory to allocate to PB2NC jobs
@@ -1164,7 +1156,6 @@ pb2nc:
 gridstat:
   # Runtime settings for deterministic GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat.TASKS }}G'
     tries: 1
@@ -1176,7 +1167,6 @@ gridstat:
 pointstat:
   # Runtime settings for deterministic POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat.TASKS }}G'
     tries: 1
@@ -1188,7 +1178,6 @@ pointstat:
 gridstat_ensmean:
   # Runtime settings for ensemble mean GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat_ensmean.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat_ensmean.TASKS }}G'
     tries: 1
@@ -1200,7 +1189,6 @@ gridstat_ensmean:
 gridstat_ensprob:
   # Runtime settings for ensemble prob GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat_ensprob.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * gridstat_ensprob.TASKS }}G'
     tries: 1
@@ -1222,7 +1210,6 @@ gridstat_ensprob:
 pointstat_ensmean:
   # Runtime settings for ensemble mean POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat_ensmean.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat_ensmean.TASKS }}G'
     tries: 1
@@ -1254,7 +1241,6 @@ pointstat_ensmean:
 pointstat_ensprob:
   # Runtime settings for ensemble prob POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat_ensprob.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * pointstat_ensprob.TASKS }}G'
     tries: 1
@@ -1265,7 +1251,6 @@ pointstat_ensprob:
 
 point2grid:
   execution:
-    tasks_per_node: '{{ point2grid.TASKS }}'
     walltime: 01:00:00
     memory: '{{ 2 * point2grid.TASKS }}G'
     tries: 1
@@ -1285,7 +1270,6 @@ point2grid:
 genensprod:
   # Runtime settings for GenEnsProd jobs
   execution:
-    tasks_per_node: '{{ genensprod.TASKS }}'
     walltime: 02:00:00
     memory: '{{ 2 * genensprod.TASKS }}G'
     threads: 4
@@ -1308,7 +1292,6 @@ genensprod:
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
   execution:
-    tasks_per_node: '{{ ensemblestat.TASKS }}'
     walltime: 01:00:00
     # Note that EnsembleStat may need more memory than this for large ensembles, especially for
     # the REFC field group (e.g. 16G was needed for a 10-member HRRRCast ensemble).
@@ -1446,7 +1429,6 @@ ensemblestat:
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
   execution:
-    tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
     memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
     tries: 1
@@ -1466,11 +1448,6 @@ regriddataplane:
 mode:
   # Runtime settings for MODE jobs
   execution:
-    # Number of processes per node (Rocoto's ppn; e.g. Slurm's
-    # --tasks-per-node).  Must equal the number of processes to run in
-    # parallel (TASKS), which is the default; do not set it separately.
-    # Currently, no support for multi-node jobs.
-    tasks_per_node: '{{ mode.TASKS }}'
     # Wallclock time to allocate to submitted MODE job
     walltime: 01:00:00
     # Memory to allocate to MODE job
@@ -1523,8 +1500,6 @@ mode:
 tcpairs:
   # Runtime settings for TCPAIRS jobs
   execution:
-    # Number of TCPAIRS instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCPAIRS job
     walltime: 00:10:00
     # Memory to allocate to TCPAIRS job
@@ -1547,8 +1522,6 @@ tcpairs:
 tcstat:
   # Runtime settings for TCSTAT jobs
   execution:
-    # Number of TCSTAT instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCSTAT job
     walltime: 00:10:00
     # Memory to allocate to TCSTAT job
@@ -1567,8 +1540,6 @@ tcstat:
 tcrmw:
   # Runtime settings for TCRMW jobs
   execution:
-    # Number of TCRMW instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCRMW job
     walltime: 00:30:00
     # Memory to allocate to TCRMW job

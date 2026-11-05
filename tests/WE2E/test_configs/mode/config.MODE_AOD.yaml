@@ -64,12 +64,10 @@ mode:
   MERGE_FLAG: ENGINE
 gridstat:
   execution:
-    tasks_per_node: '{{ verification.VX_TASKS }}'
     walltime: 01:00:00
     memory: '{{ 5 * verification.VX_TASKS }}G'
 pointstat:
   execution:
-    tasks_per_node: '{{ verification.VX_TASKS }}'
     walltime: 01:00:00
     memory: '{{ 5 * verification.VX_TASKS }}G'
 

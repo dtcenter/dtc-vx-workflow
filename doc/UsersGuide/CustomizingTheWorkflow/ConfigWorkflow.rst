@@ -25,7 +25,6 @@ Mathematical and Jinja logical experssions are also supported:
      ENSMEM_NAMES: '{% for m in range(ensemble.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}' # Filled in as 'mem001, mem002, mem003'
    regriddataplane:
      execution:
-       tasks_per_node: '{{ regriddataplane.TASKS }}' # Filled in as string '1'
        walltime: 00:30:00
        memory: '{{ 10 * regriddataplane.TASKS }}G' # Filled in as string '10G'
      TASKS: 1
@@ -786,10 +785,9 @@ VX Parameters for Forecasts
    that "tasks" here (and in the ``TASKS`` settings of the tool-specific sections below) do not
    refer to Rocoto tasks but to processes running simultaneously within a single job.  The value
    of ``VX_TASKS`` is the default value used for the ``TASKS`` setting of each tool-specific
-   section (e.g. ``gridstat.TASKS``), which can be set separately for each tool.  By default, a
-   tool's ``TASKS`` also determines the number of cores (``execution.tasks_per_node``) and the
-   memory (``execution.memory``) requested for that tool's jobs.  ``execution.tasks_per_node``
-   should not be set separately: it must equal ``TASKS``.
+   section (e.g. ``gridstat.TASKS``), which can be set separately for each tool.  A tool's
+   ``TASKS`` also determines the number of cores requested for its jobs (one per process) and, by
+   default, their memory (``execution.memory``).
 
 
 
@@ -807,8 +805,6 @@ Unlike the above sections, each of these sections contains an ``execution:`` sub
 This section describes the valid ``point2grid:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ point2grid.TASKS }}'``)
-
    ``walltime``: (Default: ``'01:00:00'``)
 
    ``memory``: (Default: ``'{{ 2 * point2grid.TASKS }}G'``)
@@ -837,8 +833,6 @@ This section describes the valid ``point2grid:`` config settings.
 This section describes the valid ``regriddataplane:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ regriddataplane.TASKS }}'``)
-       
    ``walltime``: (Default: ``'00:30:00'``)
 
    ``memory``: (Default: ``'{{ 10 * regriddataplane.TASKS }}G'``)
@@ -867,8 +861,6 @@ This section describes the valid ``regriddataplane:`` config settings.
 This section describes the valid ``mode:`` config settings.
      
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ mode.TASKS }}'``)
-       
    ``walltime``: (Default: ``'01:00:00'``)
 
    ``memory``: (Default: ``'{{ 10 * mode.TASKS }}G'``)
@@ -912,8 +904,6 @@ This section describes the valid ``mode:`` config settings.
 This section describes the valid ``tcpairs:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:10:00'``)
 
    ``memory``: (Default: ``'2G'``)
@@ -934,8 +924,6 @@ This section describes the valid ``tcpairs:`` config settings.
 This section describes the valid ``tcstat:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:10:00'``)
 
    ``memory``: (Default: ``'2G'``)
@@ -956,8 +944,6 @@ This section describes the valid ``tcstat:`` config settings.
 This section describes the valid ``tcrmw:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:30:00'``)
 
    ``memory``: (Default: ``'2G'``)

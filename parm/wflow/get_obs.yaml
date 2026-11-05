@@ -22,7 +22,7 @@ default_task_get_obs: &default_task_get_obs
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
   queue: '&QUEUE_DEFAULT;'
 
