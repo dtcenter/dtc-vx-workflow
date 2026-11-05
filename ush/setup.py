@@ -146,12 +146,6 @@ def check_bad_settings(cfg):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
         msg+="The `global` section has been renamed to `ensemble`"
     if ex:=cfg.get("verification_resources").get("execution"):
-        # Jobs running on more than one node are not supported because the parallel
-        # processes of each job are started with Python's multiprocessing module, which
-        # runs them all on the node on which the job's script runs.
-        if (nodes:=ex.get("nodes")) is not None and str(nodes) != "1":
-            msg+=f"verification_resources:execution:nodes is set to {nodes}, but jobs running\n"
-            msg+="on more than one node are not supported; remove this setting or set it to 1\n"
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
             msg+="these variables for this task have moved to top-level `point2grid` section"
@@ -249,6 +243,23 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     default_config_fp = os.path.join(ushdir, "config_defaults.yaml")
     user_config_fp = os.path.join(ushdir, user_config_fn)
     expt_config = load_config_for_setup(ushdir, default_config_fp, user_config_fp)
+
+    # verification_resources.execution.nodes (the number of nodes for each job) is not a
+    # user setting: it is set here, rather than in config_defaults.yaml, so that it cannot
+    # be changed in config.yaml.  It must be 1 because the parallel processes of each job
+    # are started with Python's multiprocessing module (multiprocessing.Pool), which does
+    # not support running processes on more than one node: all processes it starts run on
+    # the node on which the job's script runs, so any other nodes allocated to the job
+    # would sit idle.  It is kept as a variable (used in the rocoto task templates in
+    # parm/wflow) for possible future support of multi-node jobs.  It must be set before
+    # the first call to dereference() below, which renders these templates.
+    ex = expt_config["verification_resources"]["execution"]
+    if "nodes" in ex:
+        raise ValueError(
+            f"verification_resources:execution:nodes is set (to {ex['nodes']}) in the "
+            "user or machine config, but it is not a user setting (each job runs on one "
+            "node); remove it")
+    ex["nodes"] = 1
 
     # Update ush path
     expt_config["user"].update({"USHdir": ushdir,})
