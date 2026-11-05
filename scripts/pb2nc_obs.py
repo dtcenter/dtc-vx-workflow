@@ -129,11 +129,13 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
         pool.starmap(run_metplus,mpargs)
 
     # ---------------------------------------------------------------------
-    # Create completion flag file
+    # Create completion flag file.  This task runs once per obs day, so the
+    # flag file name contains only the obs day (YYYYMMDD), as expected by
+    # ush/check_flag_file_presence.sh.
     # ---------------------------------------------------------------------
     flag_dir = Path(cfg["workflow"]["WFLOW_FLAG_FILES_DIR"])
     flag_dir.mkdir(parents=True, exist_ok=True)
-    flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date}_ready.txt"
+    flag_file = flag_dir / f"{obtype}_nc_obs_{cycle_date[0:8]}_ready.txt"
     flag_file.touch()
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
