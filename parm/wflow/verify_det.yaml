@@ -17,7 +17,6 @@ default_task_verify_det: &default_task_verify_det
         value: '&LOGDIR;'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
-    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'

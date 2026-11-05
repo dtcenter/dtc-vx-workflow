@@ -17,7 +17,6 @@ default_task_preprocessing: &default_task_preprocessing
     LOGDIR:
       cyclestr:
         value: '&LOGDIR;'
-    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
