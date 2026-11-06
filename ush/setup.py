@@ -145,14 +145,20 @@ def check_bad_settings(cfg):
     if bad:=cfg.get("global"):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
         msg+="The `global` section has been renamed to `ensemble`"
+    # VX_TASKS and the tools' TASKS settings have been renamed to VX_NPROCS and NPROCS.
+    if "VX_TASKS" in (cfg.get("verification") or {}):
+        msg+="verification:VX_TASKS has been renamed to verification:VX_NPROCS\n"
+    for section, sect_cfg in cfg.items():
+        if isinstance(sect_cfg, dict) and "TASKS" in sect_cfg:
+            msg+=f"{section}:TASKS has been renamed to {section}:NPROCS\n"
     # The tasks_per_node settings have been removed: the number of processes per node
-    # (Rocoto's ppn) of a tool's jobs is now always that tool's TASKS setting (or 1 for
+    # (Rocoto's ppn) of a tool's jobs is now always that tool's NPROCS setting (or 1 for
     # tasks that run a single process).
     for section, sect_cfg in cfg.items():
         if isinstance(sect_cfg, dict) and isinstance(sect_cfg.get("execution"), dict) \
                 and "tasks_per_node" in sect_cfg["execution"]:
             msg+=f"{section}:execution:tasks_per_node has been removed; the number of processes\n"
-            msg+="per node of a tool's jobs is now always the tool's TASKS setting (or 1 for\n"
+            msg+="per node of a tool's jobs is now always the tool's NPROCS setting (or 1 for\n"
             msg+="tasks that run a single process); remove this setting\n"
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):

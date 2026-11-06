@@ -47,7 +47,7 @@ metatask_GridStat_APCP_all_accums_all_mems:
         OBTYPE: 'CCPA'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.TASKS }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -79,7 +79,7 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
         OBTYPE: 'NOHRSC'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.TASKS }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -110,7 +110,7 @@ metatask_GridStat_REFC_RETOP_all_mems:
         OBTYPE: 'MRMS'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.TASKS }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -153,7 +153,7 @@ metatask_PointStat:
         OBTYPE: '#METAOBTYPE#'
         ENSMEM_INDX: "#mem#"
       memory: '{{  pointstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.TASKS }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.NPROCS }}'
       walltime: "{{ pointstat.execution.walltime }}"
       dependency:
         and:

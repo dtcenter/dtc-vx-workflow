@@ -96,7 +96,7 @@ def tcstat(config_file, cdate):
         conf_files.extend(render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,[0],numprocs))
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     args = []
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )

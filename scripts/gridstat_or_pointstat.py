@@ -306,12 +306,12 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'vx_config_dict': vx_config_dict
                }
 
-    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["NPROCS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     mpargs = []
     for config_fn in conf_files:
         mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
@@ -324,7 +324,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
 
 def run_metplus(common_config,config_fn):
-    """Calls the run_metplus script as a subprocess. If TASKS > 1 and vx_leadhr_list > 1,
+    """Calls the run_metplus script as a subprocess. If NPROCS > 1 and vx_leadhr_list > 1,
     calls in with starmap for the number of tasks specified."""
 
     # Run METplus

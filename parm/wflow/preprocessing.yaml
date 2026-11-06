@@ -36,7 +36,7 @@ task_run_MET_Pb2nc_obs_NDAS:
     <<: *default_vars
     OBTYPE: NDAS
   memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.TASKS }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.NPROCS }}'
   walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
@@ -61,7 +61,7 @@ task_run_MET_Pb2nc_obs_GDAS:
     <<: *default_vars
     OBTYPE: GDAS
   memory: '{{  pb2nc.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.TASKS }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pb2nc.NPROCS }}'
   walltime: "{{ pb2nc.execution.walltime }}"
   dependency:
     and:
@@ -113,7 +113,7 @@ task_run_MET_Point2Grid_GOESAOD:
     maxtries: !int "{{ point2grid.execution.tries }}"
   command: "&JOBSdir;/POINT2GRID.sh"
   memory: '{{  point2grid.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ point2grid.TASKS }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ point2grid.NPROCS }}'
   walltime: "{{ point2grid.execution.walltime }}"
   envars:
     <<: *default_vars

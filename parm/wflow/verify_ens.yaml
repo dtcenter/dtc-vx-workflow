@@ -45,7 +45,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.NPROCS }}'
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       metataskdep_pcpcombine_fcst:
@@ -61,7 +61,7 @@ metatask_GenEnsProd_EnsembleStat_APCP_all_accums:
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.NPROCS }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
@@ -91,7 +91,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.NPROCS }}'
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       and:
@@ -108,7 +108,7 @@ metatask_GenEnsProd_EnsembleStat_ASNOW_all_accums:
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.NPROCS }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
@@ -138,7 +138,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       FCST_LEVEL: 'L0'
       OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.NPROCS }}'
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       and:
@@ -156,7 +156,7 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
       FCST_LEVEL: 'L0'
       OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.NPROCS }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
@@ -190,7 +190,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
       FCST_LEVEL: 'all'
       OMP_NUM_THREADS: '{{ genensprod.execution.threads }}'
     memory: '{{ genensprod.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.NPROCS }}'
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       metataskdep_check_post_output:
@@ -205,7 +205,7 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
       METPLUSTOOLNAME: 'ENSEMBLESTAT'
       OMP_NUM_THREADS: '{{ ensemblestat.execution.threads }}'
     memory: '{{ ensemblestat.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ ensemblestat.NPROCS }}'
     walltime: "{{ ensemblestat.execution.walltime }}"
     dependency:
       and:
@@ -241,7 +241,7 @@ metatask_GridStat_APCP_all_accums_ensmean:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
     memory: '{{ gridstat_ensmean.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.NPROCS }}'
     walltime: "{{ gridstat_ensmean.execution.walltime }}"
     dependency:
       and:
@@ -270,7 +270,7 @@ metatask_GridStat_APCP_all_accums_ensprob:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
     memory: '{{ gridstat_ensprob.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.NPROCS }}'
     walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
@@ -299,7 +299,7 @@ metatask_GridStat_ASNOW_all_accums_ensmean:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
     memory: '{{ gridstat_ensmean.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensmean.NPROCS }}'
     walltime: "{{ gridstat_ensmean.execution.walltime }}"
     dependency:
       and:
@@ -328,7 +328,7 @@ metatask_GridStat_ASNOW_all_accums_ensprob:
       FCST_LEVEL: 'A#ACCUM_HH#'
       OMP_NUM_THREADS: 4
     memory: '{{ gridstat_ensprob.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.NPROCS }}'
     walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
@@ -357,7 +357,7 @@ metatask_GridStat_REFC_RETOP_ensprob:
       FCST_LEVEL: 'L0'
       OMP_NUM_THREADS: 4
     memory: '{{ gridstat_ensprob.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat_ensprob.NPROCS }}'
     walltime: "{{ gridstat_ensprob.execution.walltime }}"
     dependency:
       and:
@@ -385,7 +385,7 @@ metatask_PointStat_SFC_UPA_ensmean:
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
     memory: '{{ pointstat_ensmean.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensmean.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensmean.NPROCS }}'
     walltime: "{{ pointstat_ensmean.execution.walltime }}"
     dependency:
       and:
@@ -413,7 +413,7 @@ metatask_PointStat_SFC_UPA_ensprob:
       ACCUM_HH: '01'
       FCST_LEVEL: 'all'
     memory: '{{ pointstat_ensprob.execution.memory }}'
-    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensprob.TASKS }}'
+    nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat_ensprob.NPROCS }}'
     walltime: "{{ pointstat_ensprob.execution.walltime }}"
     dependency:
       and:
