@@ -714,6 +714,10 @@ in the ``verification:`` section of ``config.yaml``.  For example, to verify a g
 
    VX_OBTYPE_SFC_UPA: 'GDAS'
 
+With GDAS obs, the ``SFC`` field group is by default verified against both land surface (ADPSFC) and
+marine surface (SFCSHP) obs.  To use only land surface obs, set ``VX_GDAS_SFC_INCLUDE_SFCSHP: false``
+in the ``verification:`` section of ``config.yaml``.
+
 Only the tasks for the selected obs type are included in the Rocoto XML.  Note that GDAS obs are
 available less often than NDAS obs (see ``GDAS_OBS_AVAIL_INTVL_HRS`` and ``NDAS_OBS_AVAIL_INTVL_HRS``).
 ``VX_FCST_OUTPUT_INTVL_HRS`` should be chosen so that the forecast output times line up with the

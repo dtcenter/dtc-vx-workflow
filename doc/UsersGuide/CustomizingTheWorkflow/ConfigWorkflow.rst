@@ -426,6 +426,15 @@ General VX Parameters
    * ``"NDAS"``: :term:`NDAS` prepbufr obs (regional, North America).
    * ``"GDAS"``: :term:`GDAS` prepbufr obs (global).
 
+``VX_GDAS_SFC_INCLUDE_SFCSHP``: (Default: ``true``)
+   Whether to verify the surface (``"SFC"``) field group against marine surface
+   (SFCSHP: ship, buoy, and other marine platform) observations as well as land
+   surface (ADPSFC) observations.  This applies only if ``VX_OBTYPE_SFC_UPA`` is
+   ``"GDAS"``; with NDAS obs, only ADPSFC obs are used.  If ``true``, MET computes
+   the statistics separately for each of the two message types, and the output
+   file names contain ``ADPSFC-SFCSHP`` instead of ``ADPSFC``.
+   Valid values: ``true`` | ``false``
+
 ``VX_APCP_ACCUMS_HRS``: (Default: [ 1, 3, 6, 24 ])
    The accumulation intervals (in hours) to include in the verification of
    accumulated precipitation (APCP).  If ``VX_FIELD_GROUPS`` contains ``"APCP"``,

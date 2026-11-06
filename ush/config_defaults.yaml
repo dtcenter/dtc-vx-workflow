@@ -743,6 +743,18 @@ verification:
   #
   VX_OBTYPE_SFC_UPA: "NDAS"
   #
+  # VX_GDAS_SFC_INCLUDE_SFCSHP:
+  # Whether to verify the surface (SFC) field group against marine surface
+  # (SFCSHP: ship, buoy, and other marine platform) observations as well as
+  # land surface (ADPSFC) observations.  This applies only if
+  # VX_OBTYPE_SFC_UPA is "GDAS" (the GDAS PB2NC task keeps all message
+  # types, including SFCSHP); with NDAS obs, only ADPSFC obs are used.  If
+  # true, MET computes the statistics separately for each of the two
+  # message types, and the output file names contain "ADPSFC-SFCSHP"
+  # instead of "ADPSFC".
+  #
+  VX_GDAS_SFC_INCLUDE_SFCSHP: true
+  #
   # VX_FIELDS_EXCLUDE:
   # A list of forecast field names (fcst_name) to exclude from ALL verification
   # tasks. This is an experiment-wide "omit this variable everywhere" switch: any
