@@ -17,14 +17,13 @@ default_task_verify_det: &default_task_verify_det
         value: '&LOGDIR;'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
-    nprocs: '{{ verification_resources.execution.nodes * verification_resources.execution.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ verification_resources.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   queue: '&QUEUE_DEFAULT;'
 
 metatask_GridStat_APCP_all_accums_all_mems:
@@ -48,7 +47,7 @@ metatask_GridStat_APCP_all_accums_all_mems:
         OBTYPE: 'CCPA'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -80,7 +79,7 @@ metatask_GridStat_ASNOW_all_accums_all_mems:
         OBTYPE: 'NOHRSC'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -111,7 +110,7 @@ metatask_GridStat_REFC_RETOP_all_mems:
         OBTYPE: 'MRMS'
         ENSMEM_INDX: "#mem#"
       memory: '{{  gridstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.execution.tasks_per_node }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ gridstat.NPROCS }}'
       walltime: "{{ gridstat.execution.walltime }}"
       dependency:
         and:
@@ -154,7 +153,7 @@ metatask_PointStat:
         OBTYPE: '#METAOBTYPE#'
         ENSMEM_INDX: "#mem#"
       memory: '{{  pointstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.execution.tasks_per_node }}'
+      nodes: '{{ verification_resources.execution.nodes }}:ppn={{ pointstat.NPROCS }}'
       walltime: "{{ pointstat.execution.walltime }}"
       dependency:
         and:

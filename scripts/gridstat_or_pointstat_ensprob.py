@@ -239,13 +239,13 @@ def gridstat_or_pointstat_ensprob(
         'var_list': var_list,
     }
 
-    numprocs = int(vxcfg["VX_TASKS"])
+    numprocs = int(taskcfg["NPROCS"])
     conf_files = render_metplus_confs(
         cfg, settings, metplus_config_tmpl_fn, vx_leadhr_list, numprocs
     )
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case}_ensprob with METplus for {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case}_ensprob with METplus with {numprocs} processes")
     common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])

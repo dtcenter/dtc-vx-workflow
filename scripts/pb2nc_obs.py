@@ -108,7 +108,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
         "obtype": obtype,
     }
 
-    numprocs = int(cfg[metplus_tool_camel_case.lower()]["TASKS"])
+    numprocs = int(cfg[metplus_tool_camel_case.lower()]["NPROCS"])
     # Render the configuration file using the template
     conf_files = render_metplus_confs(
         cfg,
@@ -119,7 +119,7 @@ def pb2nc(config_file: str, cycle_date: str, obtype: str, verbose: bool = False)
     )
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     mpargs = []
     for config_fn in conf_files:
         mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )

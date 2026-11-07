@@ -17,4 +17,4 @@ verification:
   AERONET_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/aeronet"
   AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
   OBS_DATA_STORE_AERONET: http
-  VX_TASKS: 4
+  VX_NPROCS: 4

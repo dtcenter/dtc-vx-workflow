@@ -145,6 +145,21 @@ def check_bad_settings(cfg):
     if bad:=cfg.get("global"):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
         msg+="The `global` section has been renamed to `ensemble`"
+    # VX_TASKS and the tools' TASKS settings have been renamed to VX_NPROCS and NPROCS.
+    if "VX_TASKS" in (cfg.get("verification") or {}):
+        msg+="verification:VX_TASKS has been renamed to verification:VX_NPROCS\n"
+    for section, sect_cfg in cfg.items():
+        if isinstance(sect_cfg, dict) and "TASKS" in sect_cfg:
+            msg+=f"{section}:TASKS has been renamed to {section}:NPROCS\n"
+    # The tasks_per_node settings have been removed: the number of processes per node
+    # (Rocoto's ppn) of a tool's jobs is now always that tool's NPROCS setting (or 1 for
+    # tasks that run a single process).
+    for section, sect_cfg in cfg.items():
+        if isinstance(sect_cfg, dict) and isinstance(sect_cfg.get("execution"), dict) \
+                and "tasks_per_node" in sect_cfg["execution"]:
+            msg+=f"{section}:execution:tasks_per_node has been removed; the number of processes\n"
+            msg+="per node of a tool's jobs is now always the tool's NPROCS setting (or 1 for\n"
+            msg+="tasks that run a single process); remove this setting\n"
     if ex:=cfg.get("verification_resources").get("execution"):
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
@@ -243,6 +258,23 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     default_config_fp = os.path.join(ushdir, "config_defaults.yaml")
     user_config_fp = os.path.join(ushdir, user_config_fn)
     expt_config = load_config_for_setup(ushdir, default_config_fp, user_config_fp)
+
+    # verification_resources.execution.nodes (the number of nodes for each job) is not a
+    # user setting: it is set here, rather than in config_defaults.yaml, so that it cannot
+    # be changed in config.yaml.  It must be 1 because the parallel processes of each job
+    # are started with Python's multiprocessing module (multiprocessing.Pool), which does
+    # not support running processes on more than one node: all processes it starts run on
+    # the node on which the job's script runs, so any other nodes allocated to the job
+    # would sit idle.  It is kept as a variable (used in the rocoto task templates in
+    # parm/wflow) for possible future support of multi-node jobs.  It must be set before
+    # the first call to dereference() below, which renders these templates.
+    ex = expt_config["verification_resources"]["execution"]
+    if "nodes" in ex:
+        raise ValueError(
+            f"verification_resources:execution:nodes is set (to {ex['nodes']}) in the "
+            "user or machine config, but it is not a user setting (each job runs on one "
+            "node); remove it")
+    ex["nodes"] = 1
 
     # Update ush path
     expt_config["user"].update({"USHdir": ushdir,})

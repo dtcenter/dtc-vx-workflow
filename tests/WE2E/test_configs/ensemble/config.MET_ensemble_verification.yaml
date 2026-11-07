@@ -23,7 +23,7 @@ verification:
     - '{init?fmt=%Y%m%d%H}/mem001/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
     - '{init?fmt=%Y%m%d%H}/mem002/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
 gridstat:
-  TASKS: 4
+  NPROCS: 4
 pointstat:
-  TASKS: 4
+  NPROCS: 4
 
