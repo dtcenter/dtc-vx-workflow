@@ -53,7 +53,7 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
     * Generates a configuration file from the Point2Grid.conf jinja template for each lead hour
       using `render_metplus_confs`
     * Executes :func:`run_metplus` for each rendered .conf file through a `multiprocessing.Pool` of
-      ``vxcfg['VX_TASKS']`` workers.
+      ``cfg['point2grid']['TASKS']`` workers.
     * A METplus log file is written for each parallel task.
     """
     lgr = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
                'input_level_fcst': fcst_level,
                }
 
-    numprocs=vxcfg['VX_TASKS']
+    numprocs=int(cfg['point2grid']['TASKS'])
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
