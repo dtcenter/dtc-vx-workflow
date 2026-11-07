@@ -602,6 +602,16 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         vx_field_groups_all_by_obtype[obtype] \
         = ["SFC", "UPA"] if obtype == vx_obtype_sfc_upa else []
 
+    # VX_GDAS_SFC_INCLUDE_SFCSHP must be a boolean, since it is used as a
+    # condition in the METplus config templates, in which a string such as
+    # "false" would count as true.
+    include_sfcshp = vx_config["VX_GDAS_SFC_INCLUDE_SFCSHP"]
+    if not isinstance(include_sfcshp, bool):
+        raise ValueError(
+            "verification:VX_GDAS_SFC_INCLUDE_SFCSHP must be a boolean, i.e. "
+            f"true or false (without quotes), but it is set to {include_sfcshp!r} "
+            f"(type {type(include_sfcshp).__name__})")
+
     vx_metatasks_all_by_obtype["NDAS"] \
     = ["task_get_obs_ndas",
        "task_run_MET_Pb2nc_obs_NDAS",
