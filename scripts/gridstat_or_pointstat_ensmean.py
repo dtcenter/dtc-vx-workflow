@@ -227,6 +227,8 @@ def gridstat_or_pointstat_ensmean(
         "fieldname_in_met_output": met_out_name,
         "fieldname_in_met_filedir_names": met_filedir_name,
         "obtype": obtype,
+        # Whether GDAS surface vx also uses marine surface (SFCSHP) obs
+        "vx_gdas_sfc_include_sfcshp": vxcfg["VX_GDAS_SFC_INCLUDE_SFCSHP"],
         "accum_hh": f"{accum_hh:02}",
         "accum_no_pad": accum_hh,
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
