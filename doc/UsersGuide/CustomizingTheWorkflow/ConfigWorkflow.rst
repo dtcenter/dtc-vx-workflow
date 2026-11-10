@@ -432,6 +432,15 @@ General VX Parameters
    * ``"NDAS"``: :term:`NDAS` prepbufr obs (regional, North America).
    * ``"GDAS"``: :term:`GDAS` prepbufr obs (global).
 
+``VX_GDAS_SFC_INCLUDE_SFCSHP``: (Default: ``true``)
+   Whether to verify the surface (``"SFC"``) field group against marine surface
+   (SFCSHP: ship, buoy, and other marine platform) observations as well as land
+   surface (ADPSFC) observations.  This applies only if ``VX_OBTYPE_SFC_UPA`` is
+   ``"GDAS"``; with NDAS obs, only ADPSFC obs are used.  If ``true``, MET computes
+   the statistics separately for each of the two message types, and the output
+   file names contain ``ADPSFC-SFCSHP`` instead of ``ADPSFC``.
+   Valid values: ``true`` | ``false``
+
 ``VX_APCP_ACCUMS_HRS``: (Default: [ 1, 3, 6, 24 ])
    The accumulation intervals (in hours) to include in the verification of
    accumulated precipitation (APCP).  If ``VX_FIELD_GROUPS`` contains ``"APCP"``,
@@ -766,6 +775,28 @@ VX Parameters for Forecasts
    workflow verification tasks that call METplus's PcpCombine tool on
    forecast output.  These files will contain forecast accumulated
    precipitation in NetCDF format for various accumulation intervals.
+
+``VX_CLIMO_MEAN_INPUT_DIR``, ``VX_CLIMO_MEAN_INPUT_TEMPLATE``: (Default: ``''``)
+   Directory and METplus file name template of the files containing the
+   mean of the climatology to use in the GridStat and PointStat
+   verification tasks, e.g. for anomaly statistics.  The template is
+   relative to the directory and may include subdirectories, which may
+   contain METplus time templates (e.g. ``{valid?fmt=%m}/...``); any
+   time-dependent subdirectories should be included in the template
+   rather than in the directory.  For example, for the NCEP 1x1-degree
+   daily climatology, these may be set to ``'/path/to/climo'`` and
+   ``'cmean_1d.1979{valid?fmt=%m%d}'``.  If these are left empty, no
+   climatology is used.  The climatology files are assumed to contain the
+   verified fields with the same names and levels as in the forecast
+   files.  If ``VX_CLIMO_MEAN_INPUT_DIR`` is set, the PointStat tasks also
+   write SAL1L2 lines (partial sums of anomalies from the climatological
+   mean) to their output.
+
+``VX_CLIMO_STDEV_INPUT_DIR``, ``VX_CLIMO_STDEV_INPUT_TEMPLATE``: (Default: ``''``)
+   Same as ``VX_CLIMO_MEAN_INPUT_DIR`` and ``VX_CLIMO_MEAN_INPUT_TEMPLATE``
+   but for the standard deviation of the climatology (e.g.
+   ``'/path/to/climo'`` and ``'cstdv_1d.1979{valid?fmt=%m%d}'`` for the NCEP
+   1x1-degree climatology).
 
 ``VX_NDIGITS_ENSMEM_NAMES``: (Default: 3)
    Number of digits to assume/use in the forecast ensemble member identifier

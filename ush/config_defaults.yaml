@@ -763,6 +763,18 @@ verification:
   #
   VX_OBTYPE_SFC_UPA: "NDAS"
   #
+  # VX_GDAS_SFC_INCLUDE_SFCSHP:
+  # Whether to verify the surface (SFC) field group against marine surface
+  # (SFCSHP: ship, buoy, and other marine platform) observations as well as
+  # land surface (ADPSFC) observations.  This applies only if
+  # VX_OBTYPE_SFC_UPA is "GDAS" (the GDAS PB2NC task keeps all message
+  # types, including SFCSHP); with NDAS obs, only ADPSFC obs are used.  If
+  # true, MET computes the statistics separately for each of the two
+  # message types, and the output file names contain "ADPSFC-SFCSHP"
+  # instead of "ADPSFC".
+  #
+  VX_GDAS_SFC_INCLUDE_SFCSHP: true
+  #
   # VX_FIELDS_EXCLUDE:
   # A list of forecast field names (fcst_name) to exclude from ALL verification
   # tasks. This is an experiment-wide "omit this variable everywhere" switch: any
@@ -1128,6 +1140,34 @@ verification:
   # precipitation in NetCDF format for various accumulation intervals.
   #
   FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: 'srw.t{init?fmt=%H}z.prslev.{{ verification.VX_FCST_MODEL_NAME }}.${FIELD_GROUP}${ACCUM_HH}h.{valid?fmt=%Y%m%d%H?shift=-${ACCUM_HH}H}_to_{valid?fmt=%Y%m%d%H}.nc'
+  #
+  # VX_CLIMO_MEAN_INPUT_DIR, VX_CLIMO_MEAN_INPUT_TEMPLATE:
+  # Directory and METplus file name template of the files containing the
+  # mean of the climatology to use in the GridStat and PointStat
+  # verification tasks, e.g. for anomaly statistics.  The template is
+  # relative to the directory and may include subdirectories, which may
+  # contain METplus time templates (e.g. '{valid?fmt=%m}/...'); any
+  # time-dependent subdirectories should be included in the template
+  # rather than in the directory.  For example, for the NCEP 1x1-degree
+  # daily climatology, these may be set to '/path/to/climo' and
+  # 'cmean_1d.1979{valid?fmt=%m%d}'.  If these are left empty (the default),
+  # no climatology is used.
+  #
+  # VX_CLIMO_STDEV_INPUT_DIR, VX_CLIMO_STDEV_INPUT_TEMPLATE:
+  # Same as VX_CLIMO_MEAN_INPUT_DIR and VX_CLIMO_MEAN_INPUT_TEMPLATE but for
+  # the standard deviation of the climatology (e.g. '/path/to/climo' and
+  # 'cstdv_1d.1979{valid?fmt=%m%d}' for the NCEP 1x1-degree climatology).
+  #
+  # The climatology files are assumed to contain the verified fields with
+  # the same names and levels as in the forecast files.  If
+  # VX_CLIMO_MEAN_INPUT_DIR is set, the PointStat tasks also write SAL1L2
+  # lines (partial sums of anomalies from the climatological mean) to their
+  # output.
+  #
+  VX_CLIMO_MEAN_INPUT_DIR: ''
+  VX_CLIMO_MEAN_INPUT_TEMPLATE: ''
+  VX_CLIMO_STDEV_INPUT_DIR: ''
+  VX_CLIMO_STDEV_INPUT_TEMPLATE: ''
   #
   # VX_NDIGITS_ENSMEM_NAMES:
   # Number of digits to assume/use in the forecast ensemble member identifier
