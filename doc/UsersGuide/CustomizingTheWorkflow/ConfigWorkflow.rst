@@ -810,8 +810,17 @@ VX Parameters for Forecasts
    ``dtc-vx-workflow/parm/metplus/plot_met_poly_points.py``, is also included.
 
 ``VX_TASKS``: (Default: 1)
-   Number of verification tasks to run in parallel; this works for METplus tools that work on
-   sequential forecast hours, and so can be run simultaneously.
+   Number of processes to run in parallel within each job that runs a METplus tool on a set of
+   hours (forecast hours, or observation valid hours for PB2NC); the hours are divided among the
+   processes.  Here, a "job" is a single run of a Rocoto task for a given cycle (i.e. a single
+   batch job submitted by the workflow manager, Rocoto, to the job scheduler, e.g. Slurm).  Note
+   that "tasks" here (and in the ``TASKS`` settings of the tool-specific sections below) do not
+   refer to Rocoto tasks but to processes running simultaneously within a single job.  The value
+   of ``VX_TASKS`` is the default value used for the ``TASKS`` setting of each tool-specific
+   section (e.g. ``gridstat.TASKS``), which can be set separately for each tool.  By default, a
+   tool's ``TASKS`` also determines the number of cores (``execution.tasks_per_node``) and the
+   memory (``execution.memory``) requested for that tool's jobs.  ``execution.tasks_per_node``
+   should not be set separately: it must equal ``TASKS``.
 
 
 
@@ -846,8 +855,10 @@ This section describes the valid ``point2grid:`` config settings.
   * 2: low quality
   * 3: no retrieval quality flag
 
-``TASKS``: (Default: 1)
-   The number of Point2Grid instances to run in parallel
+``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+   The number of processes to run in parallel in each Point2Grid job; each process runs Point2Grid
+   (through METplus) on its share of the forecast hours for which the point obs need to be gridded
+   onto the forecast grid (see ``VX_TASKS``)
 
 .. _regriddataplane:
 
@@ -863,8 +874,10 @@ This section describes the valid ``regriddataplane:`` config settings.
 
    ``memory``: (Default: ``'{{ 10 * regriddataplane.TASKS }}G'``)
 
-``TASKS``: (Default: 1)
-   The number of RegridDataPlane instances to run in parallel
+``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+   The number of processes to run in parallel in each RegridDataPlane job; each process runs
+   RegridDataPlane (through METplus) on its share of the forecast hours for which the obs need to
+   be interpolated onto the forecast grid (see ``VX_TASKS``)
 
 ``REGRID_METHOD``: (Default: ``MAXGAUSS``)
    Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
@@ -891,8 +904,9 @@ This section describes the valid ``mode:`` config settings.
 
    ``memory``: (Default: ``'{{ 10 * mode.TASKS }}G'``)
 
-``TASKS``: (Default: 1)
-   The number of MODE instances to run in parallel
+``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+   The number of processes to run in parallel in each MODE job; each process runs MODE (through
+   METplus) on its share of the forecast hours (see ``VX_TASKS``)
 
 ``CONV_RADIUS``: (Default: ``[ 5 ]``)
    The radius of a circular convolution applied to the raw fields for defining MODE objects. This variable is a list, as multiple convolutional radii may be specified.

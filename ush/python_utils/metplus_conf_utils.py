@@ -191,11 +191,16 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
 
 def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=None):
     """Renders metplus conf files from the appropriate template and user settings.
-    If VX_TASKS > 1 and vx_leadhr_list > 1, renders a conf file for each parallel task.
+    If tasks > 1 and vx_leadhr_list contains more than one lead hour, renders a
+    conf file for each parallel process, dividing the lead hours among them.
     Returns the filename(s) of metplus conf files that were rendered
 
-    vx_leadhr_list (list)
-    tasks (int): The number of parallel tasks to prepare conf files for
+    vx_leadhr_list (list): Lead hours to process, i.e. offsets (in hours) from
+        the cycle's initial time, as used in the METplus LEAD_SEQ setting.  For
+        most tools these are forecast lead hours; for tools that process only
+        observations (e.g. PB2NC), they are the observation valid times
+        expressed as offsets from the cycle time.
+    tasks (int): The number of parallel processes to prepare conf files for
     extra (dict): A dictionary of additional settings to append to the conf file"""
     from jinja2 import Environment, FileSystemLoader
 
@@ -212,9 +217,9 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
     template = env.get_template(template_fn)
 
     if tasks > 1:
-        # Break down forecast hours according to number of tasks requested
+        # Break down lead hours according to number of tasks requested
         if tasks > num_fhrs:
-            logger.warning("Number of tasks is greater than number of forecast hours\n"\
+            logger.warning("Number of tasks is greater than number of lead hours\n"\
                            f"Only running {num_fhrs} tasks in parallel")
             tasks = len(vx_leadhr_list)
 

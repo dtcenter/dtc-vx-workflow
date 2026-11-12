@@ -146,6 +146,12 @@ def check_bad_settings(cfg):
         msg+=f"Config file contains invalid key `global`:\n{bad}\n"
         msg+="The `global` section has been renamed to `ensemble`"
     if ex:=cfg.get("verification_resources").get("execution"):
+        # Jobs running on more than one node are not supported because the parallel
+        # processes of each job are started with Python's multiprocessing module, which
+        # runs them all on the node on which the job's script runs.
+        if (nodes:=ex.get("nodes")) is not None and str(nodes) != "1":
+            msg+=f"verification_resources:execution:nodes is set to {nodes}, but jobs running\n"
+            msg+="on more than one node are not supported; remove this setting or set it to 1\n"
         if bad:=ex.get("point2grid"):
             msg+=f"verification_resources:execution contains invalid key `point2grid`:\n{bad}\n"
             msg+="these variables for this task have moved to top-level `point2grid` section"
