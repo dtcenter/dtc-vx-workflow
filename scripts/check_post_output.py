@@ -13,7 +13,7 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import setup_logging
+from python_utils import get_ensmem_info, setup_logging
 from set_leadhrs import set_leadhrs
 
 
@@ -30,29 +30,29 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     cdate : str
         Eight-digit cycle date in ``YYYYMMDDHH`` format.
     ensmem_index : int
-        Ensemble member index (0-based; use 0 for deterministic runs).
+        Index of the forecast (ensemble) member, from ENSMEM_INDX_MIN to ENSMEM_INDX_MAX
+        (ENSMEM_INDX_MIN for deterministic runs).
     """
     lgr = logging.getLogger(__name__)
 
     cfg = uwconfig.get_yaml_config(config=config_file)
     vxcfg = cfg["verification"]
     wfcfg = cfg["workflow"]
-    enscfg = cfg["ensemble"]
 
-    # Get time lag in seconds for this member; deterministic uses index 0
-    i = max(ensmem_index - 1, 0)
-    time_lag = int(enscfg["ENS_TIME_LAG_HRS"][i]) * 3600
+    # Get the member's name, time lag (in seconds), and forecast file name template
+    ensmem = get_ensmem_info(cfg, ensmem_index)
+    time_lag = ensmem.time_lag
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
     subvars = {
-            "ensmem_name": f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
+            "ensmem_name": ensmem.name,
             "time_lag": time_lag,
               }
 
 # Build forecast filename template
-    fn_template = vxcfg["FCST_FN_TEMPLATE"][i]
+    fn_template = ensmem.fcst_fn_template
 
     lgr.debug(f"{fn_template=}")
     fn_template=Template(fn_template).substitute(subvars)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--ensmem_index", required=True, type=int,
-        help="Ensemble member index (use 0 for deterministic)",
+        help="Ensemble member index (ENSMEM_INDX_MIN for deterministic)",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true",
