@@ -20,6 +20,29 @@ class EnsmemInfo(NamedTuple):
     fcst_fn_template: str
     """Forecast file name template for the member (not yet substituted)."""
 
+    def get_fn_template_vars(self, apply_time_lag: bool = True) -> dict:
+        """Get the member's variables to substitute in the forecast file name templates.
+
+        These are the member-related ${...} variables that may appear in FCST_FN_TEMPLATE and
+        similar templates, which the scripts substitute using string.Template.
+
+        Parameters
+        ----------
+        apply_time_lag : bool
+            Whether to apply the member's time lag.  If False, ${time_lag} is set to 0 (for
+            the scripts that do not support time-lagged forecasts).
+
+        Returns
+        -------
+        dict
+            The values of ${ensmem_name} (the member's name) and ${time_lag} (the member's
+            time lag, in seconds).
+        """
+        return {
+            "ensmem_name": self.name,
+            "time_lag": self.time_lag if apply_time_lag else 0,
+        }
+
 
 def get_ensmem_info(cfg, ensmem_index: int) -> EnsmemInfo:
     """Get the settings associated with a single forecast (ensemble) member.

@@ -1,5 +1,6 @@
 """
-Unit tests for get_ensmem_info() in python_utils/ensmem_info.py.
+Unit tests for get_ensmem_info() and EnsmemInfo.get_fn_template_vars() in
+python_utils/ensmem_info.py.
 
 To run them, issue the following command from the top-level directory:
     UNIT_TEST=True PYTHONPATH=ush python3 -m unittest -b tests/test_python/test_ensmem_info.py
@@ -81,6 +82,28 @@ class TestGetEnsmemInfo(unittest.TestCase):
             with self.subTest(ensmem_index=ensmem_index):
                 with self.assertRaises(ValueError):
                     get_ensmem_info(cfg, ensmem_index)
+
+
+class TestGetFnTemplateVars(unittest.TestCase):
+    """Tests for EnsmemInfo.get_fn_template_vars()."""
+
+    def setUp(self):
+        cfg = _make_cfg(1, [0, 6], ["a", "b"])
+        self.ensmem_info = get_ensmem_info(cfg, 2)
+
+    def test_get_fn_template_vars(self):
+        """The member's name and time lag (in seconds)."""
+        self.assertEqual(
+            self.ensmem_info.get_fn_template_vars(),
+            {"ensmem_name": "mem002", "time_lag": 21600},
+        )
+
+    def test_get_fn_template_vars_no_time_lag(self):
+        """With apply_time_lag=False, the time lag is 0."""
+        self.assertEqual(
+            self.ensmem_info.get_fn_template_vars(apply_time_lag=False),
+            {"ensmem_name": "mem002", "time_lag": 0},
+        )
 
 
 if __name__ == "__main__":
