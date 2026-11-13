@@ -1,0 +1,37 @@
+metadata:
+  description: |-
+    This test is to ensure that the workflow can successfully run MET ensemble verification tasks using
+    staged observation and forecast files for an ensemble whose members are numbered starting from 1
+    (mem001, mem002, ...).  It is the same as the MET_ensemble_verification_only_vx test except that
+    ENSMEM_INDX_MIN is set to 1 and a single FCST_FN_TEMPLATE containing ${ensmem_name} is used for
+    all members (instead of a list with a separate template for each member).  The member names used
+    by the workflow (in task names, flag files, and verification output) are therefore mem001 and
+    mem002, matching those of the forecast.
+
+workflow:
+  DATE_FIRST_CYCL: '2019061500'
+  DATE_LAST_CYCL: '2019061500'
+  FCST_LEN_HRS: 6
+  PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+    - parm/wflow/get_obs.yaml
+    - parm/wflow/preprocessing.yaml
+    - parm/wflow/verify_det.yaml
+    - parm/wflow/verify_ens.yaml
+
+ensemble:
+  DO_ENSEMBLE: true
+  NUM_ENS_MEMBERS: 2
+  ENSMEM_INDX_MIN: 1
+  NUM_ENS_BINS: 11
+
+verification:
+  VX_FCST_MODEL_NAME: RRFS
+  VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/output_data/fcst_ens/RRFS_CONUS_25km'
+  VX_MASK: ["CONUS"]
+  VX_TASKS: 4
+  FCST_FN_TEMPLATE: '{init?fmt=%Y%m%d%H}/${ensmem_name}/postprd/rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2'
+gridstat:
+  TASKS: 4
+pointstat:
+  TASKS: 4

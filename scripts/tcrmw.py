@@ -15,7 +15,10 @@ from string import Template
 
 import uwtools.api.config as uwconfig
 
-from python_utils import eval_metplus_timestr_tmpl, render_metplus_confs, run_metplus, setup_logging
+from python_utils import (
+    eval_metplus_timestr_tmpl, get_ensmem_info, render_metplus_confs, run_metplus,
+    setup_logging
+)
 from set_leadhrs import set_leadhrs
 
 def tcrmw(config_file, cdate):
@@ -64,13 +67,21 @@ def tcrmw(config_file, cdate):
 
     conf_files=[]
     for storm_id in tccfg['STORM_IDS']:
+        # This tool is run only for a single (deterministic) forecast, i.e. it does not loop over
+        # ensemble members; the forecast is taken to be the member with index ENSMEM_INDX_MIN. For
+        # consistency with the other vx scripts, get_ensmem_info() is called to get the member's
+        # name and forecast file name template, so that FCST_FN_TEMPLATE may contain ${ensmem_name}.
+        # The time lag is kept at 0 (time-lagged forecasts are not supported by this script).
+        ensmem_info = get_ensmem_info(cfg, cfg["ensemble"]["ENSMEM_INDX_MIN"])
+
         # Make a dictionary of variables that may need to be substituted; these will be used to
         # replace bash-like variables in some strings. This is needed to maintain some
         # functionality while we still have a mix of bash and python exscripts.
         subvars = {
+                "ensmem_name": ensmem_info.name,
                 "time_lag": 0,
                   }
-        fcst_fn_template = Template(vxcfg["FCST_FN_TEMPLATE"][0]).substitute(subvars)
+        fcst_fn_template = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         lgr.debug(f"{fcst_fn_template=}")
 
         # TCRMW does not accept "cyclone" keyword
