@@ -259,13 +259,13 @@ def genensprod_or_ensemblestat(
         'vx_config_dict': vx_config_dict
     }
 
-    numprocs = int(taskcfg["TASKS"])
+    numprocs = int(taskcfg["NPROCS"])
 
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs,
                                       cfg["genensprod"].get("conf"))
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     mpargs = []
     for config_fn in conf_files:
         mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )

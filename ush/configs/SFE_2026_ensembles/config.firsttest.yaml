@@ -49,21 +49,21 @@ verification:
   MRMS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/mrms'
   NDAS_OBS_DIR: '{{ verification.VX_FCST_INPUT_BASEDIR }}/obs_data/ndas'
 
-  VX_TASKS: 8
+  VX_NPROCS: 8
 gridstat:
-  TASKS: 16
+  NPROCS: 16
 pointstat:
-  TASKS: 8
+  NPROCS: 8
 ensemblestat:
   execution:
     walltime: 02:00:00
     memory: '120G'
     threads: 32
-  TASKS: 30
+  NPROCS: 30
 genensprod:
   execution:
     walltime: 08:00:00
-  TASKS: 30
+  NPROCS: 30
   conf:
     # Config file settings for the ensemble agreement scale (EAS) probability method. See the MET Users Guide for more details:
     # https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/gen-ens-prod.html
@@ -84,11 +84,11 @@ genensprod:
 gridstat_ensmean:
   execution:
     walltime: 02:00:00
-  TASKS: 30
+  NPROCS: 30
 gridstat_ensprob:
   execution:
     walltime: 02:00:00
-  TASKS: 30
+  NPROCS: 30
 user:
   MACHINE: URSA
   ACCOUNT: fv3lam

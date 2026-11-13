@@ -26,10 +26,9 @@ Mathematical and Jinja logical experssions are also supported:
      ENSMEM_INDX_MAX: '{{ ensemble.ENSMEM_INDX_MIN + ensemble.NUM_ENS_MEMBERS - 1 }}' # Filled in as string '3'
    regriddataplane:
      execution:
-       tasks_per_node: '{{ regriddataplane.TASKS }}' # Filled in as string '1'
        walltime: 00:30:00
-       memory: '{{ 10 * regriddataplane.TASKS }}G' # Filled in as string '10G'
-     TASKS: 1
+       memory: '{{ 10 * regriddataplane.NPROCS }}G' # Filled in as string '10G'
+     NPROCS: 1
 
 Note that, in order for these templates to be filled in by ``uwtools``, the templates must be contained in strings. If a non-string value must be specified, the ``uwtools`` YAML language supports several pyYAML tags that apply appropriate typing. You can find more information about the Custom Tags in the `uwtools docs <https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/tags.html>`__. For example, those may be ``!int``, ``!float``, ``!bool``, etc.
 
@@ -821,18 +820,15 @@ VX Parameters for Forecasts
    by adding their own ``GRIDNAME.poly`` files in that location. A script for visualizing these custom domains,
    ``dtc-vx-workflow/parm/metplus/plot_met_poly_points.py``, is also included.
 
-``VX_TASKS``: (Default: 1)
+``VX_NPROCS``: (Default: 1)
    Number of processes to run in parallel within each job that runs a METplus tool on a set of
    hours (forecast hours, or observation valid hours for PB2NC); the hours are divided among the
    processes.  Here, a "job" is a single run of a Rocoto task for a given cycle (i.e. a single
-   batch job submitted by the workflow manager, Rocoto, to the job scheduler, e.g. Slurm).  Note
-   that "tasks" here (and in the ``TASKS`` settings of the tool-specific sections below) do not
-   refer to Rocoto tasks but to processes running simultaneously within a single job.  The value
-   of ``VX_TASKS`` is the default value used for the ``TASKS`` setting of each tool-specific
-   section (e.g. ``gridstat.TASKS``), which can be set separately for each tool.  By default, a
-   tool's ``TASKS`` also determines the number of cores (``execution.tasks_per_node``) and the
-   memory (``execution.memory``) requested for that tool's jobs.  ``execution.tasks_per_node``
-   should not be set separately: it must equal ``TASKS``.
+   batch job submitted by the workflow manager, Rocoto, to the job scheduler, e.g. Slurm).  The
+   value of ``VX_NPROCS`` is the default value used for the ``NPROCS`` setting of each
+   tool-specific section (e.g. ``gridstat.NPROCS``), which can be set separately for each tool.
+   A tool's ``NPROCS`` also determines the number of cores requested for its jobs (one per
+   process) and, by default, their memory (``execution.memory``).
 
 
 
@@ -850,11 +846,9 @@ Unlike the above sections, each of these sections contains an ``execution:`` sub
 This section describes the valid ``point2grid:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ point2grid.TASKS }}'``)
-
    ``walltime``: (Default: ``'01:00:00'``)
 
-   ``memory``: (Default: ``'{{ 2 * point2grid.TASKS }}G'``)
+   ``memory``: (Default: ``'{{ 2 * point2grid.NPROCS }}G'``)
 
 ``REGRID_METHOD``: (Default: ``'BILIN'``)
    The method to interpolate point observations to the specified grid.
@@ -867,10 +861,10 @@ This section describes the valid ``point2grid:`` config settings.
   * 2: low quality
   * 3: no retrieval quality flag
 
-``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+``NPROCS``: (Default: ``'{{ verification.VX_NPROCS }}'``)
    The number of processes to run in parallel in each Point2Grid job; each process runs Point2Grid
    (through METplus) on its share of the forecast hours for which the point obs need to be gridded
-   onto the forecast grid (see ``VX_TASKS``)
+   onto the forecast grid (see ``VX_NPROCS``)
 
 .. _regriddataplane:
 
@@ -880,16 +874,14 @@ This section describes the valid ``point2grid:`` config settings.
 This section describes the valid ``regriddataplane:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ regriddataplane.TASKS }}'``)
-       
    ``walltime``: (Default: ``'00:30:00'``)
 
-   ``memory``: (Default: ``'{{ 10 * regriddataplane.TASKS }}G'``)
+   ``memory``: (Default: ``'{{ 10 * regriddataplane.NPROCS }}G'``)
 
-``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+``NPROCS``: (Default: ``'{{ verification.VX_NPROCS }}'``)
    The number of processes to run in parallel in each RegridDataPlane job; each process runs
    RegridDataPlane (through METplus) on its share of the forecast hours for which the obs need to
-   be interpolated onto the forecast grid (see ``VX_TASKS``)
+   be interpolated onto the forecast grid (see ``VX_NPROCS``)
 
 ``REGRID_METHOD``: (Default: ``MAXGAUSS``)
    Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
@@ -910,15 +902,13 @@ This section describes the valid ``regriddataplane:`` config settings.
 This section describes the valid ``mode:`` config settings.
      
 ``execution:``
-   ``tasks_per_node``: (Default: ``'{{ mode.TASKS }}'``)
-       
    ``walltime``: (Default: ``'01:00:00'``)
 
-   ``memory``: (Default: ``'{{ 10 * mode.TASKS }}G'``)
+   ``memory``: (Default: ``'{{ 10 * mode.NPROCS }}G'``)
 
-``TASKS``: (Default: ``'{{ verification.VX_TASKS }}'``)
+``NPROCS``: (Default: ``'{{ verification.VX_NPROCS }}'``)
    The number of processes to run in parallel in each MODE job; each process runs MODE (through
-   METplus) on its share of the forecast hours (see ``VX_TASKS``)
+   METplus) on its share of the forecast hours (see ``VX_NPROCS``)
 
 ``CONV_RADIUS``: (Default: ``[ 5 ]``)
    The radius of a circular convolution applied to the raw fields for defining MODE objects. This variable is a list, as multiple convolutional radii may be specified.
@@ -955,8 +945,6 @@ This section describes the valid ``mode:`` config settings.
 This section describes the valid ``tcpairs:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:10:00'``)
 
    ``memory``: (Default: ``'2G'``)
@@ -977,8 +965,6 @@ This section describes the valid ``tcpairs:`` config settings.
 This section describes the valid ``tcstat:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:10:00'``)
 
    ``memory``: (Default: ``'2G'``)
@@ -999,8 +985,6 @@ This section describes the valid ``tcstat:`` config settings.
 This section describes the valid ``tcrmw:`` config settings.
 
 ``execution:``
-   ``tasks_per_node``: (Default: ``1``)
-
    ``walltime``: (Default: ``'00:30:00'``)
 
    ``memory``: (Default: ``'2G'``)

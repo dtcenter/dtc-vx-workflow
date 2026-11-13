@@ -43,8 +43,8 @@ def regrid_data_plane(config_file,cdate,field_group,obtype):
     * Reads the experiment configuration and pulls verification settings.
     * Determines valid lead hours with `set_leadhrs`. Raises RuntimeError if the list is empty.
     * Generates a METplus configuration file for each lead hour using `render_metplus_confs`.
-    * Executes `run_metplus` for each config file via a `multiprocessing.Pool` of 
-      `regriddataplane: TASKS` workers.
+    * Executes `run_metplus` for each config file via a `multiprocessing.Pool` of
+      `regriddataplane: NPROCS` worker processes.
     * A METplus log file is written for each parallel task.
     """
     lgr = logging.getLogger(__name__)
@@ -144,11 +144,11 @@ def regrid_data_plane(config_file,cdate,field_group,obtype):
                'level': 'L550'
                }
 
-    numprocs=rdpcfg['TASKS']
+    numprocs=rdpcfg['NPROCS']
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,numprocs)
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     args = []
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )

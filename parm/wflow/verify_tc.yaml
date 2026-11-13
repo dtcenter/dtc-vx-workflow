@@ -17,7 +17,6 @@ default_task_tc: &default_task_tc
         value: '&LOGDIR;'
     MET_INSTALL_DIR: '&MET_INSTALL_DIR;'
     METPLUS_ROOT: '&METPLUS_ROOT;'
-    nprocs: '{{ verification_resources.execution.nodes * tcpairs.execution.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
@@ -39,7 +38,7 @@ task_tcpairs:
         value: '@Y@m@d@H'
   memory: '{{  tcpairs.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcpairs.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
   queue: "&QUEUE_HPSS;"
   walltime: "{{ tcpairs.execution.walltime }}"
@@ -57,7 +56,7 @@ task_tcstat:
       cyclestr:
         value: '@Y@m@d@H'
   memory: '{{  tcstat.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcstat.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   walltime: "{{ tcstat.execution.walltime }}"
   dependency:
     taskdep:
@@ -77,7 +76,7 @@ task_tcrmw:
       cyclestr:
         value: '@Y@m@d@H'
   memory: '{{  tcrmw.execution.memory if user.MACHINE not in ["NOAACLOUD"] }}'
-  nodes: '{{ verification_resources.execution.nodes }}:ppn={{ tcrmw.execution.tasks_per_node }}'
+  nodes: '{{ verification_resources.execution.nodes }}:ppn=1'
   walltime: "{{ tcrmw.execution.walltime }}"
   dependency:
     taskdep:

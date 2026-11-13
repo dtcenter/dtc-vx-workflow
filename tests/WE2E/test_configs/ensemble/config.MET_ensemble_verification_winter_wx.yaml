@@ -22,7 +22,7 @@ verification:
   OBS_NOHRSC_FN_TEMPLATES: [ 'ASNOW',
                              '{valid?fmt=%Y%m%d}/sfav2_CONUS_{{ "%02d" % verification.NOHRSC_OBS_AVAIL_INTVL_HRS }}h_{valid?fmt=%Y%m%d%H}_grid184.grb2' ]
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_ensemble_verification_winter_wx'
-  VX_TASKS: 4
+  VX_NPROCS: 4
   VX_MASK: ["CONUS"]
   FCST_FN_TEMPLATE:
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem001/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
@@ -36,7 +36,7 @@ verification:
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem009/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem010/postprd/srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conuscompact_25km.grib2'
 gridstat:
-  TASKS: 4
+  NPROCS: 4
 pointstat:
-  TASKS: 4
+  NPROCS: 4
 

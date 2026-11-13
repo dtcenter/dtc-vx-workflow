@@ -189,9 +189,9 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
 
     return var_list
 
-def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=None):
+def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,nprocs,extra=None):
     """Renders metplus conf files from the appropriate template and user settings.
-    If tasks > 1 and vx_leadhr_list contains more than one lead hour, renders a
+    If nprocs > 1 and vx_leadhr_list contains more than one lead hour, renders a
     conf file for each parallel process, dividing the lead hours among them.
     Returns the filename(s) of metplus conf files that were rendered
 
@@ -200,7 +200,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
         most tools these are forecast lead hours; for tools that process only
         observations (e.g. PB2NC), they are the observation valid times
         expressed as offsets from the cycle time.
-    tasks (int): The number of parallel processes to prepare conf files for
+    nprocs (int): The number of parallel processes to prepare conf files for
     extra (dict): A dictionary of additional settings to append to the conf file"""
     from jinja2 import Environment, FileSystemLoader
 
@@ -216,32 +216,32 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
     env = Environment(loader=FileSystemLoader(cfg['user']['METPLUS_CONF']))
     template = env.get_template(template_fn)
 
-    if tasks > 1:
-        # Break down lead hours according to number of tasks requested
-        if tasks > num_fhrs:
-            logger.warning("Number of tasks is greater than number of lead hours\n"\
-                           f"Only running {num_fhrs} tasks in parallel")
-            tasks = len(vx_leadhr_list)
+    if nprocs > 1:
+        # Break down lead hours according to number of processes requested
+        if nprocs > num_fhrs:
+            logger.warning("Number of processes is greater than number of lead hours\n"\
+                           f"Only running {num_fhrs} processes in parallel")
+            nprocs = len(vx_leadhr_list)
 
-        for i in range(tasks):
-            logger.debug(f"Rendering conf file for task {i}")
+        for i in range(nprocs):
+            logger.debug(f"Rendering conf file for process {i}")
             # We will have i conf files, so append i to the base filename for each
             settings['metplus_log_fn'] = f"{settings['metplus_log_fn'].rsplit('.',1)[0]}.{i}"
             settings['metplus_config_fn'] = f"{settings['metplus_config_fn'].rsplit('.',1)[0]}.{i}"
             outconf = f"{settings['output_dir']}/{settings['metplus_config_fn']}"
-            logger.debug(f"metplus log file for task: {settings['metplus_log_fn']}")
-            logger.debug(f"metplus final rendered conf for task: {outconf}")
-            hours_per_task,remainder = divmod(num_fhrs,tasks)
+            logger.debug(f"metplus log file for process: {settings['metplus_log_fn']}")
+            logger.debug(f"metplus final rendered conf for process: {outconf}")
+            hours_per_proc,remainder = divmod(num_fhrs,nprocs)
             if settings.get("staging_dir"):
                 settings['staging_dir'] = f"{str(settings['staging_dir']).rsplit('.',1)[0]}.{i}"
             # For cases where things don't divide evenly, ensure we get best distribution
             logger.debug(f"{vx_leadhr_list=}")
             if i >= remainder:
-                vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task:],vx_leadhr_list[:hours_per_task]
+                vx_leadhr_list, proc_fhrs = vx_leadhr_list[hours_per_proc:],vx_leadhr_list[:hours_per_proc]
             else:
-                vx_leadhr_list, task_fhrs = vx_leadhr_list[hours_per_task+1:],vx_leadhr_list[:hours_per_task+1]
-            settings['vx_leadhr_list'] = ', '.join(map(str,task_fhrs))
-            logger.debug(f"Task {i} will process lead hours: {settings['vx_leadhr_list']}")
+                vx_leadhr_list, proc_fhrs = vx_leadhr_list[hours_per_proc+1:],vx_leadhr_list[:hours_per_proc+1]
+            settings['vx_leadhr_list'] = ', '.join(map(str,proc_fhrs))
+            logger.debug(f"Process {i} will process lead hours: {settings['vx_leadhr_list']}")
             logger.debug(f"{vx_leadhr_list=}")
             logger.debug(f"{settings['vx_leadhr_list']=}")
             rendered = template.render(settings)
@@ -254,7 +254,7 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,tasks,extra=Non
             outconfs.append(outconf)
 
     else:
-        #Remove task-specific suffixes if we're only using one task
+        #Remove process-specific suffixes if we're only using one process
         settings['metplus_log_fn'] = settings['metplus_log_fn'].rsplit('.',1)[0]
         settings['metplus_config_fn'] = settings['metplus_config_fn'].rsplit('.',1)[0]
         if settings.get("staging_dir"):

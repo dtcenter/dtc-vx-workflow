@@ -56,7 +56,7 @@ def mode(config_file,cdate,field_group,obtype):
       field group.
     * A Jinja configuration template (``MODE.conf``) is rendered into a METplus conf file for each
       lead hour, then each rendered file is run with `run_metplus` using a `multiprocessing.Pool`
-      of `mode: TASKS` workers.
+      of `mode: NPROCS` worker processes.
     * A METplus log file is written for each parallel task.
 
     """
@@ -178,12 +178,12 @@ def mode(config_file,cdate,field_group,obtype):
                'merge_flag': modecfg["MERGE_FLAG"],
                }
 
-    numprocs=int(modecfg['TASKS'])
+    numprocs=int(modecfg['NPROCS'])
     conf_files = render_metplus_confs(cfg,settings,metplus_config_tmpl_fn,vx_leadhr_list,
                                       len(vx_leadhr_list))
     lgr.debug(f"{conf_files=}")
 
-    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} tasks")
+    lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
     args = []
     for config_fn in conf_files:
         args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )

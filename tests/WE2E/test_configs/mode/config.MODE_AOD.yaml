@@ -41,7 +41,7 @@ verification:
   GOESADP_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesadp"
   VX_MASK:
   - 'EAST'
-  VX_TASKS: 8
+  VX_NPROCS: 8
   OBS_DATA_STORE_AERONET: http
 point2grid:
   execution:
@@ -49,7 +49,7 @@ point2grid:
 regriddataplane:
   execution:
     memory: '30G'
-  TASKS: 8
+  NPROCS: 8
   REGRID_METHOD: MAXGAUSS
   GAUSSIAN_DX: 12
   GAUSSIAN_RADIUS: 18
@@ -58,20 +58,18 @@ mode:
     walltime: 01:00:00
     memory: '30G'
   TOTAL_INTEREST_THRESH: 0.6
-  TASKS: 8
+  NPROCS: 8
   CONV_THRESH: '>=0.3'
   MERGE_THRESH: '>=5'
   MERGE_FLAG: ENGINE
 gridstat:
   execution:
-    tasks_per_node: '{{ verification.VX_TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 5 * verification.VX_TASKS }}G'
+    memory: '{{ 5 * verification.VX_NPROCS }}G'
 pointstat:
   execution:
-    tasks_per_node: '{{ verification.VX_TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 5 * verification.VX_TASKS }}G'
+    memory: '{{ 5 * verification.VX_NPROCS }}G'
 
 verification_resources:
   execution:

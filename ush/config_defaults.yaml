@@ -701,13 +701,6 @@ tropical:
 
 verification_resources:
   execution:
-    # Number of nodes on which each job runs.  Do not change this from 1:
-    # jobs running on more than one node are not supported because the
-    # parallel processes of each job are started with Python's
-    # multiprocessing module, which runs them all on the same node.
-    # (setup.py stops with an error if this is not 1.)
-    nodes: 1
-    tasks_per_node: 1
     get_obs:
       aeronet:
         walltime: 02:00:00
@@ -1201,83 +1194,70 @@ verification:
   # PB2NC); the hours are divided among the processes.  Here, a "job" is a
   # single run of a Rocoto task for a given cycle (i.e. a single batch job
   # submitted by the workflow manager, Rocoto, to the job scheduler, e.g.
-  # Slurm).  Note that "tasks" here (and in the TASKS settings of the
-  # tool-specific sections below) do not refer to Rocoto tasks but to processes
-  # running simultaneously within a single job.  The value of VX_TASKS is the
-  # default value used for the TASKS setting of each tool-specific section
-  # (e.g. gridstat.TASKS), which can be set separately for each tool.  By
-  # default, a tool's TASKS also determines the number of cores
-  # (execution.tasks_per_node) and the memory (execution.memory) requested for
-  # that tool's jobs.  execution.tasks_per_node should not be set separately:
-  # it must equal TASKS.
-  VX_TASKS: 1
+  # Slurm).  The value of VX_NPROCS is the default value used for the NPROCS
+  # setting of each tool-specific section (e.g. gridstat.NPROCS), which can be
+  # set separately for each tool.  A tool's NPROCS also determines the number
+  # of cores requested for its jobs (one per process) and, by default, their
+  # memory (execution.memory).
+  VX_NPROCS: 1
 
 pb2nc:
   # Runtime settings for PB2NC jobs
   execution:
-    # Number of processes per node (Rocoto's ppn; e.g. Slurm's
-    # --tasks-per-node).  Must equal the number of processes to run in
-    # parallel (TASKS), which is the default; do not set it separately.
-    # Currently, no support for multi-node jobs.
-    tasks_per_node: '{{ pb2nc.TASKS }}'
     # Wallclock time to allocate to submitted PB2NC jobs
     walltime: 00:30:00
     # Memory to allocate to PB2NC jobs
-    memory: '{{ 2 * pb2nc.TASKS }}G'
+    memory: '{{ 2 * pb2nc.NPROCS }}G'
     # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
     tries: 1
   # Number of processes to run in parallel in each PB2NC job; each process runs
   # PB2NC (through METplus) on its share of the observation (valid) hours (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 gridstat:
   # Runtime settings for deterministic GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * gridstat.TASKS }}G'
+    memory: '{{ 2 * gridstat.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each GridStat job; each process
   # runs GridStat (through METplus) on its share of the forecast hours (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 pointstat:
   # Runtime settings for deterministic POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * pointstat.TASKS }}G'
+    memory: '{{ 2 * pointstat.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each PointStat job; each process
   # runs PointStat (through METplus) on its share of the forecast hours (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 gridstat_ensmean:
   # Runtime settings for ensemble mean GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat_ensmean.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * gridstat_ensmean.TASKS }}G'
+    memory: '{{ 2 * gridstat_ensmean.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each ensemble-mean GridStat job;
   # each process runs GridStat (through METplus) on its share of the forecast
-  # hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 gridstat_ensprob:
   # Runtime settings for ensemble prob GRIDSTAT jobs
   execution:
-    tasks_per_node: '{{ gridstat_ensprob.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * gridstat_ensprob.TASKS }}G'
+    memory: '{{ 2 * gridstat_ensprob.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each ensemble-probability GridStat
   # job; each process runs GridStat (through METplus) on its share of the
-  # forecast hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # forecast hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
   # Per-task field override: entries are merged onto the shared ensemble: fields: section by
   # fcst_name, so only the keys listed here are overridden. RETOP and REFC need different obs censoring
   # for ensprob; everything else is inherited from the shared ensemble: entry.
@@ -1292,14 +1272,13 @@ gridstat_ensprob:
 pointstat_ensmean:
   # Runtime settings for ensemble mean POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat_ensmean.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * pointstat_ensmean.TASKS }}G'
+    memory: '{{ 2 * pointstat_ensmean.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each ensemble-mean PointStat job;
   # each process runs PointStat (through METplus) on its share of the forecast
-  # hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
   fields:
     UPA:
       - fcst_name: CAPE
@@ -1324,20 +1303,18 @@ pointstat_ensmean:
 pointstat_ensprob:
   # Runtime settings for ensemble prob POINTSTAT jobs
   execution:
-    tasks_per_node: '{{ pointstat_ensprob.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * pointstat_ensprob.TASKS }}G'
+    memory: '{{ 2 * pointstat_ensprob.NPROCS }}G'
     tries: 1
   # Number of processes to run in parallel in each ensemble-probability
   # PointStat job; each process runs PointStat (through METplus) on its share of
-  # the forecast hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # the forecast hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 point2grid:
   execution:
-    tasks_per_node: '{{ point2grid.TASKS }}'
     walltime: 01:00:00
-    memory: '{{ 2 * point2grid.TASKS }}G'
+    memory: '{{ 2 * point2grid.NPROCS }}G'
     tries: 1
   REGRID_METHOD: BILIN
   # Comma-separated string indicating which DQF (quality control) flags to keep for GOES observations. Described in GOES_ABI_products_PUG-L2+-vol5.pdf
@@ -1349,21 +1326,20 @@ point2grid:
   # Number of processes to run in parallel in each Point2Grid job; each process
   # runs Point2Grid (through METplus) on its share of the forecast hours for
   # which the point obs need to be gridded onto the forecast grid (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
 genensprod:
   # Runtime settings for GenEnsProd jobs
   execution:
-    tasks_per_node: '{{ genensprod.TASKS }}'
     walltime: 02:00:00
-    memory: '{{ 2 * genensprod.TASKS }}G'
+    memory: '{{ 2 * genensprod.NPROCS }}G'
     threads: 4
     tries: 1
   # Number of processes to run in parallel in each GenEnsProd job; each process
   # runs GenEnsProd (through METplus) on its share of the forecast hours (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
   # Config file settings for the GenEnsProd task. These settings will be added directly to the configuration file
   conf:
@@ -1378,17 +1354,16 @@ genensprod:
 ensemblestat:
   # Runtime settings for deterministic EnsembleStat jobs
   execution:
-    tasks_per_node: '{{ ensemblestat.TASKS }}'
     walltime: 01:00:00
     # Note that EnsembleStat may need more memory than this for large ensembles, especially for
     # the REFC field group (e.g. 16G was needed for a 10-member HRRRCast ensemble).
-    memory: '{{ 2 * ensemblestat.TASKS }}G'
+    memory: '{{ 2 * ensemblestat.NPROCS }}G'
     threads: 4
     tries: 1
   # Number of processes to run in parallel in each EnsembleStat job; each
   # process runs EnsembleStat (through METplus) on its share of the forecast
-  # hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
   fields:
     APCP:
       - fcst_name: APCP_01
@@ -1516,15 +1491,14 @@ ensemblestat:
 regriddataplane:
   # Runtime settings for REGRIDDATAPLANE jobs
   execution:
-    tasks_per_node: '{{ regriddataplane.TASKS }}'
     walltime: 00:30:00
-    memory: '{{ 10 * (regriddataplane.TASKS | int) }}G'
+    memory: '{{ 10 * (regriddataplane.NPROCS | int) }}G'
     tries: 1
   # Number of processes to run in parallel in each RegridDataPlane job; each
   # process runs RegridDataPlane (through METplus) on its share of the forecast
   # hours for which the obs need to be interpolated onto the forecast grid (see
-  # VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
   
   # Regridding method. See https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_grid.html#optional-arguments-for-regrid-data-plane for valid options
   REGRID_METHOD: MAXGAUSS
@@ -1536,22 +1510,17 @@ regriddataplane:
 mode:
   # Runtime settings for MODE jobs
   execution:
-    # Number of processes per node (Rocoto's ppn; e.g. Slurm's
-    # --tasks-per-node).  Must equal the number of processes to run in
-    # parallel (TASKS), which is the default; do not set it separately.
-    # Currently, no support for multi-node jobs.
-    tasks_per_node: '{{ mode.TASKS }}'
     # Wallclock time to allocate to submitted MODE job
     walltime: 01:00:00
     # Memory to allocate to MODE job
-    memory: '{{ 10 * mode.TASKS }}G'
+    memory: '{{ 10 * mode.NPROCS }}G'
     # Number of threads to assign to each task
     threads: 4
     # Number of times to submit a given task; in the case where tries > 1, the task will be retried on failure
     tries: 1
   # Number of processes to run in parallel in each MODE job; each process runs
-  # MODE (through METplus) on its share of the forecast hours (see VX_TASKS).
-  TASKS: !int '{{ verification.VX_TASKS }}'
+  # MODE (through METplus) on its share of the forecast hours (see VX_NPROCS).
+  NPROCS: !int '{{ verification.VX_NPROCS }}'
 
   # For more information on MODE variables see the MODE documentation:
   # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html
@@ -1593,8 +1562,6 @@ mode:
 tcpairs:
   # Runtime settings for TCPAIRS jobs
   execution:
-    # Number of TCPAIRS instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCPAIRS job
     walltime: 00:10:00
     # Memory to allocate to TCPAIRS job
@@ -1617,8 +1584,6 @@ tcpairs:
 tcstat:
   # Runtime settings for TCSTAT jobs
   execution:
-    # Number of TCSTAT instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCSTAT job
     walltime: 00:10:00
     # Memory to allocate to TCSTAT job
@@ -1637,8 +1602,6 @@ tcstat:
 tcrmw:
   # Runtime settings for TCRMW jobs
   execution:
-    # Number of TCRMW instances to run in parallel. Currently no support for parallel jobs
-    tasks_per_node: 1
     # Wallclock time to allocate to submitted TCRMW job
     walltime: 00:30:00
     # Memory to allocate to TCRMW job
