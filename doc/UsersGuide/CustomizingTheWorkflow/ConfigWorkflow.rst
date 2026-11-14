@@ -370,9 +370,9 @@ This section describes the valid ``ensemble:`` config settings.
    The number of forecast members to verify.  Must be 1 if ``DO_ENSEMBLE`` is set to false and greater than 1 if ``DO_ENSEMBLE`` is set to true.
 
 ``ENSMEM_INDX_MIN``: (Default: 0)
-   The index of the first forecast member.  The members are numbered consecutively starting from this index, and these numbers are used in the member names (e.g. *mem000, mem001, ...*; see ``VX_NDIGITS_ENSMEM_NAMES``) that appear in task names, workflow flag files, and verification output.  A member's name is also available as ``${ensmem_name}`` in ``FCST_FN_TEMPLATE``.
+   The index of the first forecast member.  The members are numbered consecutively starting from this index, and these numbers are used in the member names (e.g. *mem000, mem001, ...*; see ``VX_NDIGITS_ENSMEM_NAMES``) that appear in task names, workflow flag files, and verification output.
 
-   Set this to match the numbering of the forecast's ensemble members, e.g. to 1 for an ensemble whose member directories are named *mem001, mem002, ...*.  This allows a single ``FCST_FN_TEMPLATE`` containing ``${ensmem_name}`` to be used for all members, and it makes the member names used by the workflow match those of the forecast.
+   Set this to match the numbering of the forecast's ensemble members, e.g. to 1 for an ensemble whose member directories are named *mem001, mem002, ...*.  This makes the member names and indices used by the workflow match those of the forecast, which allows a single ``FCST_FN_TEMPLATE`` to be used for all members (see the description of ``FCST_FN_TEMPLATE``).
 
 ``ENSMEM_INDX_MAX``: (Default: ``'{{ ensemble.ENSMEM_INDX_MIN + ensemble.NUM_ENS_MEMBERS - 1 }}'``)
    The index of the last forecast member.  This is calculated from ``ENSMEM_INDX_MIN`` and ``NUM_ENS_MEMBERS``, so it does not need to be set; if it is set, it must equal ``ENSMEM_INDX_MIN + NUM_ENS_MEMBERS - 1``.
@@ -759,9 +759,29 @@ VX Parameters for Forecasts
    used for all forecast members, or a list of strings with one entry per
    member, in order from member ``ENSMEM_INDX_MIN`` to member
    ``ENSMEM_INDX_MAX`` (i.e. with ``NUM_ENS_MEMBERS`` entries).  In either
-   case, the template may contain ``${ensmem_name}``, which is replaced by
-   the member's name (e.g. *mem001*), and ``${time_lag}``, which is replaced
-   by the member's time lag (from ``ENS_TIME_LAG_HRS``) in seconds.
+   case, the template may contain the following variables, which are
+   replaced by the corresponding values for each member:
+
+   * ``${ensmem_name}``: the member's name (e.g. *mem002*)
+   * ``${ensmem_indx}``: the member's index, zero-padded to
+     ``VX_NDIGITS_ENSMEM_NAMES`` digits (e.g. *002*)
+   * ``${time_lag}``: the member's time lag (from ``ENS_TIME_LAG_HRS``), in
+     seconds
+
+   For example, if the files of member 2 are named
+
+   .. code-block:: console
+
+      mem002/fcst.m002.f006.grib2
+
+   the single template
+
+   .. code-block:: console
+
+      '${ensmem_name}/fcst.m${ensmem_indx}.f{lead?fmt=%HHH}.grib2'
+
+   can be used for all members (with ``ENSMEM_INDX_MIN`` set to match the
+   forecast's numbering).
 
 ``FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT``:
    **Default:**
@@ -802,10 +822,11 @@ VX Parameters for Forecasts
    string used in directory and file names and other instances in which the
    ensemble member needs to be identified.  For example, if this is set to
    3, the identifier for ensemble member 4 will be "mem004", while if it's
-   set to 2, the identifier will be "mem04".  This is useful when verifying
-   staged forecast files from a forecasting model/system other than the
-   SRW that uses a different number of digits in the ensemble member 
-   identifier string.
+   set to 2, the identifier will be "mem04".  The same number of digits is
+   used for ``${ensmem_indx}`` in ``FCST_FN_TEMPLATE`` (e.g. "004" or "04").
+   This is useful when verifying staged forecast files from a forecasting
+   model/system other than the SRW that uses a different number of digits
+   in the ensemble member identifier string.
 
 ``NUM_MISSING_FCST_FILES_MAX``: (Default: 0)
    For verification tasks that need forecast data, this specifies the

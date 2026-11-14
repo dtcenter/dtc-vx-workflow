@@ -497,12 +497,12 @@ ensemble:
   # The index of the first ensemble member.  The members are numbered
   # consecutively starting from this index, and these numbers are used in
   # the member names (e.g. mem000, mem001, ...) that appear in task names,
-  # flag files, and verification output.  The member name is also available
-  # as ${ensmem_name} in FCST_FN_TEMPLATE.  Set this to match the numbering
+  # flag files, and verification output.  Set this to match the numbering
   # of the forecast's ensemble members, e.g. 1 for an ensemble whose member
-  # directories are mem001, mem002, ....  This allows a single FCST_FN_TEMPLATE
-  # (containing ${ensmem_name}) to be used for all members, and makes the
-  # member names in the workflow match those of the forecast.
+  # directories are mem001, mem002, ....  This makes the member names and
+  # indices in the workflow match those of the forecast, which allows a
+  # single FCST_FN_TEMPLATE to be used for all members (see the description
+  # of FCST_FN_TEMPLATE).
   #
   # ENSMEM_INDX_MAX:
   # The index of the last ensemble member.  This is calculated from
@@ -1121,9 +1121,25 @@ verification:
   # used for all forecast members, or a list of strings with one entry per
   # member, in order from member ENSMEM_INDX_MIN to member ENSMEM_INDX_MAX
   # (i.e. with NUM_ENS_MEMBERS entries).  In either case, the template may
-  # contain ${ensmem_name}, which is replaced by the member's name (e.g.
-  # mem001), and ${time_lag}, which is replaced by the member's time lag
-  # (from ENS_TIME_LAG_HRS) in seconds.
+  # contain the following variables, which are replaced by the corresponding
+  # values for each member:
+  #
+  #   ${ensmem_name}: the member's name (e.g. mem002)
+  #   ${ensmem_indx}: the member's index, zero-padded to
+  #                   VX_NDIGITS_ENSMEM_NAMES digits (e.g. 002)
+  #   ${time_lag}:    the member's time lag (from ENS_TIME_LAG_HRS), in
+  #                   seconds
+  #
+  # For example, if the files of member 2 are named
+  #
+  #   mem002/fcst.m002.f006.grib2
+  #
+  # the single template
+  #
+  #   '${ensmem_name}/fcst.m${ensmem_indx}.f{lead?fmt=%HHH}.grib2'
+  #
+  # can be used for all members (with ENSMEM_INDX_MIN set to match the
+  # forecast's numbering).
   #
   # If your directory structure includes METplus wildcards that must be
   # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those
@@ -1172,7 +1188,8 @@ verification:
   # string used in directory and file names and other instances in which the
   # ensemble member needs to be identified.  For example, if this is set to
   # 3, the identifier for ensemble member 4 will be "mem004", while if it's
-  # set to 2, the identifier will be "mem04".
+  # set to 2, the identifier will be "mem04".  The same number of digits is
+  # used for ${ensmem_indx} in FCST_FN_TEMPLATE (e.g. "004" or "04").
   #
   VX_NDIGITS_ENSMEM_NAMES: 3
   #
