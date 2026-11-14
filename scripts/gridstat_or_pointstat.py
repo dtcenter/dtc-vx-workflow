@@ -86,9 +86,9 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
 
     # Get the member's name, time lag (in seconds), and forecast file name template
     ensmem_info = get_ensmem_info(cfg, ensmem_index)
+    lgr.debug(f"{ensmem_info=}")
     ensmem = ensmem_info.name
     time_lag = ensmem_info.time_lag
-    lgr.debug(f"{ensmem_info=}")
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
@@ -96,8 +96,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "ensmem_name": ensmem,
-            "time_lag": time_lag,
+            # The member's variables (see EnsmemInfo.get_fn_template_vars())
+            **ensmem_info.get_fn_template_vars(),
               }
 
     # Set paths and file templates for input to and output from the MET/

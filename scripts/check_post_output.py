@@ -40,28 +40,21 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     wfcfg = cfg["workflow"]
 
     # Get the member's name, time lag (in seconds), and forecast file name template
-    ensmem = get_ensmem_info(cfg, ensmem_index)
-    time_lag = ensmem.time_lag
+    ensmem_info = get_ensmem_info(cfg, ensmem_index)
+    lgr.debug(f"{ensmem_info=}")
 
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
-    subvars = {
-            "ensmem_name": ensmem.name,
-            "time_lag": time_lag,
-              }
+    subvars = ensmem_info.get_fn_template_vars()
 
-# Build forecast filename template
-    fn_template = ensmem.fcst_fn_template
-
+    # Substitute values for the variables in the forecast file name template.
+    fn_template = Template(ensmem_info.fcst_fn_template).substitute(subvars)
     lgr.debug(f"{fn_template=}")
-    fn_template=Template(fn_template).substitute(subvars)
     lgr.info(
         f"Checking post-processed output files for cycle {cdate}, "
         f"member index {ensmem_index}"
     )
-    lgr.debug(f"{fn_template=}")
-    lgr.debug(f"{time_lag=}")
 
     # Use verbose output so that the log file always lists which files
     # were/weren't found, not just the ones missing when the check fails.
@@ -71,7 +64,7 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
         lhr_max=wfcfg["FCST_LEN_HRS"],
         lhr_intvl=vxcfg["VX_FCST_OUTPUT_INTVL_HRS"],
         base_dir=vxcfg["VX_FCST_INPUT_BASEDIR"],
-        time_lag=time_lag,
+        time_lag=ensmem_info.time_lag,
         fn_template=fn_template,
         num_missing_files_max=vxcfg["NUM_MISSING_FCST_FILES_MAX"],
         verbose=True,

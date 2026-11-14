@@ -95,7 +95,6 @@ def pcpcombine(
     subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "ensmem_name": ensmem,
     }
 
     pcp_combine_method = "ADD"
@@ -105,7 +104,7 @@ def pcpcombine(
     if fcst_or_obs == "FCST":
         time_lag = ensmem_info.time_lag
 
-        subvars["time_lag"]=time_lag
+        subvars.update(ensmem_info.get_fn_template_vars())
         input_fn_template = Template(
                 ensmem_info.fcst_fn_template).safe_substitute(subvars)
         input_dir = Path(vxcfg["VX_FCST_INPUT_BASEDIR"])
@@ -161,7 +160,7 @@ def pcpcombine(
         suffix = f"_{ensmem}"
 
     else:  # OBS
-        subvars["time_lag"]=time_lag
+        subvars.update({"ensmem_name": ensmem, "time_lag": time_lag})
         input_dir = Path(obs_dir)
         input_fn_template = vxcfg[f"OBS_{obtype}_FN_TEMPLATES"][1]
         output_fn_template = Template(
