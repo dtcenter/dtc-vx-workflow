@@ -1,7 +1,6 @@
 """ Defines an integration test for generate_wflow script in the
 ush directory """
 
-import glob
 import os
 import sys
 import unittest
@@ -16,6 +15,7 @@ from python_utils import (
     set_env_var,
     get_env_var,
 )
+from python_utils.parse_test_list import ALL_TESTS
 
 from generate_wflow import generate_wflow
 
@@ -29,8 +29,11 @@ class Testing(unittest.TestCase):
         """ Test that, for each workflow end-to-end test, the config file can successfully lead to
         the creation of an experiment directory. No jobs are submitted. """
 
-        for test in glob.glob(os.path.join(WE2E_DIR,"test_configs/*/config*yaml")):
-            self._run_generate_wflow_test_(test)
+        # ALL_TESTS is the list of WE2E test config files (paths relative to
+        # WE2E_DIR) that run_we2e_tests.py can run.  Using it here ensures that
+        # this test generates an experiment from each of those configs.
+        for test in ALL_TESTS:
+            self._run_generate_wflow_test_(os.path.join(WE2E_DIR, test))
 
     def setUp(self) -> None:
         set_env_var("DEBUG", False)
