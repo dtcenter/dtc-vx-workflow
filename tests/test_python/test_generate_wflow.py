@@ -70,9 +70,8 @@ class Testing(unittest.TestCase):
         # update_from() adds these four settings to the test config's user and
         # platform sections (creating the sections if necessary), replacing any
         # values already set for them, and keeps the other keys in those
-        # sections.  (Appending a second copy of a section instead would create
-        # a duplicate key, and the test config's own settings in that section
-        # would be lost.)
+        # sections.  (Appending a second copy of a section instead would make
+        # generation fail with a duplicate-key error.)
         config = get_yaml_config(src_config_yaml_filename)
         config.update_from({
             "user": {"MACHINE": "LINUX", "ACCOUNT": "an_account"},
