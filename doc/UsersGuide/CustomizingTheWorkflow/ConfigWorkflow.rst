@@ -7,6 +7,14 @@ To create an experiment with the verification workflow, the user must create an 
 
 There is an extensive list of experiment parameters that a user can set when configuring the experiment. Not all of these parameters need to be set explicitly by the user in ``config.yaml``. If a user does not define a variable in the ``config.yaml`` script, its value in ``config_defaults.yaml`` will be used, or the value will be reset depending on other parameters, such as the platform (``MACHINE``) selected for the experiment. 
 
+Every key in ``config.yaml`` must be a workflow setting, i.e. ``config_defaults.yaml`` or the machine file of the platform (``ush/machine/<machine>.yaml``, where ``<machine>`` is ``MACHINE`` in lowercase) must define a key with the same name in the same section.  A key that is not a workflow setting (e.g. a misspelled setting, or a setting placed in the wrong section) would be silently ignored, so experiment generation instead stops with an error that lists all such keys.  The exceptions are:
+
+* the ``rocoto:`` section, which may contain any task or Rocoto setting (``uwtools`` checks it against its Rocoto schema);
+* the contents of the ``fields:`` and ``conf:`` sections, wherever ``config_defaults.yaml`` defines these sections (e.g. ``gridstat.fields`` and ``genensprod.conf``);
+* ``platform.QUEUE_FCST`` and ``platform.PARTITION_FCST``, which some machine files set although no task uses them.
+
+A key also must not appear more than once in the same section of ``config.yaml``.  Only its last occurrence would be used (with the earlier ones, and any settings under them, silently ignored), so experiment generation stops with an error that lists each repeated key and the lines on which it appears.
+
 The configuration file supports many custom functions for defining variables through ``uwtools``. For example, referencing the value of other variables can be done within a string by prefixing the variable of interest with the section (and possibly subsection) it is found in, and wrapping that definition in double curly brackets. For example:
 
 .. code-block:: console
