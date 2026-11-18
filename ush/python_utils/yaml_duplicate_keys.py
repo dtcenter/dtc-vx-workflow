@@ -1,7 +1,7 @@
 """
 Function for finding duplicate keys in a YAML file.
 
-This module provides find_duplicate_keys(), which finds the keys that appear more than once in
+This module provides find_duplicate_yaml_keys(), which finds the keys that appear more than once in
 the same mapping of a YAML file.  Loading such a file silently keeps only the last occurrence of
 each such key, so the settings under the earlier occurrences are lost.  The sections below
 explain what a mapping and a duplicate key are (section 1), why duplicate keys can't be found
@@ -243,9 +243,9 @@ the search handles both cases.
 3. How the search works
 =======================
 
-find_duplicate_keys() calls _find_duplicate_keys_in_node() on the root node.  That function
-checks the node it is given and calls itself on each value of a mapping and each item of a
-sequence, so every node in the tree is checked.  A ScalarNode contains no keys, so there is
+find_duplicate_yaml_keys() calls _find_duplicate_yaml_keys_in_node() on the root node.  That
+function checks the node it is given and calls itself on each value of a mapping and each item
+of a sequence, so every node in the tree is checked.  A ScalarNode contains no keys, so there is
 nothing to check in it.
 
 Since nodes have no names, the location of each node is built up during the recursion as its
@@ -263,7 +263,7 @@ first_line is the first of these lines.  For the example file in section 1, the 
 
 A mapping's values are checked (by the recursive calls) before the duplicates among the
 mapping's own keys are appended, so the second of these tuples is appended first.
-find_duplicate_keys() therefore sorts the tuples by first_line, so that the keys are reported
+find_duplicate_yaml_keys() therefore sorts the tuples by first_line, so that the keys are reported
 in the order in which they first appear in the file.  It then turns each tuple into a string
 such as "workflow (lines 1, 8)".
 
@@ -314,7 +314,7 @@ The task files in parm/wflow use << in this way throughout.
 import yaml
 
 
-def find_duplicate_keys(yaml_path) -> list:
+def find_duplicate_yaml_keys(yaml_path) -> list:
     """Find the keys that appear more than once in the same mapping of a YAML file.
 
     See the module docstring for what a mapping and a duplicate key are and for how the
@@ -350,16 +350,16 @@ def find_duplicate_keys(yaml_path) -> list:
     #
     duplicates = []
     #
-    # The last argument of the call to _find_duplicate_keys_in_node() below is
-    # visited_node_ids, the set of the ids of the nodes that have already
-    # been checked.  Since no node has been checked yet, it is set to an
-    # empty set, created with set().  It is created here, as is duplicates,
-    # so that each call of this function starts with its own empty set and
-    # list.  A default argument such as visited_node_ids=set() would be
-    # created only once, when the function is defined, and then shared by
-    # all calls.
+    # The last argument of the call to _find_duplicate_yaml_keys_in_node()
+    # below is visited_node_ids, the set of the ids of the nodes that have
+    # already been checked.  Since no node has been checked yet, it is set to
+    # an empty set, created with set().  It is created here, as is
+    # duplicates, so that each call of this function starts with its own
+    # empty set and list.  A default argument such as visited_node_ids=set()
+    # would be created only once, when the function is defined, and then
+    # shared by all calls.
     #
-    _find_duplicate_keys_in_node(root_node, "", duplicates, set())
+    _find_duplicate_yaml_keys_in_node(root_node, "", duplicates, set())
     #
     # Sort the tuples by first_line, the line on which each key first appears
     # (see section 3 of the module docstring for why this is needed):
@@ -390,7 +390,7 @@ def find_duplicate_keys(yaml_path) -> list:
     return entries
 
 
-def _find_duplicate_keys_in_node(node, path, duplicates, visited_node_ids):
+def _find_duplicate_yaml_keys_in_node(node, path, duplicates, visited_node_ids):
     """Append to duplicates a (first_line, path, lines) tuple for each duplicate key in node and
     in the nodes below it (see section 3 of the module docstring).  path is the location of node
     in the file, written as described in section 3 (e.g. "workflow" or "fields[0]", and "" for
@@ -449,7 +449,7 @@ def _find_duplicate_keys_in_node(node, path, duplicates, visited_node_ids):
             # the first line of the file to be line 0.)
             #
             key_lines.setdefault(key, []).append(key_node.start_mark.line + 1)
-            _find_duplicate_keys_in_node(
+            _find_duplicate_yaml_keys_in_node(
                 value_node, f"{path}.{key}" if path else key, duplicates, visited_node_ids
             )
         for key, lines in key_lines.items():
@@ -481,4 +481,4 @@ def _find_duplicate_keys_in_node(node, path, duplicates, visited_node_ids):
     #
     elif isinstance(node, yaml.SequenceNode):
         for i, item in enumerate(node.value):
-            _find_duplicate_keys_in_node(item, f"{path}[{i}]", duplicates, visited_node_ids)
+            _find_duplicate_yaml_keys_in_node(item, f"{path}[{i}]", duplicates, visited_node_ids)

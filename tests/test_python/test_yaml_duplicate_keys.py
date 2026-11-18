@@ -1,5 +1,5 @@
 """
-Unit tests for find_duplicate_keys() in python_utils/yaml_duplicate_keys.py.
+Unit tests for find_duplicate_yaml_keys() in python_utils/yaml_duplicate_keys.py.
 
 To run them, set PYTHONPATH=ush in the environment, and issue the following command from the
 top-level directory:
@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 from textwrap import dedent
 
-from python_utils import find_duplicate_keys
+from python_utils import find_duplicate_yaml_keys
 
 TOP_DIR = Path(__file__).resolve().parents[2]
 #
@@ -27,7 +27,7 @@ FILES_WITH_KNOWN_DUPLICATES = {
 
 
 class TestFindDuplicateKeys(unittest.TestCase):
-    """Tests for find_duplicate_keys()."""
+    """Tests for find_duplicate_yaml_keys()."""
 
     def setUp(self):
         # pylint: disable=consider-using-with
@@ -35,10 +35,10 @@ class TestFindDuplicateKeys(unittest.TestCase):
         self.addCleanup(self.tmp_dir.cleanup)
 
     def _find(self, contents):
-        """Write contents to a YAML file and return find_duplicate_keys() for it."""
+        """Write contents to a YAML file and return find_duplicate_yaml_keys() for it."""
         yaml_path = Path(self.tmp_dir.name) / "config.yaml"
         yaml_path.write_text(dedent(contents), encoding="utf-8")
-        return find_duplicate_keys(yaml_path)
+        return find_duplicate_yaml_keys(yaml_path)
 
     def test_config_without_duplicates(self):
         """No duplicates, with tags (which are not evaluated), anchors and aliases, merge keys,
@@ -135,7 +135,7 @@ class TestFindDuplicateKeys(unittest.TestCase):
         self.assertNotEqual(yaml_paths, [], "git ls-files found no YAML files")
         for yaml_path in yaml_paths:
             with self.subTest(yaml_path=yaml_path):
-                self.assertEqual(find_duplicate_keys(TOP_DIR / yaml_path), [])
+                self.assertEqual(find_duplicate_yaml_keys(TOP_DIR / yaml_path), [])
 
 
 if __name__ == "__main__":

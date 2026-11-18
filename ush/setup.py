@@ -22,7 +22,7 @@ from uwtools.api.template import render
 
 from python_utils import (
     check_for_preexist_dir_file,
-    find_duplicate_keys,
+    find_duplicate_yaml_keys,
 )
 
 from set_cycle_and_obs_timeinfo import (
@@ -68,7 +68,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     # PyYAML's loaders (including the one used by uwtools) silently keep only
     # the last occurrence of a key that appears more than once in the same
     # mapping, so check the user config for such keys before loading it.
-    if duplicates := find_duplicate_keys(user_config_path):
+    if duplicates := find_duplicate_yaml_keys(user_config_path):
         raise ValueError(
             "\n".join(
                 [f"The user config file {user_config_path} contains the following duplicate keys:"]
