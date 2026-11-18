@@ -1,9 +1,9 @@
 """
-Unit tests for find_duplicate_yaml_keys() in python_utils/yaml_duplicate_keys.py.
+Unit tests for find_duplicate_yaml_keys() in python_utils/duplicate_yaml_keys.py.
 
 To run them, set PYTHONPATH=ush in the environment, and issue the following command from the
 top-level directory:
-    python3 -m unittest -b tests/test_python/test_yaml_duplicate_keys.py
+    python3 -m unittest -b tests/test_python/test_duplicate_yaml_keys.py
 """
 
 import subprocess
