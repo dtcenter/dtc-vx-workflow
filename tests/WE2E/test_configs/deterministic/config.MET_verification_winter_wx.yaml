@@ -5,7 +5,6 @@ metadata:
     checking snowfall verification statistics using observations retrieved from
     HPSS, using specified verification mask regions
 workflow:
-  GRID_GEN_METHOD: ESGgrid
   DATE_FIRST_CYCL: '2023021700'
   DATE_LAST_CYCL: '2023021700'
   FCST_LEN_HRS: 6

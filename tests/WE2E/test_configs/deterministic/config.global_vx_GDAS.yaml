@@ -32,7 +32,6 @@ verification:
   VX_FCST_MODEL_NAME: gfs
   VX_FCST_OUTPUT_INTVL_HRS: 6
   VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/dtc/dtc-vx-workflow_testing/vx_test_data_global_tmp'
-  FCST_SUBDIR_TEMPLATE: ''
   FCST_FN_TEMPLATE: '{{verification.VX_FCST_MODEL_NAME.upper()}}/{init?fmt=%Y}/{init?fmt=%Y%m%d}/{{verification.VX_FCST_MODEL_NAME.lower()}}.0p25.{init?fmt=%Y%m%d%H}.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
   #
   # NCEP 1x1-degree daily climatology (mean and standard deviation), used
