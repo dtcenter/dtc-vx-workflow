@@ -23,6 +23,7 @@ from uwtools.api.template import render
 from python_utils import (
     check_for_preexist_dir_file,
     find_duplicate_yaml_keys,
+    find_unknown_config_keys,
 )
 
 from set_cycle_and_obs_timeinfo import (
@@ -227,6 +228,82 @@ def check_bad_settings(cfg):
     return cfg
 
 
+# Paths of the keys that check_for_unknown_keys() accepts in the user config,
+# with everything under them, although config_defaults.yaml doesn't define
+# them:
+#
+# - rocoto: the Rocoto settings, which may include any task or Rocoto
+#   setting.  uwtools checks them against its Rocoto schema when it writes
+#   the workflow XML file (in generate_wflow.py).
+#
+# - platform.QUEUE_FCST and platform.PARTITION_FCST: settings from the SRW
+#   App that some machine files set.  No task uses them, but users may still
+#   set them (e.g. PARTITION_FCST on Jet, as the documentation advises).
+UNKNOWN_KEY_CHECK_FREE_FORM_PATHS = (
+    "rocoto",
+    "platform.QUEUE_FCST",
+    "platform.PARTITION_FCST",
+)
+
+# Names of the keys whose contents check_for_unknown_keys() doesn't check,
+# wherever config_defaults.yaml (or the machine file) defines them:
+#
+# - fields: the definitions of the fields to verify, in field groups (e.g.
+#   fields.APCP) whose names and entries the user chooses.
+#
+# - conf: METplus settings that are written directly to the end of a
+#   METplus configuration file (e.g. genensprod.conf), whose names are those
+#   of METplus, not of the workflow.
+UNKNOWN_KEY_CHECK_FREE_FORM_KEYS = ("fields", "conf")
+
+
+def check_for_unknown_keys(user_config_path, default_config_path, machine_file):
+    """Check that every key in the user config is a workflow setting.
+
+    A key in the user config is a workflow setting if the default config or the machine file
+    defines a key with the same path (e.g. ``verification.VX_FIELD_GROUPS``), with the exceptions
+    in ``UNKNOWN_KEY_CHECK_FREE_FORM_PATHS`` and ``UNKNOWN_KEY_CHECK_FREE_FORM_KEYS`` (see
+    ``find_unknown_config_keys()`` in ``python_utils/unknown_config_keys.py``).  A key that is not a
+    workflow setting is not read by any part of the workflow, so it would be silently ignored;
+    it is most likely misspelled or in the wrong section.  This function raises a ValueError
+    that lists all such keys.
+
+    Args:
+        user_config_path (str or Path): Path to the user config file.
+        default_config_path (str or Path): Path to the default config file
+            (``config_defaults.yaml``).
+        machine_file (str or Path): Path to the machine file of the user's machine.
+
+    Raises:
+        ValueError: If the user config contains keys that are not workflow settings.  The
+                    message lists them.
+    """
+    ref_config = get_yaml_config(default_config_path)
+    ref_config.update_from(get_yaml_config(machine_file))
+    unknown_keys = find_unknown_config_keys(
+        get_yaml_config(user_config_path).data,
+        ref_config.data,
+        UNKNOWN_KEY_CHECK_FREE_FORM_PATHS,
+        UNKNOWN_KEY_CHECK_FREE_FORM_KEYS,
+    )
+    if unknown_keys:
+        raise ValueError(
+            "\n".join(
+                [
+                    f"The user config file {user_config_path} contains the following keys,",
+                    "which are not workflow settings (they are not defined in the default",
+                    f"config file {default_config_path} or in the machine file",
+                    f"{machine_file}):",
+                ]
+                + [f"  {key}" for key in unknown_keys]
+                + [
+                    "These keys would be ignored.  Check the spelling of each key and the",
+                    "section it is in.",
+                ]
+            )
+        )
+
+
 def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # pylint: disable=too-many-statements
     """Validates user-provided configuration settings and derives
@@ -304,6 +381,12 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Check for invalid or deprecated settings
     expt_config=check_bad_settings(expt_config)
+
+    # Check that every key in the user config is a workflow setting.  (This is
+    # done after check_bad_settings() so that settings that have been renamed
+    # or removed get the more specific messages printed there.)
+    machine_file = Path(ushdir) / "machine" / f"{expt_config['user']['MACHINE'].lower()}.yaml"
+    check_for_unknown_keys(user_config_fp, default_config_fp, machine_file)
 
     #
     # -----------------------------------------------------------------------

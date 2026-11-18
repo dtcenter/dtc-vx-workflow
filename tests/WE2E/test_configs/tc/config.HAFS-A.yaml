@@ -30,7 +30,8 @@ verification:
   # LOG_MET_VERBOSITY and LOG_LEVEL below are commented out because they are
   # not workflow settings and nothing reads them.  The METplus settings with
   # these names are fixed in parm/metplus/common.conf (and each tool's
-  # verbosity is set from METPLUS_VERBOSITY_LEVEL above).
+  # verbosity is set from METPLUS_VERBOSITY_LEVEL above).  If uncommented,
+  # they would be rejected as unknown keys when the experiment is generated.
   #
   # LOG_MET_VERBOSITY is the default verbosity level of the MET tools run by
   # METplus (the level passed to each tool with -v).  METplus's per-tool
