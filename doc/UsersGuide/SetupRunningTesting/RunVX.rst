@@ -314,7 +314,7 @@ When running with GNU compilers (i.e., if the modulefile used to set up the buil
 
 .. note::
 
-   On ``JET``, users should add ``PARTITION_DEFAULT: xjet`` and ``PARTITION_FCST: xjet`` to the ``platform:`` section of the ``config.yaml`` file.
+   On ``JET``, users should add ``PARTITION_DEFAULT: xjet`` to the ``platform:`` section of the ``config.yaml`` file.
 
 For example, to run the out-of-the-box experiment on Hercules using cron to automate job submission, users can ``ssh`` to the hercules-login-1 node and add or modify variables in the ``user``, ``workflow``, ``task_get_extrn_ics``, and ``task_get_extrn_lbcs`` sections of ``config.yaml`` according to the following example (unmodified variables are not shown here): 
 
@@ -448,7 +448,7 @@ the same cycle starting date/time and forecast hours. Other parameters may diffe
 Cartopy Shapefiles
 `````````````````````
 
-The Python plotting tasks require a path to the directory where the Cartopy Natural Earth shapefiles are located. The medium scale (1:50m) cultural and physical shapefiles are used to create coastlines and other geopolitical borders on the map. On :srw-wiki:`Level 1 <Supported-Platforms-and-Compilers>` systems, this path is already set in the system's machine file using the variable ``FIXshp``. Users on other systems will need to download the shapefiles and update the path of ``$FIXshp`` in the machine file they are using (e.g., ``$SRW/ush/machine/macos.yaml`` for a generic MacOS system, where ``$SRW`` is the path to the ``ufs-srweather-app`` directory). The subset of shapefiles required for the plotting task can be obtained from the `SRW Data Bucket <https://noaa-ufs-srw-pds.s3.amazonaws.com/develop-20240618/NaturalEarth.tar.gz>`__. The full set of medium-scale (1:50m) Cartopy shapefiles can be downloaded `here <https://www.naturalearthdata.com/downloads/>`__.
+The Python plotting tasks require a path to the directory where the Cartopy Natural Earth shapefiles are located. The medium scale (1:50m) cultural and physical shapefiles are used to create coastlines and other geopolitical borders on the map. The subset of shapefiles required for the plotting task can be obtained from the `SRW Data Bucket <https://noaa-ufs-srw-pds.s3.amazonaws.com/develop-20240618/NaturalEarth.tar.gz>`__. The full set of medium-scale (1:50m) Cartopy shapefiles can be downloaded `here <https://www.naturalearthdata.com/downloads/>`__.
 
 Task Configuration
 `````````````````````

@@ -7,9 +7,6 @@ metadata:
     The model output is verified against GDAS (Global Data Assimilation
     System) obs.
 
-platform:
-  EXTRN_MDL_DATA_STORES: hpss
-
 workflow:
   PREEXISTING_DIR_METHOD: rename
   DATE_FIRST_CYCL: '2024073000'
