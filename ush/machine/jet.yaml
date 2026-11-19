@@ -11,8 +11,6 @@ platform:
   TEST_AIRNOW_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/airnow'
   PARTITION_DEFAULT: vjet,kjet,xjet
   QUEUE_DEFAULT: batch
-  PARTITION_FCST: xjet
-  QUEUE_FCST: batch
   PARTITION_HPSS: service
   QUEUE_HPSS: batch
   SCHED_NATIVE_CMD: --export=NONE

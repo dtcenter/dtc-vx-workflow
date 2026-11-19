@@ -12,8 +12,6 @@ platform:
   TEST_GDAS_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/gdas'
   PARTITION_DEFAULT: hera
   QUEUE_DEFAULT: batch
-  PARTITION_FCST: hera
-  QUEUE_FCST: batch
   PARTITION_HPSS: service
   QUEUE_HPSS: batch
   SCHED_NATIVE_CMD: "--export=NONE"

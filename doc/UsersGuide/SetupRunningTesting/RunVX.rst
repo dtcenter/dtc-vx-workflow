@@ -314,7 +314,7 @@ When running with GNU compilers (i.e., if the modulefile used to set up the buil
 
 .. note::
 
-   On ``JET``, users should add ``PARTITION_DEFAULT: xjet`` and ``PARTITION_FCST: xjet`` to the ``platform:`` section of the ``config.yaml`` file.
+   On ``JET``, users should add ``PARTITION_DEFAULT: xjet`` to the ``platform:`` section of the ``config.yaml`` file.
 
 For example, to run the out-of-the-box experiment on Hercules using cron to automate job submission, users can ``ssh`` to the hercules-login-1 node and add or modify variables in the ``user``, ``workflow``, ``task_get_extrn_ics``, and ``task_get_extrn_lbcs`` sections of ``config.yaml`` according to the following example (unmodified variables are not shown here): 
 

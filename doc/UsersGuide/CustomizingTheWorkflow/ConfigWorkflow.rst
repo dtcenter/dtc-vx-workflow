@@ -11,7 +11,6 @@ Every key in ``config.yaml`` must be a workflow setting, i.e. ``config_defaults.
 
 * the ``rocoto:`` section, which may contain any task or Rocoto setting (``uwtools`` checks it against its Rocoto schema);
 * the contents of the ``fields:`` and ``conf:`` sections, wherever ``config_defaults.yaml`` defines these sections (e.g. ``gridstat.fields`` and ``genensprod.conf``);
-* ``platform.QUEUE_FCST`` and ``platform.PARTITION_FCST``, which some machine files set although no task uses them.
 
 A key also must not appear more than once in the same section of ``config.yaml``.  Only its last occurrence would be used (with the earlier ones, and any settings under them, silently ignored), so experiment generation stops with an error that lists each repeated key and the lines on which it appears.
 

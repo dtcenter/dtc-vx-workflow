@@ -63,11 +63,11 @@ class TestFindUnknownKeys(unittest.TestCase):
         reference doesn't define them."""
         config = {
             "rocoto": {"tasks": {"task_anything": {"walltime": "00:10:00"}}},
-            "workflow": {"QUEUE_FCST": "batch", "CYCL_FREQ": 6},
+            "workflow": {"FREE_FORM": {"anything": 1}, "CYCL_FREQ": 6},
         }
         self.assertEqual(
             find_unknown_config_keys(
-                config, REF_CONFIG, free_form_paths=["rocoto", "workflow.QUEUE_FCST"]
+                config, REF_CONFIG, free_form_paths=["rocoto", "workflow.FREE_FORM"]
             ),
             ["workflow.CYCL_FREQ"],
         )

@@ -215,11 +215,16 @@ def check_bad_settings(cfg):
                 msg+="unknown key {bad}, see config_defaults.yaml for valid settings"
     if bt:=cfg.get("platform").get("BEST_TRACK"):
         msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
-        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`"
+        msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`\n"
+    # QUEUE_FCST and PARTITION_FCST (settings from the SRW App) have been
+    # removed, since no task used them.
+    for key in ("QUEUE_FCST", "PARTITION_FCST"):
+        if key in cfg.get("platform"):
+            msg+=f"platform:{key} has been removed (no task used it); remove this setting\n"
     if vf:=cfg.get("verification"):
         if bad:=vf.get("FCST_SUBDIR_TEMPLATE"):
             msg+=f"verification: contains deprecated key `FCST_SUBDIR_TEMPLATE`:\n{bad}\n"
-            msg+="Prepend this value to `FCST_FN_TEMPLATE` to restore previous functionality"
+            msg+="Prepend this value to `FCST_FN_TEMPLATE` to restore previous functionality\n"
     if msg:
         logger.critical("The following problems with your config must be fixed:")
         logger.critical(msg)
@@ -235,14 +240,8 @@ def check_bad_settings(cfg):
 # - rocoto: the Rocoto settings, which may include any task or Rocoto
 #   setting.  uwtools checks them against its Rocoto schema when it writes
 #   the workflow XML file (in generate_wflow.py).
-#
-# - platform.QUEUE_FCST and platform.PARTITION_FCST: settings from the SRW
-#   App that some machine files set.  No task uses them, but users may still
-#   set them (e.g. PARTITION_FCST on Jet, as the documentation advises).
 UNKNOWN_KEY_CHECK_FREE_FORM_PATHS = (
     "rocoto",
-    "platform.QUEUE_FCST",
-    "platform.PARTITION_FCST",
 )
 
 # Names of the keys whose contents check_for_unknown_keys() doesn't check,

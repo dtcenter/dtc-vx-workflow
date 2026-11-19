@@ -10,7 +10,6 @@ platform:
   TEST_AERONET_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/aeronet'
   TEST_AIRNOW_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/airnow'
   QUEUE_DEFAULT: main
-  QUEUE_FCST: main 
   QUEUE_HPSS: main
   TEST_EXTRN_MDL_SOURCE_BASEDIR: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/input_model_data
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /glade/work/epicufsrt/contrib/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir

@@ -11,9 +11,7 @@ platform:
   TEST_AIRNOW_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/airnow'
   TEST_GDAS_OBS_DIR: '{{ platform.WE2E_TEST_DATA }}/obs_data/gdas'
   QUEUE_DEFAULT: batch
-  QUEUE_FCST: batch
   PARTITION_DEFAULT: u1-compute
-  PARTITION_FCST: u1-compute
   PARTITION_HPSS: u1-service
   QUEUE_HPSS: batch
   SCHED_NATIVE_CMD: "--export=NONE"
