@@ -165,23 +165,6 @@ platform:
   #-----------------------------------------------------------------------
   # Test directories used in run_WE2E script
   #-----------------------------------------------------------------------
-  # TEST_EXTRN_MDL_SOURCE_BASEDIR: 
-  # This parameter allows testing of user-staged files in a known location 
-  # on a given platform. This path contains a limited dataset and likely 
-  # will not be useful for most user experiments. 
-  # 
-  # TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: 
-  # This parameter is used to test the mechanism that allows users to 
-  # point to a data stream on disk. It sets up a sandbox location that 
-  # mimics the stream in a more controlled way and tests the ability 
-  # to access ICS. 
-  # 
-  # TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: 
-  # This parameter is used to test the mechanism that allows users to 
-  # point to a data stream on disk. It sets up a sandbox location that 
-  # mimics the stream in a more controlled way and tests the ability 
-  # to access LBCS.
-  # 
   # TEST_*_OBS_DIR:
   # These parameters are used by the WE2E testing script to test the mechanism
   # that allows the user to point to data streams on disk for observation data 
@@ -193,9 +176,6 @@ platform:
   #
   #-----------------------------------------------------------------------
   #
-  TEST_EXTRN_MDL_SOURCE_BASEDIR: ""
-  TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: ""
-  TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: ""
   TEST_CCPA_OBS_DIR: ""
   TEST_MRMS_OBS_DIR: ""
   TEST_NDAS_OBS_DIR: ""
@@ -204,19 +184,6 @@ platform:
   TEST_AERONET_OBS_DIR: ""
   TEST_AIRNOW_OBS_DIR: ""
   STAGED_DATA: ""
-  #
-  #-----------------------------------------------------------------------
-  #
-  # EXTRN_MDL_DATA_STORES:
-  # A space-separated list of data stores where the scripts should look for
-  # external model data. The list is in priority order. If disk information
-  # is provided via USE_USER_STAGED_EXTRN_FILES or a known location on the
-  # platform, the disk location will be highest priority. Options are disk,
-  # hpss, aws, and nomads.
-  #
-  #-----------------------------------------------------------------------
-  #
-  EXTRN_MDL_DATA_STORES: ""
   #
   # BEST_TRACK_DIR:
   # Staged location on disk for TC "best track" data

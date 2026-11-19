@@ -14,8 +14,6 @@ platform:
   PARTITION_HPSS: service
   QUEUE_HPSS: batch
   SCHED_NATIVE_CMD: --export=NONE
-  TEST_EXTRN_MDL_SOURCE_BASEDIR: /work/noaa/epic/role-epic/contrib/UFS_SRW_data/develop/input_model_data
-  EXTRN_MDL_DATA_STORES: aws nomads
   MET_BASE: /apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/oneapi/2024.2.1/
   MET_INSTALL_DIR: '{{ platform.MET_BASE }}/met-12.0.1-o2ig5z3'
   METPLUS_ROOT: '{{ platform.MET_BASE }}/metplus-6.0.0-sfkd4q2'

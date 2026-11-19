@@ -219,7 +219,9 @@ def check_bad_settings(cfg):
     # Platform settings from the SRW App that have been removed, since nothing
     # in the workflow used them.
     for key in ("QUEUE_FCST", "PARTITION_FCST",
-                "FIXaer", "FIXgsm", "FIXlut", "FIXorg", "FIXsfc", "FIXshp"):
+                "FIXaer", "FIXgsm", "FIXlut", "FIXorg", "FIXsfc", "FIXshp",
+                "TEST_EXTRN_MDL_SOURCE_BASEDIR", "TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS",
+                "TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS", "EXTRN_MDL_DATA_STORES"):
         if key in cfg.get("platform"):
             msg+=f"platform:{key} has been removed (it was not used); remove this setting\n"
     if vf:=cfg.get("verification"):

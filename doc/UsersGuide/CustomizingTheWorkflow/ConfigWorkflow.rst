@@ -173,12 +173,6 @@ Test Directories
 
 These directories are used only by the ``run_WE2E_tests.py`` script, so they are not used unless the user runs a Workflow End-to-End (WE2E) test (see :numref:`Section %s <WE2E_tests>`). Their function corresponds to the same variables without the ``TEST_`` prefix. Users typically should not modify these variables. For any alterations, the logic in the ``run_WE2E_tests.py`` script would need to be adjusted accordingly.
 
-``TEST_EXTRN_MDL_SOURCE_BASEDIR``: (Default: "")
-   This parameter allows testing of user-staged files in a known location on a given platform. This path contains a limited dataset and likely will not be useful for most user experiments. 
-
-``TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS``, ``TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS``: (Default: "")
-   These parameters are used by the testing script to test the mechanism that allows users to point to a data stream on disk. They set up a sandbox location that mimics the stream in a more controlled way and test the ability to access :term:`ICS` or :term:`LBCS`, respectively. 
-
 ``TEST_CCPA_OBS_DIR``, ``TEST_MRMS_OBS_DIR``, ``TEST_NDAS_OBS_DIR``, ``TEST_GDAS_OBS_DIR``, ``TEST_NOHRSC_OBS_DIR``, ``TEST_AERONET_OBS_DIR``, ``TEST_AIRNOW_OBS_DIR``: (Default: "")
 These parameters are used by the testing script to test the mechanism that allows user to point to data streams on disk for observation data for verification tasks. They test the ability for users to set ``CCPA_OBS_DIR``, ``MRMS_OBS_DIR``, ``NDAS_OBS_DIR``, etc.
 
@@ -194,9 +188,6 @@ Fixed File Directory Parameters
 ----------------------------------
 
 These parameters are associated with the fixed (i.e., static) files. Because the default values are platform-dependent, they are set to a null string in ``config_defaults.yaml``.
-
-``EXTRN_MDL_DATA_STORES``: (Default: "")
-   A list of data stores where the scripts should look for external model data. The list is in priority order. If disk information is provided via ``USE_USER_STAGED_EXTRN_FILES`` or a known location on the platform, the disk location will be highest priority. Valid values (in priority order): ``disk`` | ``hpss`` | ``aws`` | ``nomads``. 
 
 ``BEST_TRACK``: (Default: "")
    Staged location on disk for TC "best track" data
