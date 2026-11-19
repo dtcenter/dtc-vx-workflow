@@ -507,17 +507,26 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if not expt_config["platform"]["METPLUS_ROOT"]:
         raise ValueError("METPLUS_ROOT must be specified in config or machine file.")
 
-    def _remove_tag(tasks, tag):
-        """Remove the tag for all the tasks in the workflow"""
+    def _remove_tag(tasks, tag, only_if_empty=False):
+        """Remove the given XML tag from all the tasks in the workflow, or, if only_if_empty is
+        True, only from the tasks in which its value is empty"""
 
         if not isinstance(tasks, dict):
             return
-        for task, task_settings in tasks.items():
-            task_type = task.split("_", maxsplit=1)[0]
-            if task_type == "task":
-                task_settings.pop(tag, None)
-            elif task_type == "metatask":
-                _remove_tag(task_settings, tag)
+        # Loop through all the key-value pairs in the "tasks" dictionary and
+        # consider only those keys that start with "task_" or "metatask_"
+        # (since any others, e.g. a metatask's "var", do not represent tasks).
+        # For a task, the value is a dict containing rocoto's settings for that
+        # task; for a metatask, it is a dict containing the metatask's "var"
+        # and the tasks and metatasks in it, which are processed by calling
+        # this function on it.
+        for key, value in tasks.items():
+            key_type = key.split("_", maxsplit=1)[0]
+            if key_type == "task":
+                if not only_if_empty or not value.get(tag):
+                    value.pop(tag, None)
+            elif key_type == "metatask":
+                _remove_tag(value, tag, only_if_empty)
 
     # Remove all memory tags for platforms that do not support them
     remove_memory = expt_config["platform"]["REMOVE_MEMORY"]
@@ -529,10 +538,56 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if not exclusive:
         _remove_tag(rocoto_tasks, "exclusive")
 
-    for part in ["PARTITION_HPSS", "PARTITION_DEFAULT", "PARTITION_FCST"]:
-        partition = expt_config["platform"].get(part)
-        if not partition:
-            _remove_tag(rocoto_tasks, "partition")
+    # Remove partition tags that should not be passed to the batch scheduler.
+    #
+    # Partitions are a Slurm concept, so if the scheduler is not Slurm (e.g.
+    # PBS Pro on Derecho), remove the partition tags from all the tasks and
+    # log a message saying that partitions are not used.  If, for a non-Slurm
+    # scheduler, the machine file or the user config sets any partitions
+    # anyway (e.g. by mistake), also log a warning listing them as ignored.
+    #
+    # If the scheduler is Slurm, remove the partition tag from each task whose
+    # partition is not set on this machine.  In the workflow YAML files in
+    # parm/wflow, each task's partition is a Jinja expression that evaluates
+    # to an empty string in that case, e.g.
+    #
+    #   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") }}'
+    #
+    # evaluates to
+    #
+    #   partition: ''
+    #
+    # if PARTITION_HPSS is not set.  Left in place, this would be written to
+    # the XML as an empty element, i.e.
+    #
+    #   <partition></partition>
+    #
+    # with unpredictable consequences.
+    sched = expt_config["platform"]["SCHED"]
+    if sched != "slurm":
+        logger.info(
+            f"The scheduler (platform.SCHED) is {sched!r}, not 'slurm', so partitions are not used."
+        )
+        # Create a dictionary containing those PARTITION_... settings under
+        # platform: in the experiment config that are not set to empty strings.
+        partitions_set = {
+            key: value
+            for key, value in expt_config["platform"].items()
+            if key.startswith("PARTITION_") and value
+        }
+        if partitions_set:
+            ignored = "\n".join(
+                f"  platform.{key}: {value}" for key, value in partitions_set.items()
+            )
+            logger.warning(
+                f"The scheduler (platform.SCHED) is {sched!r}, not 'slurm', so the following "
+                f"partition settings are ignored:\n{ignored}"
+            )
+        _remove_tag(rocoto_tasks, "partition")
+    else:
+        # If the scheduler is Slurm, remove the partition key from the rocoto
+        # settings of each task whose partition is an empty string.
+        _remove_tag(rocoto_tasks, "partition", only_if_empty=True)
 
     date_first_cycl = workflow_config["DATE_FIRST_CYCL"]
     date_last_cycl = workflow_config["DATE_LAST_CYCL"]
