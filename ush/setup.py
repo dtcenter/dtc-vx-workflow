@@ -533,11 +533,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     if remove_memory:
         _remove_tag(rocoto_tasks, "memory")
 
-    # Remove exclusive node usage if not in "platform".yaml
-    exclusive = expt_config["platform"].get("EXCLUSIVE")
-    if not exclusive:
-        _remove_tag(rocoto_tasks, "exclusive")
-
     # Remove partition tags that should not be passed to the batch scheduler.
     #
     # Partitions are a Slurm concept, so if the scheduler is not Slurm (e.g.

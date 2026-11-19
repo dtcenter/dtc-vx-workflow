@@ -15,7 +15,6 @@ platform:
   PARTITION_DEFAULT: u1-compute
   PARTITION_FCST: u1-compute
   PARTITION_HPSS: u1-service
-  EXCLUSIVE: exclusive
   QUEUE_HPSS: batch
   SCHED_NATIVE_CMD: "--export=NONE"
   SCHED_NATIVE_CMD_HPSS: "-n 1 --export=NONE"
