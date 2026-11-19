@@ -9,16 +9,43 @@ class EnsmemInfo(NamedTuple):
     """Settings associated with a single forecast (ensemble) member."""
     index: int
     """Index of the member (from ENSMEM_INDX_MIN to ENSMEM_INDX_MAX)."""
+    index_str: str
+    """Index of the member as a string, zero-padded to VX_NDIGITS_ENSMEM_NAMES digits (e.g.
+    001), and available as ${ensmem_indx} in FCST_FN_TEMPLATE."""
     pos: int
     """Position (0-based) of the member in the per-member lists FCST_FN_TEMPLATE and
     ENS_TIME_LAG_HRS."""
     name: str
-    """Name of the member (e.g. mem001) used in task names, flag files, and output paths, and
-    available as ${ensmem_name} in FCST_FN_TEMPLATE."""
+    """Name of the member, i.e. "mem" followed by index_str (e.g. mem001), used in task names,
+    flag files, and output paths, and available as ${ensmem_name} in FCST_FN_TEMPLATE."""
     time_lag: int
     """Time lag of the member, in seconds."""
     fcst_fn_template: str
     """Forecast file name template for the member (not yet substituted)."""
+
+    def get_fn_template_vars(self, apply_time_lag: bool = True) -> dict:
+        """Get the member's variables to substitute in the forecast file name templates.
+
+        These are the member-related ${...} variables that may appear in FCST_FN_TEMPLATE and
+        similar templates, which the scripts substitute using string.Template.
+
+        Parameters
+        ----------
+        apply_time_lag : bool
+            Whether to apply the member's time lag.  If False, ${time_lag} is set to 0 (for
+            the scripts that do not support time-lagged forecasts).
+
+        Returns
+        -------
+        dict
+            The values of ${ensmem_name} (the member's name), ${ensmem_indx} (the member's
+            index, zero-padded), and ${time_lag} (the member's time lag, in seconds).
+        """
+        return {
+            "ensmem_name": self.name,
+            "ensmem_indx": self.index_str,
+            "time_lag": self.time_lag if apply_time_lag else 0,
+        }
 
 
 def get_ensmem_info(cfg, ensmem_index: int) -> EnsmemInfo:
@@ -39,8 +66,8 @@ def get_ensmem_info(cfg, ensmem_index: int) -> EnsmemInfo:
     Returns
     -------
     EnsmemInfo
-        The member's index, position in the per-member lists, name, time lag (in seconds),
-        and forecast file name template.
+        The member's index (as an integer and as a zero-padded string), position in the
+        per-member lists, name, time lag (in seconds), and forecast file name template.
 
     Raises
     ------
@@ -58,11 +85,13 @@ def get_ensmem_info(cfg, ensmem_index: int) -> EnsmemInfo:
             f"({indx_min}) and ENSMEM_INDX_MAX ({indx_max})"
         )
     pos = ensmem_index - indx_min
+    index_str = str(ensmem_index).zfill(vxcfg["VX_NDIGITS_ENSMEM_NAMES"])
 
     return EnsmemInfo(
         index=ensmem_index,
+        index_str=index_str,
         pos=pos,
-        name=f"mem{str(ensmem_index).zfill(vxcfg['VX_NDIGITS_ENSMEM_NAMES'])}",
+        name=f"mem{index_str}",
         time_lag=int(enscfg["ENS_TIME_LAG_HRS"][pos]) * 3600,
         fcst_fn_template=vxcfg["FCST_FN_TEMPLATE"][pos],
     )

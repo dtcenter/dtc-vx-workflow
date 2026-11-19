@@ -481,28 +481,37 @@ ensemble:
   #
   #-----------------------------------------------------------------------
   #
-  # Set parameters associated with running ensembles.  Definitions:
+  # Set parameters associated with the forecast members to verify.  A
+  # deterministic forecast is treated as an ensemble with a single member,
+  # so NUM_ENS_MEMBERS, ENSMEM_INDX_MIN, and ENS_TIME_LAG_HRS apply to it as
+  # well, and its member name (e.g. mem000) is used in its task names.
+  # Definitions:
   #
   # DO_ENSEMBLE:
-  # Flag that determines whether to run a set of ensemble forecasts (for
-  # each set of specified cycles).  If this is set to true, NUM_ENS_MEMBERS
-  # forecasts are run for each cycle, each with a different set of stochastic
-  # seed values.  When false, a single forecast is run for each cycle.
+  # Flag that determines whether the forecast to verify is an ensemble.  If
+  # true, NUM_ENS_MEMBERS must be greater than 1, and the ensemble
+  # verification tasks (in parm/wflow/verify_ens.yaml) may be included in
+  # the workflow.  If false, the forecast is deterministic (a single
+  # member), NUM_ENS_MEMBERS must be 1, and the ensemble verification tasks
+  # may not be included.
   #
   # NUM_ENS_MEMBERS:
-  # The number of ensemble members.  Must be 1 if DO_ENSEMBLE is set to
-  # false and greater than 1 if DO_ENSEMBLE is set to true.
+  # The number of forecast members to verify.  Must be 1 if DO_ENSEMBLE is
+  # set to false and greater than 1 if DO_ENSEMBLE is set to true.
   #
   # ENSMEM_INDX_MIN:
-  # The index of the first ensemble member.  The members are numbered
+  # The index of the first forecast member.  The members are numbered
   # consecutively starting from this index, and these numbers are used in
   # the member names (e.g. mem000, mem001, ...) that appear in task names,
-  # flag files, and verification output.  The member name is also available
-  # as ${ensmem_name} in FCST_FN_TEMPLATE.  Set this to match the numbering
+  # flag files, and verification output.  Set this to match the numbering
   # of the forecast's ensemble members, e.g. 1 for an ensemble whose member
-  # directories are mem001, mem002, ....  This allows a single FCST_FN_TEMPLATE
-  # (containing ${ensmem_name}) to be used for all members, and makes the
-  # member names in the workflow match those of the forecast.
+  # directories are mem001, mem002, ....  This makes the member names and
+  # indices in the workflow match those of the forecast, which allows a
+  # single FCST_FN_TEMPLATE to be used for all members (see the description
+  # of FCST_FN_TEMPLATE).  For a deterministic forecast, this is the index
+  # of its single member; e.g. to verify member mem007 of an ensemble on its
+  # own, set DO_ENSEMBLE to false, NUM_ENS_MEMBERS to 1, and ENSMEM_INDX_MIN
+  # to 7.
   #
   # ENSMEM_INDX_MAX:
   # The index of the last ensemble member.  This is calculated from
@@ -520,10 +529,13 @@ ensemble:
   # List of time lags (in hours), one per forecast member, in order from
   # member ENSMEM_INDX_MIN to member ENSMEM_INDX_MAX (i.e. the list must have
   # exactly NUM_ENS_MEMBERS entries).  A member's time lag is the amount by
-  # which its initialization time precedes the cycle time.  The time lag is
-  # applied for deterministic forecasts as well (as a one-entry list), except
-  # in the MODE, Point2Grid, RegridDataPlane, and TCRMW tasks, which always
-  # use a time lag of zero.  The default is a lag of zero for every member.
+  # which its initialization time precedes the cycle time, i.e. for a
+  # time-lagged member, the cycle time is not its initialization time (see
+  # FCST_FN_TEMPLATE for how to account for this in the file name
+  # template).  The time lag is applied for deterministic forecasts as well
+  # (as a one-entry list), except in the MODE, Point2Grid, RegridDataPlane,
+  # and TCRMW tasks, which always use a time lag of zero.  The default is a
+  # lag of zero for every member.
   #
   #-----------------------------------------------------------------------
   #
@@ -1121,14 +1133,54 @@ verification:
   # used for all forecast members, or a list of strings with one entry per
   # member, in order from member ENSMEM_INDX_MIN to member ENSMEM_INDX_MAX
   # (i.e. with NUM_ENS_MEMBERS entries).  In either case, the template may
-  # contain ${ensmem_name}, which is replaced by the member's name (e.g.
-  # mem001), and ${time_lag}, which is replaced by the member's time lag
-  # (from ENS_TIME_LAG_HRS) in seconds.
+  # contain the following variables, which are replaced by the corresponding
+  # values for each member:
   #
-  # If your directory structure includes METplus wildcards that must be
-  # substituted at runtime (e.g. {init?fmt=%H?shift=-${time_lag}}, those
-  # subdirectories should be included here rather than under VX_FCST_INPUT_BASEDIR
-  # 
+  #   ${ensmem_name}: the member's name (e.g. mem002)
+  #   ${ensmem_indx}: the member's index, zero-padded to
+  #                   VX_NDIGITS_ENSMEM_NAMES digits (e.g. 002)
+  #   ${time_lag}:    the member's time lag (from ENS_TIME_LAG_HRS), in
+  #                   seconds
+  #
+  # For example, if the files of member 2 are named
+  #
+  #   mem002/fcst.m002.f006.grib2
+  #
+  # the single template
+  #
+  #   '${ensmem_name}/fcst.m${ensmem_indx}.f{lead?fmt=%HHH}.grib2'
+  #
+  # can be used for all members (with ENSMEM_INDX_MIN set to match the
+  # forecast's numbering).
+  #
+  # For a time-lagged member (see ENS_TIME_LAG_HRS), the cycle time is not
+  # the member's initialization time: the member was initialized earlier,
+  # by its time lag.  When looking for the member's files, METplus fills in
+  # {init} with the cycle time and {lead} with the cycle's lead time, so the
+  # template must shift both by ${time_lag} (in seconds):
+  #
+  # - shift=-${time_lag} in {init} moves the initialization time back to
+  #   the member's actual initialization time;
+  # - shift=${time_lag} in {lead} lengthens the lead time by the lag, which
+  #   restores the valid time to the intended one (the cycle time plus the
+  #   cycle's lead time).
+  #
+  # For example, with the template
+  #
+  #   'fcst.t{init?fmt=%H?shift=-${time_lag}}z.f{lead?fmt=%HHH?shift=${time_lag}}.grib2'
+  #
+  # for a member with a 12-hour lag, at cycle 12Z and lead hour 6 (valid at
+  # 18Z), the member was initialized at 00Z, and its forecast valid at 18Z
+  # has lead hour 18, so the file read is fcst.t00z.f018.grib2.  If the
+  # initialization time also appears in a directory name, it must be
+  # shifted there as well.
+  #
+  # If the names of the subdirectories containing the forecast files depend
+  # on the forecast time or the member, i.e. contain METplus time fields
+  # (e.g. {init?fmt=%Y%m%d%H?shift=-${time_lag}}) or ${...} variables (e.g.
+  # ${ensmem_name}), include those subdirectories here rather than in
+  # VX_FCST_INPUT_BASEDIR.
+  #
   FCST_FN_TEMPLATE: 'srw.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ verification.VX_FCST_MODEL_NAME }}.grib2'
   #
   # FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT:
@@ -1172,7 +1224,10 @@ verification:
   # string used in directory and file names and other instances in which the
   # ensemble member needs to be identified.  For example, if this is set to
   # 3, the identifier for ensemble member 4 will be "mem004", while if it's
-  # set to 2, the identifier will be "mem04".
+  # set to 2, the identifier will be "mem04".  The same number of digits is
+  # used for ${ensmem_indx} in FCST_FN_TEMPLATE (e.g. "004" or "04").  Set
+  # this to match the number of digits in the member numbers used by the
+  # forecast (e.g. in its directory or file names).
   #
   VX_NDIGITS_ENSMEM_NAMES: 3
   #

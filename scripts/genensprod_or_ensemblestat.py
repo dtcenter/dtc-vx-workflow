@@ -147,8 +147,8 @@ def genensprod_or_ensemblestat(
         subvars = {
             "FIELD_GROUP": field_group,
             "ACCUM_HH": f"{accum_hh:02}",
-            "time_lag": ensmem_info.time_lag,
-            "ensmem_name": ensmem,
+            # The member's variables (see EnsmemInfo.get_fn_template_vars())
+            **ensmem_info.get_fn_template_vars(),
         }
         if field_group in ("APCP", "ASNOW"):
             tmpl = str(Path(

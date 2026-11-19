@@ -79,10 +79,7 @@ def mode(config_file,cdate,field_group,obtype):
     # Make a dictionary of variables that may need to be substituted; these will be used to replace
     # bash-like variables in some strings. This is needed to maintain some functionality while we
     # still have a mix of bash and python exscripts.
-    subvars = {
-            "ensmem_name": ensmem_info.name,
-            "time_lag": 0,
-              }
+    subvars = ensmem_info.get_fn_template_vars(apply_time_lag=False)
 
     # Set paths and file templates for input to and output from the MET/
     # METplus tool to be run as well as other file/directory parameters.

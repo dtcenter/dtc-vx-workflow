@@ -77,10 +77,7 @@ def tcrmw(config_file, cdate):
         # Make a dictionary of variables that may need to be substituted; these will be used to
         # replace bash-like variables in some strings. This is needed to maintain some
         # functionality while we still have a mix of bash and python exscripts.
-        subvars = {
-                "ensmem_name": ensmem_info.name,
-                "time_lag": 0,
-                  }
+        subvars = ensmem_info.get_fn_template_vars(apply_time_lag=False)
         fcst_fn_template = Template(ensmem_info.fcst_fn_template).substitute(subvars)
         lgr.debug(f"{fcst_fn_template=}")
 
