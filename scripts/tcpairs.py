@@ -111,7 +111,7 @@ def tcpairs(config_file, cdate):
                    'fcst_input_dir': tccfg['ADECK_DIR'],
                    'output_dir': output_dir,
                    'output_fn_template': tcpcfg["OUTPUT_TEMPLATE"],
-                   'model': tcpcfg['MODEL'],
+                   'model': tccfg['MODEL'],
                    # HAFS storm attributes
                    'basin': tccfg['BASIN'],
                    'storm_id': storm_id,

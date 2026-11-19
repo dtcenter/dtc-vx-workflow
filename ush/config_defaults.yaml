@@ -1280,6 +1280,13 @@ gridstat:
   # runs GridStat (through METplus) on its share of the forecast hours (see
   # VX_NPROCS).
   NPROCS: !int '{{ verification.VX_NPROCS }}'
+  # Field overrides for this tool, merged onto the top-level fields: section
+  # by fcst_name (and fcst_levels, if given): an entry for a field already
+  # there overrides only the keys it lists, an entry for a new field adds it,
+  # and omit: true removes the field (see merge_field_configs() in
+  # ush/python_utils/metplus_conf_utils.py).  Empty by default, so the
+  # top-level fields: are used unchanged.
+  fields: {}
 
 pointstat:
   # Runtime settings for deterministic POINTSTAT jobs
@@ -1291,6 +1298,13 @@ pointstat:
   # runs PointStat (through METplus) on its share of the forecast hours (see
   # VX_NPROCS).
   NPROCS: !int '{{ verification.VX_NPROCS }}'
+  # Field overrides for this tool, merged onto the top-level fields: section
+  # by fcst_name (and fcst_levels, if given): an entry for a field already
+  # there overrides only the keys it lists, an entry for a new field adds it,
+  # and omit: true removes the field (see merge_field_configs() in
+  # ush/python_utils/metplus_conf_utils.py).  Empty by default, so the
+  # top-level fields: are used unchanged.
+  fields: {}
 
 gridstat_ensmean:
   # Runtime settings for ensemble mean GRIDSTAT jobs
@@ -1302,6 +1316,14 @@ gridstat_ensmean:
   # each process runs GridStat (through METplus) on its share of the forecast
   # hours (see VX_NPROCS).
   NPROCS: !int '{{ verification.VX_NPROCS }}'
+  # Field overrides for this tool, merged onto the ensemble: fields: section
+  # (or, if that is empty, the top-level fields: section) by fcst_name (and
+  # fcst_levels, if given): an entry for a field already there overrides only
+  # the keys it lists, an entry for a new field adds it, and omit: true
+  # removes the field (see merge_field_configs() in
+  # ush/python_utils/metplus_conf_utils.py).  Empty by default, so the base
+  # fields are used unchanged.
+  fields: {}
 
 gridstat_ensprob:
   # Runtime settings for ensemble prob GRIDSTAT jobs
@@ -1365,6 +1387,14 @@ pointstat_ensprob:
   # PointStat job; each process runs PointStat (through METplus) on its share of
   # the forecast hours (see VX_NPROCS).
   NPROCS: !int '{{ verification.VX_NPROCS }}'
+  # Field overrides for this tool, merged onto the ensemble: fields: section
+  # (or, if that is empty, the top-level fields: section) by fcst_name (and
+  # fcst_levels, if given): an entry for a field already there overrides only
+  # the keys it lists, an entry for a new field adds it, and omit: true
+  # removes the field (see merge_field_configs() in
+  # ush/python_utils/metplus_conf_utils.py).  Empty by default, so the base
+  # fields are used unchanged.
+  fields: {}
 
 point2grid:
   execution:
@@ -1576,6 +1606,10 @@ mode:
   # Number of processes to run in parallel in each MODE job; each process runs
   # MODE (through METplus) on its share of the forecast hours (see VX_NPROCS).
   NPROCS: !int '{{ verification.VX_NPROCS }}'
+  # Fields to verify with MODE.  If not empty, this section is used instead of
+  # the top-level fields: section (it replaces that section rather than being
+  # merged with it).  Empty by default, so the top-level fields: are used.
+  fields: {}
 
   # For more information on MODE variables see the MODE documentation:
   # https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/mode.html

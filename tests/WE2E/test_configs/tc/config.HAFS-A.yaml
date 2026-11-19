@@ -3,14 +3,10 @@
 #----------------------------
 metadata:
   description: A basic HAFS verification test
-user:
-  workflow_blocks:
-    - verify_tc.yaml
 
 workflow:
   DATE_FIRST_CYCL: "2023090512"
   DATE_LAST_CYCL: "2023090512"
-  CYCL_FREQ: 6
   FCST_LEN_HRS: 126
   taskgroups:
     - parm/wflow/verify_tc.yaml
@@ -24,19 +20,27 @@ verification:
   VX_FCST_INPUT_BASEDIR: "{{ platform.STAGED_DATA }}/HAFS-A/2023090512/13L/"
   FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
   VX_FCST_OUTPUT_INTVL_HRS: 3
-  # LOG_LEVEL
-  # Python logging level for METplus wrappers. Details here:
-  # https://metplus.readthedocs.io/en/latest/Users_Guide/systemconfiguration.html#log-level
-  #
   # METPLUS_VERBOSITY_LEVEL:
   # Logging verbosity level used by METplus verification tools.  0 to 9,
   # with 0 having the fewest log messages and 9 having the most. Levels 5
   # and above can result in very large log files and slower tool execution.
   #
   METPLUS_VERBOSITY_LEVEL: 2
-  LOG_MET_VERBOSITY: 2
-  LOG_LEVEL: INFO
+  #
+  # LOG_MET_VERBOSITY and LOG_LEVEL below are commented out because they are
+  # not workflow settings and nothing reads them.  The METplus settings with
+  # these names are fixed in parm/metplus/common.conf (and each tool's
+  # verbosity is set from METPLUS_VERBOSITY_LEVEL above).  If uncommented,
+  # they would be rejected as unknown keys when the experiment is generated.
+  #
+  # LOG_MET_VERBOSITY is the default verbosity level of the MET tools run by
+  # METplus (the level passed to each tool with -v).  METplus's per-tool
+  # LOG_<TOOL>_VERBOSITY settings override it.
+  #LOG_MET_VERBOSITY: 2
+  #
+  # LOG_LEVEL is the Python logging level for METplus wrappers. Details here:
+  # https://metplus.readthedocs.io/en/latest/Users_Guide/systemconfiguration.html#log-level
+  #LOG_LEVEL: INFO
 
 tcpairs:
-  TECH_ID: 'OFCL'
-  MODEL: 'HFSA'
+  TECH_ID_VX: 'OFCL'

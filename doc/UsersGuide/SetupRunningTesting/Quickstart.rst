@@ -119,7 +119,6 @@ Setting up the experiment
            VX_FCST_MODEL_NAME: 'rrfs'
            VX_FCST_INPUT_BASEDIR: /scratch4/BMC/gsd-fv3-dev/Michael.Kavulich/VX_workflow/quickstart_test/data
            FCST_FN_TEMPLATE: rrfs.t{init?fmt=%H?shift=-${time_lag}}z.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.rrfs_conus_25km.grib2
-           FCST_SUBDIR_TEMPLATE: ''
            CCPA_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ccpa/proc'
            MRMS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/mrms/proc'
            NDAS_OBS_DIR: '{{ workflow.EXPTDIR }}/obs_data/ndas/proc'
@@ -238,8 +237,6 @@ Create an experiment config file ``config.yaml``:
      user:
        MACHINE: hercules
        ACCOUNT: gsd-fv3-test
-       workflow_blocks:
-         - verify_tc.yaml
      
      workflow:
        DATE_FIRST_CYCL: "2025102600"
@@ -254,15 +251,11 @@ Create an experiment config file ``config.yaml``:
      verification:
        VX_FCST_MODEL_NAME: 'hfsa'
        VX_FCST_INPUT_BASEDIR: path/to/datadir
-       FCST_SUBDIR_TEMPLATE: ""
        FCST_FN_TEMPLATE: "{cyclone}l.{init?fmt=%Y%m%d%H}.hfsa.storm.atm.f{lead?fmt=%HHH}.grb2"
        VX_FCST_OUTPUT_INTVL_HRS: 6
        METPLUS_VERBOSITY_LEVEL: 2
-       LOG_MET_VERBOSITY: 2
-       LOG_LEVEL: INFO
      tcpairs:
-       TECH_ID: 'OFCL'
-       MODEL: 'HFSA'
+       TECH_ID_VX: 'OFCL'
  
 Users on a different system would update the machine, account, and data paths accordingly.
 

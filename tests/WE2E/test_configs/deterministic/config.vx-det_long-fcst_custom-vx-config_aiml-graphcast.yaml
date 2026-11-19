@@ -7,9 +7,6 @@ metadata:
     The model output is verified against GDAS (Global Data Assimilation
     System) obs.
 
-user:
-  RUN_ENVIR: community
-
 platform:
   EXTRN_MDL_DATA_STORES: hpss
 
@@ -18,14 +15,6 @@ workflow:
   DATE_FIRST_CYCL: '2024073000'
   DATE_LAST_CYCL: '2024073000'
   FCST_LEN_HRS: 240
-
-task_get_extrn_lbcs:
-  envvars:
-    LBC_SPEC_INTVL_HRS: 3
-
-task_run_post:
-  envvars:
-    POST_OUTPUT_DOMAIN_NAME: 'global'
 
 verification:
   # Verify SFC/UPA fields against GDAS (not NDAS) obs.  The locations of
