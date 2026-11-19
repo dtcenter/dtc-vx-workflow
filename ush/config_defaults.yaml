@@ -163,16 +163,21 @@ platform:
   METPLUS_ROOT: ''
   #
   #-----------------------------------------------------------------------
-  # Test directories used in run_WE2E script
+  # Settings used only by the WE2E tests (set in the machine files)
   #-----------------------------------------------------------------------
   # TEST_*_OBS_DIR:
-  # These parameters are used by the WE2E testing script to test the mechanism
-  # that allows the user to point to data streams on disk for observation data 
-  # for verification tasks. They test the ability for users to manually set 
-  # these observation directories.
-  # 
+  # Directories containing staged obs of each type for the WE2E tests.  For
+  # each obs type, if a WE2E test config does not set the obs directory
+  # (verification.<obs type>_OBS_DIR, e.g. CCPA_OBS_DIR), the WE2E test
+  # script (tests/WE2E/run_we2e_tests.py) sets it to the value of the
+  # corresponding TEST_*_OBS_DIR in the machine file (if set there), so
+  # that the test uses the staged obs.
+  #
   # STAGED_DATA:
-  # The base path to staged test data for WE2E testing.
+  # The base path to the staged forecast output for the WE2E tests.  The
+  # WE2E test configs refer to it in VX_FCST_INPUT_BASEDIR.  (The TC test
+  # also reads its best-track data from there, since BEST_TRACK_DIR
+  # defaults to VX_FCST_INPUT_BASEDIR.)
   #
   #-----------------------------------------------------------------------
   #

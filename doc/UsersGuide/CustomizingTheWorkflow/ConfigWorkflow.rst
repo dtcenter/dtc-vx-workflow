@@ -171,26 +171,19 @@ Paths for MET and METplus
 Test Directories
 ----------------------
 
-These directories are used only by the ``run_WE2E_tests.py`` script, so they are not used unless the user runs a Workflow End-to-End (WE2E) test (see :numref:`Section %s <WE2E_tests>`). Their function corresponds to the same variables without the ``TEST_`` prefix. Users typically should not modify these variables. For any alterations, the logic in the ``run_WE2E_tests.py`` script would need to be adjusted accordingly.
+These settings are used only by the Workflow End-to-End (WE2E) tests (see :numref:`Section %s <Testing>`).  They are set in the machine files, and users typically should not need to change them.
 
 ``TEST_CCPA_OBS_DIR``, ``TEST_MRMS_OBS_DIR``, ``TEST_NDAS_OBS_DIR``, ``TEST_GDAS_OBS_DIR``, ``TEST_NOHRSC_OBS_DIR``, ``TEST_AERONET_OBS_DIR``, ``TEST_AIRNOW_OBS_DIR``: (Default: "")
-These parameters are used by the testing script to test the mechanism that allows user to point to data streams on disk for observation data for verification tasks. They test the ability for users to set ``CCPA_OBS_DIR``, ``MRMS_OBS_DIR``, ``NDAS_OBS_DIR``, etc.
-
-``TEST_VX_FCST_INPUT_BASEDIR``: (Default: "") 
-   The path to user-staged forecast files for WE2E testing of verificaton using user-staged forecast files in a known location on a given platform. 
+   Directories containing staged obs of each type for the WE2E tests.  For each obs type, if a WE2E test config does not set the obs directory in the ``verification:`` section (``CCPA_OBS_DIR``, ``MRMS_OBS_DIR``, ``NDAS_OBS_DIR``, etc.), the WE2E test script ``tests/WE2E/run_we2e_tests.py`` sets it to the value of the corresponding ``TEST_*_OBS_DIR`` in the machine file (if set there), so that the test uses the staged obs.
 
 ``STAGED_DATA``: (Default: "")
-   The base path to staged test data for WE2E testing.
+   The base path to the staged forecast output for the WE2E tests.  The WE2E test configs refer to it in ``VX_FCST_INPUT_BASEDIR``, e.g. ``VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/MET_verification'``.  (The TC test also reads its best-track data from there, since ``BEST_TRACK_DIR`` defaults to ``VX_FCST_INPUT_BASEDIR``.)
 
-.. _SystemFixedFiles:
+Tropical Cyclone Data
+----------------------
 
-Fixed File Directory Parameters
-----------------------------------
-
-These parameters are associated with the fixed (i.e., static) files. Because the default values are platform-dependent, they are set to a null string in ``config_defaults.yaml``.
-
-``BEST_TRACK``: (Default: "")
-   Staged location on disk for TC "best track" data
+``BEST_TRACK_DIR``: (Default: ``'{{ verification.VX_FCST_INPUT_BASEDIR }}'``)
+   Staged location on disk for tropical cyclone (TC) "best track" data.
 
 .. _workflow:
 
