@@ -149,20 +149,21 @@ class TestCheckForUnknownKeys(unittest.TestCase):
         self.assertEqual(listed, ["verification.VX_FIELD_GROUP", "ensemble.execution"])
 
     def test_machine_file_keys(self):
-        """A key defined only in a machine file (platform.FIXgsm, in linux.yaml) is accepted if
-        that is the user's machine (linux) and rejected otherwise (hera)."""
+        """A key defined only in some machine files (platform.MET_BASE, in hera.yaml but not in
+        linux.yaml) is accepted if the user's machine is one of them (hera) and rejected
+        otherwise (linux)."""
         user_config_path = Path(self.tmp_dir.name) / "config.yaml"
         user_config_path.write_text(
-            "platform:\n  FIXgsm: /path/to/fix_am\n", encoding="utf-8"
+            "platform:\n  MET_BASE: /path/to/met\n", encoding="utf-8"
         )
         check_for_unknown_keys(
-            user_config_path, USH_DIR / "config_defaults.yaml", USH_DIR / "machine" / "linux.yaml"
+            user_config_path, USH_DIR / "config_defaults.yaml", USH_DIR / "machine" / "hera.yaml"
         )
         with self.assertRaises(ValueError):
             check_for_unknown_keys(
                 user_config_path,
                 USH_DIR / "config_defaults.yaml",
-                USH_DIR / "machine" / "hera.yaml",
+                USH_DIR / "machine" / "linux.yaml",
             )
 
     def test_repo_user_configs(self):

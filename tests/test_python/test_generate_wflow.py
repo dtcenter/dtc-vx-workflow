@@ -10,11 +10,7 @@ from typing import Union
 
 from uwtools.api.config import get_yaml_config
 
-from python_utils import (
-    run_command,
-    set_env_var,
-    get_env_var,
-)
+from python_utils import set_env_var
 from python_utils.parse_test_list import ALL_TESTS
 
 from generate_wflow import generate_wflow
@@ -53,7 +49,6 @@ class Testing(unittest.TestCase):
                 sys.exit(exit_code)
 
         logfile = "log.generate_wflow"
-        sed = get_env_var("SED")
         # Add dummy values of the settings that generation requires but that
         # the WE2E test configs don't specify.  (In real WE2E runs,
         # run_we2e_tests.py adds MACHINE and ACCOUNT, and the machine file
@@ -81,14 +76,4 @@ class Testing(unittest.TestCase):
             "platform": {"MET_INSTALL_DIR": "/dummy/path", "METPLUS_ROOT": "/dummy/path"},
         })
         config.dump(Path(USH_DIR) / "config.yaml")
-
-        # If running CI, point config.yaml to correct location for fix files
-        if fix_files := get_env_var("CI_FIX_FILES"):
-            run_command(
-                f"""{sed} -i 's/MACHINE: HERA/MACHINE: LINUX/g' {USH_DIR}/config.yaml"""
-            )
-            machine_file = f"{USH_DIR}/machine/linux.yaml"
-            sed_command = f"{sed} -i 's|/home/username/DATA/UFS|{fix_files}|g' " \
-                          f"{machine_file}"
-            run_command(sed_command)
         run_workflow(logfile)

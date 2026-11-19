@@ -216,11 +216,12 @@ def check_bad_settings(cfg):
     if bt:=cfg.get("platform").get("BEST_TRACK"):
         msg+=f"Config file contains invalid key `platform: BEST_TRACK`:\n{bt}\n"
         msg+="The variable `BEST_TRACK` has been renamed to `BEST_TRACK_DIR`\n"
-    # QUEUE_FCST and PARTITION_FCST (settings from the SRW App) have been
-    # removed, since no task used them.
-    for key in ("QUEUE_FCST", "PARTITION_FCST"):
+    # Platform settings from the SRW App that have been removed, since nothing
+    # in the workflow used them.
+    for key in ("QUEUE_FCST", "PARTITION_FCST",
+                "FIXaer", "FIXgsm", "FIXlut", "FIXorg", "FIXsfc", "FIXshp"):
         if key in cfg.get("platform"):
-            msg+=f"platform:{key} has been removed (no task used it); remove this setting\n"
+            msg+=f"platform:{key} has been removed (it was not used); remove this setting\n"
     if vf:=cfg.get("verification"):
         if bad:=vf.get("FCST_SUBDIR_TEMPLATE"):
             msg+=f"verification: contains deprecated key `FCST_SUBDIR_TEMPLATE`:\n{bad}\n"
