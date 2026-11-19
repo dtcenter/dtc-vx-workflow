@@ -9,7 +9,6 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
 verification:
-  VX_FCST_MODEL_NAME: RRFS_smoke_test
   VX_FIELD_GROUPS: [ "AOD", "PM25", "PM10" ]
   VX_FCST_MODEL_NAME: RRFS_CONUS
   VX_FCST_INPUT_BASEDIR: '{{ platform.STAGED_DATA }}/RRFS'
