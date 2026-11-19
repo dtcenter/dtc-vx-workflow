@@ -11,7 +11,7 @@ assignees: ''
 Please copy any output files into a public Github gist (see https://gist.github.com/) and link to the gist, rather than relying on paths that might change. -->
 
 Your bug may already be reported!
-Please search on the [Issue tracker](https://github.com/ufs-community/ufs-srweather-app/issues) before creating a new issue. 
+Please search on the [Issue tracker](https://github.com/dtcenter/dtc-vx-workflow/issues) before creating a new issue. 
 If an issue already exists, please use that issue to add any additional information.
 
 ## Expected behavior

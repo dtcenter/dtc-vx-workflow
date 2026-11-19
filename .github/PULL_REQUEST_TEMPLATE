@@ -2,7 +2,7 @@
 
 - You may delete any sections labeled "optional" and any instructions within <!-- these sections -->.
 
-- If you are unclear on what should be written here, see https://github.com/wrf-model/WRF/wiki/Making-a-good-pull-request-message for some guidance and review the Code Contributor's Guide at https://github.com/ufs-community/ufs-srweather-app/wiki/Code-Manager's-Guide. 
+- If you are unclear on what should be written here, see https://github.com/wrf-model/WRF/wiki/Making-a-good-pull-request-message for some guidance and review the Contributor's Guide at https://dtc-vx-workflow.readthedocs.io/en/latest/ContribGuide/index.html. 
 
 - The title of this pull request should be a brief summary (ideally less than 100 characters) of the changes included in this PR.
 
