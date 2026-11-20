@@ -3,6 +3,9 @@ channels:
   - conda-forge
   - ufs-community
 dependencies:
+  # Keep the minimum version in step with MIN_PYTHON_VERSION in
+  # ush/python_utils/check_python_version.py.
+  - python>=3.10
   - pylint=3.3*
   - pytest=7.2*
   - uwtools=2.14*
