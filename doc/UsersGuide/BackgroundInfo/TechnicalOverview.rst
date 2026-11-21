@@ -91,16 +91,17 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
    │   ├── data_locations.yml
    │   ├── metplus/
    │   │   ├── <taskname>.conf
-   │   │   ├── AZCA.poly
    │   │   ├── common.conf
-   │   │   ├── EAST_OF_ROCKIES.poly
    │   │   ├── metplus_macros.jinja
-   │   │   ├── plot_met_poly_points.py
-   │   │   └── vx_configs/
-   │   │       ├── vx_config_det.obs_gdas.model_aiml.yaml
-   │   │       ├── vx_config_det.obs_gdas.model_gfs.yaml
-   │   │       ├── vx_config_det.yaml
-   │   │       └── vx_config_ens.yaml
+   │   │   ├── vx_configs/
+   │   │   │   ├── vx_config_det.obs_gdas.model_aiml.yaml
+   │   │   │   ├── vx_config_det.obs_gdas.model_gfs.yaml
+   │   │   │   ├── vx_config_det.yaml
+   │   │   │   └── vx_config_ens.yaml
+   │   │   └── vx_masks/
+   │   │       ├── AZCA.poly
+   │   │       ├── EAST_OF_ROCKIES.poly
+   │   │       └── plot_met_poly_points.py
    │   └── wflow/
    │       ├── default_workflow.yaml
    │       ├── verify_det.yaml
