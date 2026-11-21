@@ -16,7 +16,8 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, setup_logging, render_metplus_confs, make_var_list, run_metplus
+    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, render_metplus_confs,
+    make_var_list, run_metplus
 )
 from set_leadhrs import set_leadhrs
 
@@ -116,13 +117,7 @@ def mode(config_file,cdate,field_group,obtype):
     if not vx_leadhr_list:
         raise RuntimeError(f"Call to {slh_string}\nreturned an empty list.")
 
-    vx_mask_files=[]
-    if vxcfg["VX_MASK"]:
-        for mask in vxcfg["VX_MASK"]:
-            if os.path.isfile(maskfile:=f"{cfg['user']['METPLUS_CONF']}/{mask}.poly"):
-                vx_mask_files.append(maskfile)
-            else:
-                vx_mask_files.append(f"{os.environ['MET_INSTALL_DIR']}/share/met/poly/{mask}.poly")
+    vx_mask_files = get_file_for_each_vx_mask(cfg)
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file

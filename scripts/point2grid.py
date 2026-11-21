@@ -121,14 +121,6 @@ def point2grid(config_file,cdate,obs_dir,field_group,obtype,fcst_level):
     if not vx_leadhr_list:
         raise RuntimeError(f"Call to {slh_string}\nreturned an empty list.")
 
-    vx_mask_files=[]
-    if vxcfg["VX_MASK"]:
-        for mask in vxcfg["VX_MASK"]:
-            if os.path.isfile(maskfile:=f"{cfg['user']['METPLUS_CONF']}/{mask}.poly"):
-                vx_mask_files.append(maskfile)
-            else:
-                vx_mask_files.append(f"{os.environ['MET_INSTALL_DIR']}/share/met/poly/{mask}.poly")
-
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
     metplus_config_tmpl_fn="Point2Grid.conf"

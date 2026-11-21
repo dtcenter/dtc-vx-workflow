@@ -19,8 +19,8 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     get_ensmem_info, make_var_list, merge_field_configs, render_metplus_confs,
-                         run_metplus, setup_logging
+     get_ensmem_info, get_file_for_each_vx_mask, make_var_list, merge_field_configs,
+     render_metplus_confs, run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -191,15 +191,7 @@ def genensprod_or_ensemblestat(
             f"{obtype=}, {field_group=}"
         )
 
-    vx_mask_files = []
-    if vxcfg["VX_MASK"]:
-        for mask in vxcfg["VX_MASK"]:
-            if os.path.isfile(maskfile := f"{cfg['user']['METPLUS_CONF']}/{mask}.poly"):
-                vx_mask_files.append(maskfile)
-            else:
-                vx_mask_files.append(
-                    f"{os.environ['MET_INSTALL_DIR']}/share/met/poly/{mask}.poly"
-                )
+    vx_mask_files = get_file_for_each_vx_mask(cfg)
 
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}.conf"
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"

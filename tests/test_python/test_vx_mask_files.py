@@ -1,6 +1,7 @@
 """
 Unit tests for get_file_for_each_vx_mask() and
-find_all_files_for_single_vx_mask() in python_utils/vx_mask_files.py.
+find_all_files_for_single_vx_mask() in python_utils/vx_mask_files.py, and a
+check of the mask files that come with the workflow in parm/metplus/vx_masks.
 
 To run them, issue the following command from the top-level directory:
     UNIT_TEST=True PYTHONPATH=ush python3 -m unittest -b tests/test_python/test_vx_mask_files.py
@@ -9,9 +10,14 @@ To run them, issue the following command from the top-level directory:
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 from python_utils import get_file_for_each_vx_mask
-from python_utils.vx_mask_files import find_all_files_for_single_vx_mask, get_vx_mask_dirs
+from python_utils.vx_mask_files import (
+    VX_MASK_FILE_EXTENSIONS, find_all_files_for_single_vx_mask, get_vx_mask_dirs
+)
+
+TOP_DIR = Path(__file__).resolve().parents[2]
 
 
 class TestVxMaskFiles(unittest.TestCase):
@@ -129,6 +135,65 @@ class TestVxMaskFiles(unittest.TestCase):
         self.assertIn('"NOWHERE"', msg)
         for d in (self.user_dir, self.wflow_mask_dir, self.met_poly_dir):
             self.assertIn(d, msg)
+
+
+class TestWorkflowVxMasks(unittest.TestCase):
+    """Tests of the mask files that come with the workflow."""
+
+    def test_one_file_per_mask(self):
+        """No mask in parm/metplus/vx_masks has more than one file, i.e. both
+        a .poly and a .nc file.  This checks every mask in the directory, not
+        only those listed in an experiment's VX_MASK."""
+        wflow_mask_dir = TOP_DIR / "parm" / "metplus" / "vx_masks"
+        # wflow_mask_dir.iterdir() yields a Path object for each entry (file
+        # or subdirectory) in wflow_mask_dir, the pathlib version of
+        # os.listdir():
+        #
+        # - Each Path is the full path to the entry, e.g.
+        #   .../vx_masks/AZCA.poly, not just its name.
+        #
+        # - Only the entries directly in wflow_mask_dir are listed, not the
+        #   contents of its subdirectories, and "." and ".." are not included.
+        #
+        # - The entries come in no particular order (whatever order the file
+        #   system returns them in).
+        #
+        # - It is a generator, so the entries are read one at a time as the
+        #   set comprehension asks for them.
+        #
+        # - If wflow_mask_dir does not exist, it raises FileNotFoundError, so
+        #   the test reports an error instead of passing.
+        #
+        # The set comprehension keeps the name (path.stem, e.g. "AZCA") of each
+        # entry whose extension (path.suffix, e.g. ".poly") is that of a mask
+        # file, and keeps each name only once, even if the mask has both a
+        # .poly and a .nc file.  sorted() puts the names in alphabetical
+        # order, so the masks are checked in the same order every time.
+        masks = sorted({path.stem for path in wflow_mask_dir.iterdir()
+                        if path.suffix in VX_MASK_FILE_EXTENSIONS})
+        # Make sure the test doesn't pass just because it found no masks, e.g.
+        # because the directory was renamed and an empty one left behind.
+        # assertTrue(x, msg) passes if bool(x) is True, and fails otherwise.
+        self.assertTrue(masks, f"No mask files found in {wflow_mask_dir}")
+        for mask in masks:
+            # subTest() runs each pass through the loop as a separate sub-test.
+            # An exception or failed assertion inside the "with" block ends only
+            # that sub-test, and the loop goes on to the next mask, so every
+            # mask with more than one file is reported, not just the first.
+            # (Without subTest(), the first exception would end the whole test
+            # method.)  The keyword argument mask=mask labels the sub-test: the
+            # report shows it after the test name, e.g. "(mask='AZCA')", so it
+            # is clear which mask the result is for.  The keyword (here "mask")
+            # is only a label; any name would work.
+            with self.subTest(mask=mask):
+                # Search only wflow_mask_dir, the one directory this test
+                # checks.  The function raises ValueError if the directory
+                # contains more than one file for the mask, and subTest()
+                # records that as an error for this mask.  The list of files
+                # it returns isn't needed: the mask names come from the files
+                # in the directory, so each mask has at least one file there,
+                # and the only question is whether it has more than one.
+                find_all_files_for_single_vx_mask([str(wflow_mask_dir)], mask)
 
 
 if __name__ == "__main__":
