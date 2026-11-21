@@ -114,7 +114,7 @@
           ],
           "type": "array"
         },
-        "VX_MASK": {
+        "VX_MASKS": {
           "prefixItems": [
             { "enum": [
               "APL",

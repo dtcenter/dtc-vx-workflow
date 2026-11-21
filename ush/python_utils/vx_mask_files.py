@@ -1,6 +1,6 @@
 """
 Function for getting the paths to the files that define the verification masks (the regions to
-verify over) listed in VX_MASK.
+verify over) listed in VX_MASKS.
 """
 
 import os
@@ -77,9 +77,9 @@ def find_all_files_for_single_vx_mask(vx_mask_dirs: list[str], mask: str) -> lis
 
 
 def get_file_for_each_vx_mask(cfg) -> list[str]:
-    """Get the paths to the files that define the verification masks listed in VX_MASK.
+    """Get the paths to the files that define the verification masks listed in VX_MASKS.
 
-    For each mask name in VX_MASK, look for the file <name>.poly or <name>.nc in each of the
+    For each mask name in VX_MASKS, look for the file <name>.poly or <name>.nc in each of the
     directories returned by get_vx_mask_dirs(), in order, and use the first file found.  Thus,
     a file in VX_MASK_DIR takes precedence over a file of the same name that comes with the
     workflow or with MET.
@@ -92,26 +92,26 @@ def get_file_for_each_vx_mask(cfg) -> list[str]:
     Returns
     -------
     list[str]
-        The path to the file for each mask in VX_MASK, in the same order as in VX_MASK.  The list
-        is empty if VX_MASK is empty.
+        The path to the file for each mask in VX_MASKS, in the same order as in VX_MASKS.  The list
+        is empty if VX_MASKS is empty.
 
     Raises
     ------
     FileNotFoundError
-        If no file is found for a mask in VX_MASK.  The message lists the directories searched.
+        If no file is found for a mask in VX_MASKS.  The message lists the directories searched.
     ValueError
-        If a directory contains both <name>.poly and <name>.nc for a mask in VX_MASK (see
+        If a directory contains both <name>.poly and <name>.nc for a mask in VX_MASKS (see
         find_all_files_for_single_vx_mask()).
     """
     vx_mask_dirs = get_vx_mask_dirs(cfg)
     vx_mask_files = []
-    for mask in cfg["verification"]["VX_MASK"]:
+    for mask in cfg["verification"]["VX_MASKS"]:
         # paths_found contains at most one path per directory in vx_mask_dirs.
         paths_found = find_all_files_for_single_vx_mask(vx_mask_dirs, mask)
         if not paths_found:
             raise FileNotFoundError(
                 f'No file {mask}.poly or {mask}.nc found for the verification mask "{mask}" in '
-                "VX_MASK.  The following directories were searched, in this order:\n  "
+                "VX_MASKS.  The following directories were searched, in this order:\n  "
                 + "\n  ".join(vx_mask_dirs))
         vx_mask_files.append(paths_found[0])
     return vx_mask_files

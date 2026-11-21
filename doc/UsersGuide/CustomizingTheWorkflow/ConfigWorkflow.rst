@@ -854,7 +854,7 @@ VX Parameters for Forecasts
    If more than this number are missing, the verification task will exit
    with an error.
 
-``VX_MASK``: (Default: [])
+``VX_MASKS``: (Default: [])
    Name(s) of the sub-grid(s) of the forecast domain to verify on. Valid grids are found in the
    `MET Users Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__
    or under ``dtc-vx-workflow/parm/metplus/GRIDNAME.poly``. Users can also include custom verification domains

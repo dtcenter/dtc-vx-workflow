@@ -44,13 +44,13 @@ class TestVxMaskFiles(unittest.TestCase):
         for d in (self.user_dir, self.wflow_mask_dir, self.met_poly_dir):
             os.makedirs(d)
 
-    def _make_cfg(self, vx_mask, vx_mask_dir=None):
+    def _make_cfg(self, vx_masks, vx_mask_dir=None):
         """Returns a minimal experiment configuration containing the settings
         used by get_file_for_each_vx_mask().  VX_MASK_DIR is set to the user
         mask directory unless vx_mask_dir is given ("" for unset)."""
         return {
             "verification": {
-                "VX_MASK": vx_mask,
+                "VX_MASKS": vx_masks,
                 "VX_MASK_DIR": self.user_dir if vx_mask_dir is None else vx_mask_dir,
             },
             "user": {"PARMdir": self.parm_dir},
@@ -64,13 +64,13 @@ class TestVxMaskFiles(unittest.TestCase):
             pass
         return path
 
-    def test_empty_vx_mask(self):
-        """An empty VX_MASK gives an empty list."""
+    def test_empty_vx_masks(self):
+        """An empty VX_MASKS gives an empty list."""
         self.assertEqual(get_file_for_each_vx_mask(self._make_cfg([])), [])
 
     def test_each_directory(self):
         """A mask is found in each of the three directories, as a .poly or .nc
-        file, and the paths are returned in the order of VX_MASK."""
+        file, and the paths are returned in the order of VX_MASKS."""
         expected = [
             self._touch(os.path.join(self.met_poly_dir, "CONUS.poly")),
             self._touch(os.path.join(self.user_dir, "OR_WA_CA.nc")),
@@ -143,7 +143,7 @@ class TestWorkflowVxMasks(unittest.TestCase):
     def test_one_file_per_mask(self):
         """No mask in parm/metplus/vx_masks has more than one file, i.e. both
         a .poly and a .nc file.  This checks every mask in the directory, not
-        only those listed in an experiment's VX_MASK."""
+        only those listed in an experiment's VX_MASKS."""
         wflow_mask_dir = TOP_DIR / "parm" / "metplus" / "vx_masks"
         # wflow_mask_dir.iterdir() yields a Path object for each entry (file
         # or subdirectory) in wflow_mask_dir, the pathlib version of
