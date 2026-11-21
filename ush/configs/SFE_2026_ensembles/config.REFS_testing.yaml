@@ -28,7 +28,7 @@ verification:
   - SFC
   - UPA
   VX_FCST_INPUT_BASEDIR: '/scratch3/BMC/gsd-fv3-dev/Michael.Kavulich/RRFS_MPAS_testing/data/'
-  VX_MASK:
+  VX_MASKS:
   - CONUS
   FCST_FN_TEMPLATE:
   - '{init?fmt=%Y%m%d}/rrfs_{init?fmt=%Y%m%d%H?shift=-${time_lag}}f{lead?fmt=%HHH?shift=${time_lag}}.grib2'

@@ -39,7 +39,7 @@ verification:
   AIRNOW_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/airnow"
   GOESAOD_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesaod"
   GOESADP_OBS_DIR: "{{ workflow.EXPTDIR }}/obs_data/goesadp"
-  VX_MASK:
+  VX_MASKS:
   - 'EAST'
   VX_NPROCS: 8
   OBS_DATA_STORE_AERONET: http

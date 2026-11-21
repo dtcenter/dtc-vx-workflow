@@ -854,12 +854,62 @@ VX Parameters for Forecasts
    If more than this number are missing, the verification task will exit
    with an error.
 
-``VX_MASK``: (Default: [])
-   Name(s) of the sub-grid(s) of the forecast domain to verify on. Valid grids are found in the
-   `MET Users Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__
-   or under ``dtc-vx-workflow/parm/metplus/GRIDNAME.poly``. Users can also include custom verification domains
-   by adding their own ``GRIDNAME.poly`` files in that location. A script for visualizing these custom domains,
-   ``dtc-vx-workflow/parm/metplus/plot_met_poly_points.py``, is also included.
+``VX_MASKS``: (Default: [])
+   Names of the verification masks, i.e. the regions to verify over.  The workflow does not check
+   that each region overlaps the forecast domain.  Each name may be listed only once.  For each
+   name, the workflow uses the file ``<name>.poly`` or ``<name>.nc`` in the first of the following
+   directories that contains one:
+
+   #. ``VX_MASK_DIR`` (if set), which contains the user's own masks.
+   #. ``parm/metplus/vx_masks`` in the workflow, which contains the masks that come with the
+      workflow.
+   #. ``share/met/poly`` in the MET installation (``MET_INSTALL_DIR``), which contains the masks
+      that come with MET, e.g. ``CONUS``, ``EAST`` and ``WEST`` (see the
+      `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__).
+
+   A ``.poly`` file lists the latitudes and longitudes of the vertices of a polygon.  A ``.nc``
+   file is a NetCDF file containing a gridded mask, e.g. one made with MET's ``gen_vx_mask`` tool
+   (see ``VX_MASK_DIR``).  A directory may not contain both a ``.poly`` and a ``.nc`` file for the
+   same mask.  If a mask has a file in more than one of the directories, the first one found is
+   used, and the experiment generation log says which.  If no file is found for a mask,
+   experiment generation stops with an error that lists the directories searched.
+
+   The script ``parm/metplus/vx_masks/plot_met_poly_points.py`` plots the polygon in a ``.poly``
+   file on a map.
+
+``VX_MASK_DIR``: (Default: ``''``)
+   Directory containing the user's own verification mask files (see ``VX_MASKS``).  A file in this
+   directory takes precedence over one of the same name in ``parm/metplus/vx_masks`` or the MET
+   installation.  If empty, it is not searched.  It must be an absolute path to an existing
+   directory.  To specify a directory in the clone of the workflow, use the top-level directory of
+   the clone, i.e. ``user.HOMEdir``, in the value of ``VX_MASK_DIR``, e.g.
+   ``'{{ user.HOMEdir }}/my_masks'``.
+
+   A gridded (``.nc``) mask can be made with MET's ``gen_vx_mask`` tool from, for example, a
+   ``.poly`` file, a shapefile, or a threshold on a gridded field (see the
+   `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/masking.html>`__).
+   For example, the following commands (from
+   `METplus Discussion #3186 <https://github.com/dtcenter/METplus/discussions/3186>`__) make a mask
+   of the US states of Oregon, Washington and California on NCEP grid G184, using the Natural Earth
+   shapefile of states and provinces, ``ne_110m_admin_1_states_provinces`` (from
+   https://www.naturalearthdata.com/downloads/110m-cultural-vectors/):
+
+   .. code-block:: console
+
+      gis_dump_dbf ne_110m_admin_1_states_provinces.dbf > dbf.txt
+      gen_vx_mask G184 ne_110m_admin_1_states_provinces.shp OR_WA_CA.nc -type shape \
+                  -shape_str name Oregon,Washington,California -name OR_WA_CA
+
+   MET's ``gis_dump_dbf`` utility prints the attributes of each shape in the shapefile, which show
+   how to select shapes with ``-shape_str`` (here, the states' names are in the ``name``
+   attribute).  ``-shape_str name ...`` selects the shapes whose ``name`` attribute is one of the
+   given strings, and ``-name`` sets the name of the mask variable in the file.  ``gen_vx_mask``
+   can also be run several times, passing the output of one run as the input grid of the next, to
+   combine masks.  Name the file ``<name>.nc``, where ``<name>`` is the name listed in
+   ``VX_MASKS`` (here, ``OR_WA_CA``), and put it in ``VX_MASK_DIR``.  The mask's grid need not be
+   the verification grid: Grid-Stat and Point-Stat both accept a mask on a different grid, and
+   Grid-Stat regrids it to the verification grid using nearest-neighbor interpolation.  A mask on
+   a finer grid gives more accurate region edges.
 
 ``VX_NPROCS``: (Default: 1)
    Number of processes to run in parallel within each job that runs a METplus tool on a set of

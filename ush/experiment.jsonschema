@@ -114,45 +114,15 @@
           ],
           "type": "array"
         },
-        "VX_MASK": {
-          "prefixItems": [
-            { "enum": [
-              "APL",
-              "ATC",
-              "AZCA",
-              "CAM",
-              "CAR",
-              "CONUS",
-              "EAST",
-              "EAST_OF_ROCKIES",
-              "ECA",
-              "GLF",
-              "GMC",
-              "GRB",
-              "HWI",
-              "LMV",
-              "MDW",
-              "MEX",
-              "NAK",
-              "NAO",
-              "NEC",
-              "NMT",
-              "NPL",
-              "NSA",
-              "NWC",
-              "PRI",
-              "SAO",
-              "SEC",
-              "SMT",
-              "SPL",
-              "SWC",
-              "SWD",
-              "WCA",
-              "WEST"
-              ]
-            }
-          ],
-          "type": "array"
+        "VX_MASKS": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "VX_MASK_DIR": {
+          "type": "string"
         },
         "VX_OBTYPE_SFC_UPA": {
           "enum": [
