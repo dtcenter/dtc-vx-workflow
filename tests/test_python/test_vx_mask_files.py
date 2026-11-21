@@ -1,7 +1,8 @@
 """
-Unit tests for get_file_for_each_vx_mask() and
-find_all_files_for_single_vx_mask() in python_utils/vx_mask_files.py, and a
-check of the mask files that come with the workflow in parm/metplus/vx_masks.
+Unit tests for get_file_for_each_vx_mask(),
+find_all_files_for_single_vx_mask() and check_vx_mask_settings() in
+python_utils/vx_mask_files.py, and a check of the mask files that come with
+the workflow in parm/metplus/vx_masks.
 
 To run them, issue the following command from the top-level directory:
     UNIT_TEST=True PYTHONPATH=ush python3 -m unittest -b tests/test_python/test_vx_mask_files.py
@@ -12,16 +13,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from python_utils import (
-    find_all_files_for_single_vx_mask, get_file_for_each_vx_mask, get_vx_mask_dirs
+from python_utils import check_vx_mask_settings, get_file_for_each_vx_mask
+from python_utils.vx_mask_files import (
+    VX_MASK_FILE_EXTENSIONS, find_all_files_for_single_vx_mask, get_vx_mask_dirs
 )
-from python_utils.vx_mask_files import VX_MASK_FILE_EXTENSIONS
 
 TOP_DIR = Path(__file__).resolve().parents[2]
 
 
 class TestVxMaskFiles(unittest.TestCase):
-    """Tests for get_file_for_each_vx_mask() and find_all_files_for_single_vx_mask()."""
+    """Tests for get_file_for_each_vx_mask(), find_all_files_for_single_vx_mask() and
+    check_vx_mask_settings()."""
 
     # unittest calls setUp() automatically before each test method (each method
     # whose name starts with "test"), so each test starts with its own new,
@@ -135,6 +137,73 @@ class TestVxMaskFiles(unittest.TestCase):
         self.assertIn('"NOWHERE"', msg)
         for d in (self.user_dir, self.wflow_mask_dir, self.met_poly_dir):
             self.assertIn(d, msg)
+
+    def test_check_relative_vx_mask_dir(self):
+        """check_vx_mask_settings() raises ValueError if VX_MASK_DIR is a
+        relative path, even if that path exists relative to the current
+        directory."""
+        self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
+        cfg = self._make_cfg(["CONUS"], vx_mask_dir=os.path.relpath(self.user_dir))
+        with self.assertRaises(ValueError) as ctx:
+            check_vx_mask_settings(cfg)
+        self.assertIn("VX_MASK_DIR must be an absolute path", str(ctx.exception))
+
+    def test_check_missing_vx_mask_dir(self):
+        """check_vx_mask_settings() raises FileNotFoundError if VX_MASK_DIR is
+        not an existing directory."""
+        self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
+        missing_dir = os.path.join(self.user_dir, "missing")
+        cfg = self._make_cfg(["CONUS"], vx_mask_dir=missing_dir)
+        with self.assertRaises(FileNotFoundError) as ctx:
+            check_vx_mask_settings(cfg)
+        self.assertIn(missing_dir, str(ctx.exception))
+
+    def test_check_logs_overridden_mask(self):
+        """check_vx_mask_settings() logs nothing if each mask has a file in
+        only one directory, and logs a message at level INFO naming the file
+        used and the file not used if a mask has a file in more than one."""
+        met_file = self._touch(os.path.join(self.met_poly_dir, "WEST.poly"))
+        cfg = self._make_cfg(["WEST"])
+        # The name of the logger that check_vx_mask_settings() writes to.  The
+        # function gets its logger with logging.getLogger(__name__), and
+        # __name__ is the module's full import name, which is
+        # "python_utils.vx_mask_files" because the tests run with
+        # PYTHONPATH=ush.  It is put in a variable because both assertNoLogs()
+        # and assertLogs() below use it.
+        logger_name = "python_utils.vx_mask_files"
+        # At this point, the only file for WEST is the one in the MET
+        # installation, so check_vx_mask_settings() should log nothing.
+        # assertNoLogs() (new in Python 3.10) is the opposite of assertLogs().
+        # While the "with" block runs, it watches the logger named
+        # logger_name:
+        #
+        # - It counts only the messages sent to that logger or its children
+        #   (e.g. python_utils.vx_mask_files.something), not those sent to
+        #   other loggers, including the root logger.
+        #
+        # - It counts only the messages at the given level (INFO) or higher
+        #   (WARNING, ERROR, CRITICAL), not DEBUG messages.
+        #
+        # - When the block ends, the test fails ("Unexpected logs found") if
+        #   any such message was logged.  The messages are captured, so they
+        #   aren't printed.
+        #
+        # If logger_name were wrong (e.g. after the module is renamed),
+        # nothing would ever be logged to it, so assertNoLogs() would pass
+        # without checking anything.  The assertLogs() below protects against
+        # that, since it fails if no message is logged to logger_name.
+        with self.assertNoLogs(logger_name, level="INFO"):
+            check_vx_mask_settings(cfg)
+        user_file = self._touch(os.path.join(self.user_dir, "WEST.poly"))
+        with self.assertLogs(logger_name, level="INFO") as ctx:
+            check_vx_mask_settings(cfg)
+        self.assertEqual(len(ctx.records), 1)
+        msg = ctx.records[0].getMessage()
+        self.assertIn('"WEST"', msg)
+        # The file used comes before "and not:", and the one not used after.
+        used, not_used = msg.split("and not:")
+        self.assertIn(user_file, used)
+        self.assertIn(met_file, not_used)
 
 
 class TestWorkflowVxMasks(unittest.TestCase):

@@ -1,8 +1,9 @@
 """
-Function for getting the paths to the files that define the verification masks (the regions to
-verify over) listed in VX_MASKS.
+Functions for getting the paths to the files that define the verification masks (the regions to
+verify over) listed in VX_MASKS, and for checking the verification mask settings.
 """
 
+import logging
 import os
 
 # Extensions of the mask files to look for: a .poly file is a list of the
@@ -115,3 +116,62 @@ def get_file_for_each_vx_mask(cfg) -> list[str]:
                 + "\n  ".join(vx_mask_dirs))
         vx_mask_files.append(paths_found[0])
     return vx_mask_files
+
+
+def check_vx_mask_settings(cfg) -> None:
+    """Check the verification mask settings VX_MASK_DIR and VX_MASKS.
+
+    Check that VX_MASK_DIR, if set, is an absolute path to an existing directory, and that a file
+    can be found for each mask in VX_MASKS (see get_file_for_each_vx_mask()).  If a mask has a file
+    in more than one of the directories searched, log (at level INFO) which one is used.
+
+    Parameters
+    ----------
+    cfg : dict
+        The experiment configuration.
+
+    Raises
+    ------
+    ValueError
+        If VX_MASK_DIR is a relative path, or if a directory contains both <name>.poly and
+        <name>.nc for a mask in VX_MASKS.
+    FileNotFoundError
+        If VX_MASK_DIR is not an existing directory, or if no file is found for a mask in
+        VX_MASKS.
+    """
+    logger = logging.getLogger(__name__)
+    vx_mask_dir = cfg["verification"]["VX_MASK_DIR"]
+    if vx_mask_dir:
+        # The verification tasks are launched from other directories, so if a
+        # relative path is specified for vx_mask_dir that is correct from the
+        # directory in which the experiment is generated, it would probably
+        # point to the wrong location from within the verification tasks.  For
+        # this reason, we don't allow vx_mask_dir (i.e. VX_MASK_DIR) to contain
+        # a relative path; it must be absolute.
+        if not os.path.isabs(vx_mask_dir):
+            raise ValueError(
+                f"VX_MASK_DIR must be an absolute path, but it is: {vx_mask_dir}\nTo specify a "
+                "directory in the clone of the workflow, use the top-level directory of the "
+                "clone, i.e. user.HOMEdir, in the value of VX_MASK_DIR, e.g. "
+                "'{{ user.HOMEdir }}/my_masks'.")
+        if not os.path.isdir(vx_mask_dir):
+            raise FileNotFoundError(f"VX_MASK_DIR is not an existing directory: {vx_mask_dir}")
+    # The following call to get_file_for_each_vx_mask() raises an error if no
+    # file is found for any one of the masks in VX_MASKS, or if a directory
+    # contains more than one file for a mask.  If all goes well, it returns a
+    # list containing the path to each mask's .poly or .nc file, but that
+    # return value is not needed here (the individual task scripts call
+    # get_file_for_each_vx_mask() again when the tasks run).
+    get_file_for_each_vx_mask(cfg)
+    # If a mask has a file in more than one of the directories searched, say
+    # which one is used, in case the user didn't intend the others to be
+    # overridden.
+    vx_mask_dirs = get_vx_mask_dirs(cfg)
+    for mask in cfg["verification"]["VX_MASKS"]:
+        paths_found = find_all_files_for_single_vx_mask(vx_mask_dirs, mask)
+        if len(paths_found) > 1:
+            paths_not_used = "\n  ".join(paths_found[1:])
+            logger.info(
+                f'The verification mask "{mask}" has a file in more than one of the directories '
+                f"searched.  Using the first one found:\n  {paths_found[0]}\nand not:\n  "
+                f"{paths_not_used}")

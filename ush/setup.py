@@ -22,11 +22,9 @@ from uwtools.api.template import render
 
 from python_utils import (
     check_for_preexist_dir_file,
-    find_all_files_for_single_vx_mask,
+    check_vx_mask_settings,
     find_duplicate_yaml_keys,
     find_unknown_config_keys,
-    get_file_for_each_vx_mask,
-    get_vx_mask_dirs,
 )
 
 from set_cycle_and_obs_timeinfo import (
@@ -520,41 +518,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # a problem with a given mask (e.g. its file is missing, or a directory
     # contains both a .poly and a .nc file for it), it is reported during
     # experiment generation rather than later when a verification task runs.
-    vx_mask_dir = expt_config["verification"]["VX_MASK_DIR"]
-    if vx_mask_dir:
-        # The verification tasks are launched from other directories, so if a
-        # relative path is specified for vx_mask_dir that is correct from the
-        # directory in which the experiment is generated, it would probably
-        # point to the wrong location from within the verification tasks.  For
-        # this reason, we don't allow vx_mask_dir (i.e. VX_MASK_DIR) to contain
-        # a relative path; it must be absolute.
-        if not os.path.isabs(vx_mask_dir):
-            raise ValueError(
-                f"VX_MASK_DIR must be an absolute path, but it is: {vx_mask_dir}\nTo specify a "
-                "directory in the clone of the workflow, use the top-level directory of the "
-                "clone, i.e. user.HOMEdir, in the value of VX_MASK_DIR, e.g. "
-                "'{{ user.HOMEdir }}/my_masks'.")
-        if not os.path.isdir(vx_mask_dir):
-            raise FileNotFoundError(f"VX_MASK_DIR is not an existing directory: {vx_mask_dir}")
-    # The following call to get_file_for_each_vx_mask() raises an error if no
-    # file is found for any one of the masks in VX_MASKS, or if a directory
-    # contains more than one file for a mask.  If all goes well, it returns a
-    # list containing the path to each mask's .poly or .nc file, but that
-    # return value is not needed here (the individual task scripts call
-    # get_file_for_each_vx_mask() again when the tasks run).
-    get_file_for_each_vx_mask(expt_config)
-    # If a mask has a file in more than one of the directories searched, say
-    # which one is used, in case the user didn't intend the others to be
-    # overridden.
-    vx_mask_dirs = get_vx_mask_dirs(expt_config)
-    for mask in expt_config["verification"]["VX_MASKS"]:
-        paths_found = find_all_files_for_single_vx_mask(vx_mask_dirs, mask)
-        if len(paths_found) > 1:
-            paths_not_used = "\n  ".join(paths_found[1:])
-            logger.info(
-                f'The verification mask "{mask}" has a file in more than one of the directories '
-                f"searched.  Using the first one found:\n  {paths_found[0]}\nand not:\n  "
-                f"{paths_not_used}")
+    check_vx_mask_settings(expt_config)
 
     def _remove_tag(tasks, tag, only_if_empty=False):
         """Remove the given XML tag from all the tasks in the workflow, or, if only_if_empty is
