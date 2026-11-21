@@ -1234,7 +1234,10 @@ verification:
   # Directory containing the user's own verification mask files (see
   # VX_MASKS).  A file in this directory takes precedence over one of the
   # same name in parm/metplus/vx_masks or the MET installation.  If empty,
-  # it is not searched.
+  # it is not searched.  It must be an absolute path.  To specify a
+  # directory in the clone of the workflow, use the top-level directory of
+  # the clone, i.e. user.HOMEdir, in the value of VX_MASK_DIR, e.g.
+  # '{{ user.HOMEdir }}/my_masks'.
   #
   VX_MASK_DIR: ''
 

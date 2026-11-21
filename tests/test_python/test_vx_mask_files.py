@@ -12,10 +12,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from python_utils import get_file_for_each_vx_mask
-from python_utils.vx_mask_files import (
-    VX_MASK_FILE_EXTENSIONS, find_all_files_for_single_vx_mask, get_vx_mask_dirs
+from python_utils import (
+    find_all_files_for_single_vx_mask, get_file_for_each_vx_mask, get_vx_mask_dirs
 )
+from python_utils.vx_mask_files import VX_MASK_FILE_EXTENSIONS
 
 TOP_DIR = Path(__file__).resolve().parents[2]
 
