@@ -19,7 +19,8 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, setup_logging, render_metplus_confs, make_var_list, merge_field_configs
+    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, render_metplus_confs,
+    make_var_list, merge_field_configs
 )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -224,13 +225,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                            f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})\n"\
                             "returned an empty list.")
 
-    vx_mask_files=[]
-    if vxcfg["VX_MASK"]:
-        for mask in vxcfg["VX_MASK"]:
-            if os.path.isfile(maskfile:=f"{cfg['user']['METPLUS_CONF']}/{mask}.poly"):
-                vx_mask_files.append(maskfile)
-            else:
-                vx_mask_files.append(f"{os.environ['MET_INSTALL_DIR']}/share/met/poly/{mask}.poly")
+    vx_mask_files = get_file_for_each_vx_mask(cfg)
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file

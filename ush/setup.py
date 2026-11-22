@@ -22,6 +22,7 @@ from uwtools.api.template import render
 
 from python_utils import (
     check_for_preexist_dir_file,
+    check_vx_mask_settings,
     find_duplicate_yaml_keys,
     find_unknown_config_keys,
 )
@@ -165,6 +166,9 @@ def check_bad_settings(cfg):
     # VX_TASKS and the tools' TASKS settings have been renamed to VX_NPROCS and NPROCS.
     if "VX_TASKS" in (cfg.get("verification") or {}):
         msg+="verification:VX_TASKS has been renamed to verification:VX_NPROCS\n"
+    # VX_MASK has been renamed to VX_MASKS.
+    if "VX_MASK" in (cfg.get("verification") or {}):
+        msg+="verification:VX_MASK has been renamed to verification:VX_MASKS\n"
     for section, sect_cfg in cfg.items():
         if isinstance(sect_cfg, dict) and "TASKS" in sect_cfg:
             msg+=f"{section}:TASKS has been renamed to {section}:NPROCS\n"
@@ -508,6 +512,13 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         raise ValueError("MET_INSTALL_DIR must be specified in config or machine file.")
     if not expt_config["platform"]["METPLUS_ROOT"]:
         raise ValueError("METPLUS_ROOT must be specified in config or machine file.")
+
+    # Check the verification mask settings, and try to find the full path to
+    # the file for each mask in VX_MASKS.  We do this here so that if there is
+    # a problem with a given mask (e.g. its file is missing, or a directory
+    # contains both a .poly and a .nc file for it), it is reported during
+    # experiment generation rather than later when a verification task runs.
+    check_vx_mask_settings(expt_config)
 
     def _remove_tag(tasks, tag, only_if_empty=False):
         """Remove the given XML tag from all the tasks in the workflow, or, if only_if_empty is

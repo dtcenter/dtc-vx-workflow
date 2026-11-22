@@ -112,7 +112,7 @@ Setting up the experiment
            - parm/wflow/verify_det.yaml
            EXPT_SUBDIR: tutorial_case
          verification:
-           VX_MASK:
+           VX_MASKS:
            - CONUS
            - EAST
            - EAST_OF_ROCKIES
