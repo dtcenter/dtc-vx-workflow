@@ -162,7 +162,7 @@ def mode(config_file,cdate,field_group,obtype):
                # Field information.
                'obtype': obtype,
                # Verification mask settings
-               'vx_mask': ', '.join(vx_mask_files),
+               'vx_mask_files': ', '.join(vx_mask_files),
                # MODE object generation settings
                'conv_radius': modecfg["CONV_RADIUS"],
                'conv_thresh': modecfg["CONV_THRESH"],

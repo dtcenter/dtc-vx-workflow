@@ -244,7 +244,7 @@ def genensprod_or_ensemblestat(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "vx_mask": ", ".join(vx_mask_files),
+        "vx_mask_files": ", ".join(vx_mask_files),
         # Variable list
         'var_list': var_list,
         # Rest of settings from yaml file
