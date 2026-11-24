@@ -19,8 +19,8 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, render_metplus_confs,
-    make_var_list, merge_field_configs
+    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, get_metplus_common_conf_fp,
+    render_metplus_confs, make_var_list, merge_field_configs
 )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -294,7 +294,6 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                'vx_gdas_sfc_include_sfcshp': vxcfg['VX_GDAS_SFC_INCLUDE_SFCSHP'],
                'accum_hh': f"{accum_hh:02}",
                'accum_no_pad': accum_hh,
-               'metplus_templates_dir': cfg['user']['METPLUS_CONF'],
                'input_field_group': field_group,
                # Variable list
                'var_list': var_list,
@@ -312,11 +311,10 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
-    mpargs = []
-    for config_fn in conf_files:
-        mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{mpargs=}")
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus,mpargs)
 

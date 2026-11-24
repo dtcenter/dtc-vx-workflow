@@ -15,7 +15,9 @@ from pathlib import Path
 
 import uwtools.api.config as uwconfig
 
-from python_utils import eval_metplus_dt_tmpl, render_metplus_confs, setup_logging
+from python_utils import (
+    eval_metplus_dt_tmpl, get_metplus_common_conf_fp, render_metplus_confs, setup_logging
+)
 
 
 def ascii2nc_obs(config_file, cdate, obtype):
@@ -116,7 +118,7 @@ def ascii2nc_obs(config_file, cdate, obtype):
     lgr.debug(f"{conf_file=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus")
-    run_metplus(os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"), conf_file[0])
+    run_metplus(get_metplus_common_conf_fp(cfg), conf_file[0])
 
     lgr.info(f"Making completion flag file for {obtype}, cycle {cdate}")
     create_flag_file(cfg, obtype, cdate[0:8])

@@ -18,7 +18,9 @@ from typing import Optional
 
 import uwtools.api.config as uwconfig
 
-from python_utils import get_ensmem_info, run_metplus, render_metplus_confs, setup_logging
+from python_utils import (
+    get_ensmem_info, run_metplus, get_metplus_common_conf_fp, render_metplus_confs, setup_logging
+)
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
 
@@ -253,7 +255,6 @@ def pcpcombine(
         "input_accum_hh": input_accum_hh,
         "output_accum_hh": f"{accum_hh:02}",
         "accum_no_pad": accum_hh,
-        "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
         "pcp_combine_method": pcp_combine_method,
@@ -267,9 +268,12 @@ def pcpcombine(
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} ({fcst_or_obs}) with METplus")
-    common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
+    # Call run_metplus function for as many processors as specified
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])
+        pool.starmap(run_metplus,mpargs)
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 

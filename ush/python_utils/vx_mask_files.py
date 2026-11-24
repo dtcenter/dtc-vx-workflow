@@ -27,14 +27,14 @@ def get_vx_mask_dirs(cfg) -> list[str]:
     -------
     list[str]
         The directory VX_MASK_DIR containing the user's mask files (if it is set, i.e. not
-        empty), the directory metplus/vx_masks under PARMdir containing the mask files that
+        empty), the directory vx_masks under METPLUS_PARMdir containing the mask files that
         come with the workflow, and the directory share/met/poly in the MET installation
         (MET_INSTALL_DIR).
     """
     vx_mask_dirs = []
     if cfg["verification"]["VX_MASK_DIR"]:
         vx_mask_dirs.append(cfg["verification"]["VX_MASK_DIR"])
-    vx_mask_dirs.append(os.path.join(cfg["user"]["PARMdir"], "metplus", "vx_masks"))
+    vx_mask_dirs.append(os.path.join(cfg["user"]["METPLUS_PARMdir"], "vx_masks"))
     vx_mask_dirs.append(os.path.join(cfg["platform"]["MET_INSTALL_DIR"], "share", "met", "poly"))
     return vx_mask_dirs
 

@@ -44,9 +44,14 @@ user:
   # PARMdir: 
   # The path to the user's parm directory in their vx workflow clone.
   # 
-  # METPLUS_CONF: 
-  # The path to the user's final METplus configuration file. By default, 
-  # METplus configuration files reside in parm/metplus.
+  # METPLUS_PARMdir:
+  # The directory containing the METplus files needed by the workflow.
+  # These consist of:
+  # - The file common.conf, containing the settings that all the METplus
+  #   tools share.
+  # - The Jinja templates of the METplus config files.
+  # - The verification masks that come with the workflow (in the vx_masks
+  #   directory).
   #  
   #-----------------------------------------------------------------------
   MACHINE: "BIG_COMPUTER"
@@ -57,7 +62,7 @@ user:
   SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
   JOBSdir: '{{ user.HOMEdir }}/jobs'
   PARMdir: '{{ user.HOMEdir }}/parm'
-  METPLUS_CONF: '{{ user.PARMdir }}/metplus'
+  METPLUS_PARMdir: '{{ user.PARMdir }}/metplus'
 
 #----------------------------
 # PLATFORM config parameters

@@ -90,8 +90,12 @@ Workflow Directories
 ``PARMdir``: (Default: ``'{{ user.HOMEdir }}/parm'``)
    The path to the user's ``parm`` directory in their ``dtc-vx-workflow`` clone.
 
-``METPLUS_CONF``: (Default: ``'{{ user.PARMdir }}/metplus'``)
-   The path to the directory where the user's final METplus configuration file resides. By default, METplus configuration files reside in ``dtc-vx-workflow/parm/metplus``. 
+``METPLUS_PARMdir``: (Default: ``'{{ user.PARMdir }}/metplus'``)
+   The directory containing the METplus files needed by the workflow.  These consist of:
+
+   * The file ``common.conf``, containing the settings that all the METplus tools share.
+   * The Jinja templates of the METplus config files.
+   * The verification masks that come with the workflow (in the ``vx_masks`` directory; see ``VX_MASKS``).
 
 .. _PlatformConfig:
 

@@ -169,6 +169,9 @@ def check_bad_settings(cfg):
     # VX_MASK has been renamed to VX_MASKS.
     if "VX_MASK" in (cfg.get("verification") or {}):
         msg+="verification:VX_MASK has been renamed to verification:VX_MASKS\n"
+    # METPLUS_CONF has been renamed to METPLUS_PARMdir.
+    if "METPLUS_CONF" in (cfg.get("user") or {}):
+        msg+="user:METPLUS_CONF has been renamed to user:METPLUS_PARMdir\n"
     for section, sect_cfg in cfg.items():
         if isinstance(sect_cfg, dict) and "TASKS" in sect_cfg:
             msg+=f"{section}:TASKS has been renamed to {section}:NPROCS\n"
