@@ -32,15 +32,15 @@ class TestVxMaskFiles(unittest.TestCase):
     # passes or fails.
     def setUp(self):
         """Creates, in a temporary directory, the three directories that are
-        searched: a user mask directory (VX_MASK_DIR), a parm directory
-        (PARMdir) containing metplus/vx_masks, and a MET installation
+        searched: a user mask directory (VX_MASK_DIR), a METplus parm
+        directory (METPLUS_PARMdir) containing vx_masks, and a MET installation
         (MET_INSTALL_DIR) containing share/met/poly."""
         # pylint: disable=consider-using-with
         tmp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(tmp_dir.cleanup)
         self.user_dir = os.path.join(tmp_dir.name, "user_masks")
-        self.parm_dir = os.path.join(tmp_dir.name, "parm")
-        self.wflow_mask_dir = os.path.join(self.parm_dir, "metplus", "vx_masks")
+        self.metplus_parm_dir = os.path.join(tmp_dir.name, "parm", "metplus")
+        self.wflow_mask_dir = os.path.join(self.metplus_parm_dir, "vx_masks")
         self.met_install_dir = os.path.join(tmp_dir.name, "met")
         self.met_poly_dir = os.path.join(self.met_install_dir, "share", "met", "poly")
         for d in (self.user_dir, self.wflow_mask_dir, self.met_poly_dir):
@@ -55,7 +55,7 @@ class TestVxMaskFiles(unittest.TestCase):
                 "VX_MASKS": vx_masks,
                 "VX_MASK_DIR": self.user_dir if vx_mask_dir is None else vx_mask_dir,
             },
-            "user": {"PARMdir": self.parm_dir},
+            "user": {"METPLUS_PARMdir": self.metplus_parm_dir},
             "platform": {"MET_INSTALL_DIR": self.met_install_dir},
         }
 

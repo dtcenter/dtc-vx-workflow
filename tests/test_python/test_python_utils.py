@@ -90,6 +90,13 @@ class Testing(unittest.TestCase):
         """ Test the return of the run_command task is as expected."""
         self.assertEqual(util.run_command("echo hello"), (0, "hello", ""))
 
+    def test_get_metplus_common_conf_fp(self):
+        """Test that get_metplus_common_conf_fp() returns the path to the workflow's
+        common.conf when METPLUS_PARMdir has its default value (parm/metplus)."""
+        top_dir = Path(__file__).resolve().parents[2]
+        cfg = {"user": {"METPLUS_PARMdir": str(top_dir / "parm" / "metplus")}}
+        self.assertTrue(os.path.isfile(util.get_metplus_common_conf_fp(cfg)))
+
     def test_create_symlink_to_file(self):
         """ Test that a simlink is created as expected."""
 

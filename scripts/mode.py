@@ -16,8 +16,8 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, render_metplus_confs,
-    make_var_list, run_metplus
+    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, get_metplus_common_conf_fp,
+    render_metplus_confs, make_var_list, run_metplus
 )
 from set_leadhrs import set_leadhrs
 
@@ -176,13 +176,12 @@ def mode(config_file,cdate,field_group,obtype):
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
-    args = []
-    for config_fn in conf_files:
-        args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{args=}")
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus,args)
+        pool.starmap(run_metplus,mpargs)
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 

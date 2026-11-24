@@ -44,9 +44,15 @@ user:
   # PARMdir: 
   # The path to the user's parm directory in their vx workflow clone.
   # 
-  # METPLUS_CONF: 
-  # The path to the user's final METplus configuration file. By default, 
-  # METplus configuration files reside in parm/metplus.
+  # METPLUS_PARMdir:
+  # The directory containing the METplus files needed by the workflow.
+  # These consist of:
+  # - The file common.conf, containing the settings that all the METplus
+  #   tools share.
+  # - The Jinja templates of the METplus config files (in the
+  #   config_templates directory).
+  # - The verification masks that come with the workflow (in the vx_masks
+  #   directory).
   #  
   #-----------------------------------------------------------------------
   MACHINE: "BIG_COMPUTER"
@@ -57,7 +63,7 @@ user:
   SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
   JOBSdir: '{{ user.HOMEdir }}/jobs'
   PARMdir: '{{ user.HOMEdir }}/parm'
-  METPLUS_CONF: '{{ user.PARMdir }}/metplus'
+  METPLUS_PARMdir: '{{ user.PARMdir }}/metplus'
 
 #----------------------------
 # PLATFORM config parameters
@@ -782,17 +788,6 @@ verification:
   # VX_ASNOW_ACCUMS_HRS will be ignored.
   #
   VX_ASNOW_ACCUMS_HRS: [ 6, 24 ]
-  #
-  # VX_CONFIG_[DET|ENS]_FN:
-  # Names of configuration files for deterministic and ensemble verification
-  # that specify the field groups, field names, levels, and (if applicable)
-  # thresholds for which to run verification.  These are relative to the
-  # directory METPLUS_CONF in which the METplus config templates are
-  # located.  They may include leading relative paths before the file
-  # names, e.g. "some_dir/another_dir/vx_config_det.yaml".
-  #
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.yaml'
-  VX_CONFIG_ENS_FN: 'vx_configs/vx_config_ens.yaml'
   #
   # VX_OUTPUT_BASEDIR:
   # Template for base (i.e. top-level) directory in which METplus will place

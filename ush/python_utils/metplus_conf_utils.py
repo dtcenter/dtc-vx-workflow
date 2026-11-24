@@ -3,6 +3,7 @@ Common utilities for creating/handling METplus configuration files
 """
 import copy
 import logging
+import os
 
 def merge_field_configs(base, override, exclude=None):
     """Merge per-task field overrides onto a base field configuration.
@@ -189,6 +190,14 @@ def make_var_list(vx_config_dict,field_group,level,ens=False):
 
     return var_list
 
+def get_metplus_common_conf_fp(cfg):
+    """Returns the path to common.conf, the METplus config file with the settings that all the
+    METplus tools share.  The workflow passes it to run_metplus.py before each tool's own config
+    file.
+
+    cfg (dict): The experiment configuration, i.e. the contents of var_defns.yaml"""
+    return os.path.join(cfg["user"]["METPLUS_PARMdir"], "common.conf")
+
 def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,nprocs,extra=None):
     """Renders metplus conf files from the appropriate template and user settings.
     If nprocs > 1 and vx_leadhr_list contains more than one lead hour, renders a
@@ -212,8 +221,9 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,nprocs,extra=No
     num_fhrs = len(vx_leadhr_list)
     outconfs = []
     logger.debug(f"Loading METplus conf template file: {template_fn}")
-    logger.debug(f"from directory {cfg['user']['METPLUS_CONF']}")
-    env = Environment(loader=FileSystemLoader(cfg['user']['METPLUS_CONF']))
+    templates_dir = os.path.join(cfg['user']['METPLUS_PARMdir'], 'config_templates')
+    logger.debug(f"from directory {templates_dir}")
+    env = Environment(loader=FileSystemLoader(templates_dir))
     template = env.get_template(template_fn)
 
     if nprocs > 1:
