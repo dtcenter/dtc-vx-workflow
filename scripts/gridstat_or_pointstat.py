@@ -301,7 +301,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                # Whether to write categorical (threshold-based) statistics
                'write_categorical_stats': has_thresholds,
                # Verification mask settings
-               'vx_mask': ', '.join(vx_mask_files),
+               'vx_mask_files': ', '.join(vx_mask_files),
                # Rest of settings from yaml file
                'vx_config_dict': vx_config_dict
                }

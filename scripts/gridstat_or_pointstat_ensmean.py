@@ -226,7 +226,7 @@ def gridstat_or_pointstat_ensmean(
         "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
-        "vx_mask": ", ".join(vx_mask_files),
+        "vx_mask_files": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
         # Variable list
         'var_list': var_list,
