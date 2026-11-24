@@ -783,17 +783,6 @@ verification:
   #
   VX_ASNOW_ACCUMS_HRS: [ 6, 24 ]
   #
-  # VX_CONFIG_[DET|ENS]_FN:
-  # Names of configuration files for deterministic and ensemble verification
-  # that specify the field groups, field names, levels, and (if applicable)
-  # thresholds for which to run verification.  These are relative to the
-  # directory METPLUS_CONF in which the METplus config templates are
-  # located.  They may include leading relative paths before the file
-  # names, e.g. "some_dir/another_dir/vx_config_det.yaml".
-  #
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.yaml'
-  VX_CONFIG_ENS_FN: 'vx_configs/vx_config_ens.yaml'
-  #
   # VX_OUTPUT_BASEDIR:
   # Template for base (i.e. top-level) directory in which METplus will place
   # its output.
