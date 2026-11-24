@@ -221,8 +221,9 @@ def render_metplus_confs(cfg,settings,template_fn,vx_leadhr_list,nprocs,extra=No
     num_fhrs = len(vx_leadhr_list)
     outconfs = []
     logger.debug(f"Loading METplus conf template file: {template_fn}")
-    logger.debug(f"from directory {cfg['user']['METPLUS_PARMdir']}")
-    env = Environment(loader=FileSystemLoader(cfg['user']['METPLUS_PARMdir']))
+    templates_dir = os.path.join(cfg['user']['METPLUS_PARMdir'], 'config_templates')
+    logger.debug(f"from directory {templates_dir}")
+    env = Environment(loader=FileSystemLoader(templates_dir))
     template = env.get_template(template_fn)
 
     if nprocs > 1:

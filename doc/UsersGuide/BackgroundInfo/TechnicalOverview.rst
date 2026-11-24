@@ -90,15 +90,10 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
    ├── parm/
    │   ├── data_locations.yml
    │   ├── metplus/
-   │   │   ├── <taskname>.conf
    │   │   ├── common.conf
-   │   │   ├── metplus_macros.jinja
-   │   │   ├── vx_mask_settings.jinja
-   │   │   ├── vx_configs/
-   │   │   │   ├── vx_config_det.obs_gdas.model_aiml.yaml
-   │   │   │   ├── vx_config_det.obs_gdas.model_gfs.yaml
-   │   │   │   ├── vx_config_det.yaml
-   │   │   │   └── vx_config_ens.yaml
+   │   │   ├── config_templates/
+   │   │   │   ├── <Tool>.conf
+   │   │   │   └── vx_mask_settings.jinja
    │   │   └── vx_masks/
    │   │       ├── AZCA.poly
    │   │       ├── EAST_OF_ROCKIES.poly

@@ -94,7 +94,7 @@ Workflow Directories
    The directory containing the METplus files needed by the workflow.  These consist of:
 
    * The file ``common.conf``, containing the settings that all the METplus tools share.
-   * The Jinja templates of the METplus config files.
+   * The Jinja templates of the METplus config files (in the ``config_templates`` directory).
    * The verification masks that come with the workflow (in the ``vx_masks`` directory; see ``VX_MASKS``).
 
 .. _PlatformConfig:

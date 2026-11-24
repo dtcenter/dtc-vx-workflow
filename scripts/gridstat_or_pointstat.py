@@ -62,8 +62,8 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
       by the set_vx_params() function, and constructs all the directory and file paths required
       for the METplus run.
     * For each parallel task, it builds a list of valid lead hours, renders a configuration file
-      based on the Jinja template in parm/metplus/, and executes the METplus tasks in parallel
-      using ``multiprocessing.Pool``.
+      based on the Jinja template in parm/metplus/config_templates/, and executes the METplus
+      tasks in parallel using ``multiprocessing.Pool``.
     * Errors are raised for missing observation directories, empty lead-hour lists, or unsupported
       task/observation type combinations.
     * A METplus log file is written for each parallel task.
