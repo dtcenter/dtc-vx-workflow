@@ -6,12 +6,14 @@
 # The METplus config variable {{METPLUS_TOOL_NAME}}_MASK_GRID sets the MET
 # config entry mask.grid, a list of grids to verify over.  Each item in the
 # list is usually a grid defined in MET's code, not in a file: FULL (the
-# whole verification domain) or an NCEP grid named GNNN, where NNN is the
-# 3-digit NCEP grid number (e.g. G212).  An item can also be a gridded data
-# file, in which case the region is that file's grid.  The workflow
-# currently hard-codes {{METPLUS_TOOL_NAME}}_MASK_GRID (and thus mask.grid)
-# to FULL; no setting in the workflow's configuration changes it, and the
-# workflow does not pass any gridded data files to it.
+# whole verification domain) or another grid built into MET, such as an
+# NCEP grid named GNNN, where NNN is the 3-digit NCEP grid number (e.g.
+# G212).  An item can also be a gridded data file, in which case the region
+# is that file's grid.  The workflow sets {{METPLUS_TOOL_NAME}}_MASK_GRID
+# (and thus mask.grid) to the names in VX_MASKS that are FULL or the name of
+# a grid built into MET, in the order in which they appear there, or to
+# nothing (an empty list) if there are none.  It does not pass any gridded
+# data files to it.
 #
 # The METplus config variable {{METPLUS_TOOL_NAME}}_MASK_POLY sets the MET
 # config entry mask.poly, a list of files that define verification masks.
@@ -22,7 +24,10 @@
 # ones that come with the workflow (in parm/metplus/vx_masks), or ones that
 # come with MET (in share/met/poly).  The workflow sets
 # {{METPLUS_TOOL_NAME}}_MASK_POLY (and thus mask.poly) to the files for the
-# masks listed in VX_MASKS.
+# names in VX_MASKS that are names of mask files, in the order in which they
+# appear there, or to nothing (an empty list) if there are none.  (See
+# get_vx_mask_grids_and_files() in ush/python_utils/vx_mask_files.py for
+# how each name in VX_MASKS is identified as a grid or a mask file.)
 #
 # {{METPLUS_TOOL_NAME}}_MASK_GRID and {{METPLUS_TOOL_NAME}}_MASK_POLY are
 # the primary METplus config variables for mask.grid and mask.poly,
@@ -80,5 +85,5 @@
 # which for all three tools is mask.grid = ["FULL"] and mask.poly = [] (no
 # files).
 #
-{{METPLUS_TOOL_NAME}}_MASK_GRID = FULL
+{{METPLUS_TOOL_NAME}}_MASK_GRID = {{vx_mask_grids}}
 {{METPLUS_TOOL_NAME}}_MASK_POLY = {{vx_mask_files}}

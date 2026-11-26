@@ -19,7 +19,7 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     get_ensmem_info, get_file_for_each_vx_mask, make_var_list, merge_field_configs,
+     get_ensmem_info, get_vx_mask_grids_and_files, make_var_list, merge_field_configs,
      get_metplus_common_conf_fp, render_metplus_confs, run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
@@ -191,7 +191,7 @@ def genensprod_or_ensemblestat(
             f"{obtype=}, {field_group=}"
         )
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
 
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}.conf"
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"
@@ -243,6 +243,7 @@ def genensprod_or_ensemblestat(
         "accum_no_pad": accum_hh,
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
+        "vx_mask_grids": ", ".join(vx_mask_grids),
         "vx_mask_files": ", ".join(vx_mask_files),
         # Variable list
         'var_list': var_list,

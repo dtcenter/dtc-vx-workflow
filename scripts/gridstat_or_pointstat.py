@@ -19,7 +19,7 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, get_metplus_common_conf_fp,
+    get_ensmem_info, get_vx_mask_grids_and_files, setup_logging, get_metplus_common_conf_fp,
     render_metplus_confs, make_var_list, merge_field_configs
 )
 from set_leadhrs import set_leadhrs
@@ -225,7 +225,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                            f"{vxcfg['NUM_MISSING_OBS_FILES_MAX']})\n"\
                             "returned an empty list.")
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
@@ -300,6 +300,7 @@ def gridstat_or_pointstat(config_file,cdate,obs_dir,field_group,obtype,accum_hh,
                # Whether to write categorical (threshold-based) statistics
                'write_categorical_stats': has_thresholds,
                # Verification mask settings
+               'vx_mask_grids': ', '.join(vx_mask_grids),
                'vx_mask_files': ', '.join(vx_mask_files),
                # Rest of settings from yaml file
                'vx_config_dict': vx_config_dict

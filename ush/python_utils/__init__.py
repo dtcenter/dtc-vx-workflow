@@ -49,4 +49,6 @@ from .parse_test_list import get_tests_to_run, get_pretty_list, get_test_name
 from .ensmem_info import EnsmemInfo, get_ensmem_info
 from .duplicate_yaml_keys import find_duplicate_yaml_keys
 from .unknown_config_keys import find_unknown_config_keys
-from .vx_mask_files import check_vx_mask_settings, get_file_for_each_vx_mask
+from .vx_mask_files import (
+    check_vx_mask_settings, get_vx_mask_grids_and_files, get_vx_masks_for_mode
+)

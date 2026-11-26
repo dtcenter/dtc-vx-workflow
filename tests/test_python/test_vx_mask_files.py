@@ -1,9 +1,10 @@
 """
-Unit tests for get_vx_mask_dirs(), get_file_for_each_vx_mask(),
-find_all_files_for_single_vx_mask(), is_met_builtin_grid(),
-check_gen_vx_mask_works(), find_vx_mask_files_with_reserved_names() and
-check_vx_mask_settings() in python_utils/vx_mask_files.py, and checks of the
-mask files that come with the workflow in parm/metplus/vx_masks.
+Unit tests for get_vx_mask_dirs(), get_vx_mask_grids_and_files(),
+get_vx_masks_for_mode(), find_all_files_for_single_vx_mask(),
+is_met_builtin_grid(), check_gen_vx_mask_works(),
+find_vx_mask_files_with_reserved_names() and check_vx_mask_settings() in
+python_utils/vx_mask_files.py, for rocoto_tasks_contain() in setup.py, and
+checks of the mask files that come with the workflow in parm/metplus/vx_masks.
 
 To run them, issue the following command from the top-level directory:
     UNIT_TEST=True PYTHONPATH=ush python3 -m unittest -b tests/test_python/test_vx_mask_files.py
@@ -15,12 +16,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from python_utils import check_vx_mask_settings, get_file_for_each_vx_mask
+from uwtools.api.config import get_yaml_config
+
+from python_utils import (
+    check_vx_mask_settings, get_vx_mask_grids_and_files, get_vx_masks_for_mode
+)
 from python_utils.vx_mask_files import (
     KNOWN_MET_GRID_NAME, VX_MASK_FILE_EXTENSIONS, check_gen_vx_mask_works,
     find_all_files_for_single_vx_mask, find_vx_mask_files_with_reserved_names,
     get_vx_mask_dirs, is_met_builtin_grid
 )
+from setup import rocoto_tasks_contain
 
 TOP_DIR = Path(__file__).resolve().parents[2]
 
@@ -56,8 +62,10 @@ exit 1
 RESERVED_VX_MASK_NAME_REGEX = re.compile(r"^(FULL|G[0-9]{3}|DTC[0-9]{3}|wwmca_.*)$")
 
 
-class TestVxMaskFiles(unittest.TestCase):
-    """Tests for get_vx_mask_dirs(), get_file_for_each_vx_mask(),
+# unittest runs each method whose name starts with "test", so the number of
+# public methods here is the number of tests, not the size of an interface.
+class TestVxMaskFiles(unittest.TestCase):  # pylint: disable=too-many-public-methods
+    """Tests for get_vx_mask_dirs(), get_vx_mask_grids_and_files(),
     find_all_files_for_single_vx_mask(), is_met_builtin_grid(),
     check_gen_vx_mask_works(), find_vx_mask_files_with_reserved_names() and
     check_vx_mask_settings()."""
@@ -93,7 +101,7 @@ class TestVxMaskFiles(unittest.TestCase):
 
     def _make_cfg(self, vx_masks, vx_mask_dir=None):
         """Returns a minimal experiment configuration containing the settings
-        used by get_file_for_each_vx_mask().  VX_MASK_DIR is set to the user
+        used by get_vx_mask_grids_and_files().  VX_MASK_DIR is set to the user
         mask directory unless vx_mask_dir is given ("" for unset)."""
         return {
             "verification": {
@@ -112,19 +120,20 @@ class TestVxMaskFiles(unittest.TestCase):
         return path
 
     def test_empty_vx_masks(self):
-        """An empty VX_MASKS gives an empty list."""
-        self.assertEqual(get_file_for_each_vx_mask(self._make_cfg([])), [])
+        """An empty VX_MASKS gives empty lists of grids and files."""
+        self.assertEqual(get_vx_mask_grids_and_files(self._make_cfg([])), ([], []))
 
     def test_each_directory(self):
         """A mask is found in each of the three directories, as a .poly or .nc
-        file, and the paths are returned in the order of VX_MASKS."""
+        file, and the paths are returned in the order of VX_MASKS, with no
+        grids."""
         expected = [
             self._touch(os.path.join(self.met_poly_dir, "CONUS.poly")),
             self._touch(os.path.join(self.user_dir, "OR_WA_CA.nc")),
             self._touch(os.path.join(self.wflow_mask_dir, "AZCA.poly")),
         ]
         cfg = self._make_cfg(["CONUS", "OR_WA_CA", "AZCA"])
-        self.assertEqual(get_file_for_each_vx_mask(cfg), expected)
+        self.assertEqual(get_vx_mask_grids_and_files(cfg), ([], expected))
 
     def test_directory_precedence(self):
         """A file in an earlier directory takes precedence over one of the same
@@ -137,16 +146,16 @@ class TestVxMaskFiles(unittest.TestCase):
         cfg = self._make_cfg(["WEST"])
         self.assertEqual(find_all_files_for_single_vx_mask(get_vx_mask_dirs(cfg), "WEST"),
                          [user_file, wflow_file, met_file])
-        self.assertEqual(get_file_for_each_vx_mask(cfg), [user_file])
+        self.assertEqual(get_vx_mask_grids_and_files(cfg), ([], [user_file]))
         os.remove(user_file)
-        self.assertEqual(get_file_for_each_vx_mask(cfg), [wflow_file])
+        self.assertEqual(get_vx_mask_grids_and_files(cfg), ([], [wflow_file]))
 
     def test_nc_and_poly_in_different_dirs(self):
         """A .nc file in an earlier directory takes precedence over a .poly
         file of the same name in a later one."""
         nc_file = self._touch(os.path.join(self.user_dir, "EAST.nc"))
         self._touch(os.path.join(self.wflow_mask_dir, "EAST.poly"))
-        self.assertEqual(get_file_for_each_vx_mask(self._make_cfg(["EAST"])), [nc_file])
+        self.assertEqual(get_vx_mask_grids_and_files(self._make_cfg(["EAST"])), ([], [nc_file]))
 
     def test_poly_and_nc_in_same_dir(self):
         """A directory containing both a .poly and a .nc file for a mask raises
@@ -160,7 +169,7 @@ class TestVxMaskFiles(unittest.TestCase):
                 if user_file:
                     self._touch(user_file)
                 with self.assertRaises(ValueError) as ctx:
-                    get_file_for_each_vx_mask(self._make_cfg(["EAST"]))
+                    get_vx_mask_grids_and_files(self._make_cfg(["EAST"]))
                 self.assertIn(poly_file, str(ctx.exception))
                 self.assertIn(nc_file, str(ctx.exception))
 
@@ -170,18 +179,70 @@ class TestVxMaskFiles(unittest.TestCase):
         self._touch(os.path.join(self.user_dir, "CONUS.poly"))
         met_file = self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
         cfg = self._make_cfg(["CONUS"], vx_mask_dir="")
-        self.assertEqual(get_file_for_each_vx_mask(cfg), [met_file])
+        self.assertEqual(get_vx_mask_grids_and_files(cfg), ([], [met_file]))
 
     def test_missing_mask(self):
-        """A mask with no file in any directory raises FileNotFoundError, whose
-        message names the mask and lists the three directories searched."""
+        """A name that is not "FULL", has no file in any directory, and is not
+        a grid built into MET raises FileNotFoundError, whose message names
+        the mask and lists the three directories searched."""
         cfg = self._make_cfg(["NOWHERE"])
         with self.assertRaises(FileNotFoundError) as ctx:
-            get_file_for_each_vx_mask(cfg)
+            get_vx_mask_grids_and_files(cfg)
         msg = str(ctx.exception)
         self.assertIn('"NOWHERE"', msg)
         for d in (self.user_dir, self.wflow_mask_dir, self.met_poly_dir):
             self.assertIn(d, msg)
+
+    def test_grids_and_files(self):
+        """get_vx_mask_grids_and_files() puts "FULL" and the names of grids
+        built into MET in the list of grids, and the files for the other
+        names in the list of files, each list in the order of VX_MASKS."""
+        conus_file = self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
+        azca_file = self._touch(os.path.join(self.wflow_mask_dir, "AZCA.poly"))
+        cfg = self._make_cfg(["CONUS", "FULL", KNOWN_MET_GRID_NAME, "AZCA", "DTC165"])
+        self.assertEqual(get_vx_mask_grids_and_files(cfg),
+                         (["FULL", KNOWN_MET_GRID_NAME, "DTC165"], [conus_file, azca_file]))
+
+    def test_full_alone(self):
+        """VX_MASKS = ["FULL"] (the default) gives the grid FULL and no files,
+        without running gen_vx_mask, since FULL is not a grid that
+        gen_vx_mask knows.  (Removing gen_vx_mask makes any run of it raise
+        FileNotFoundError.)"""
+        os.remove(self.gen_vx_mask)
+        self.assertEqual(get_vx_mask_grids_and_files(self._make_cfg(["FULL"])),
+                         (["FULL"], []))
+
+    def test_gen_vx_mask_run_only_when_needed(self):
+        """get_vx_mask_grids_and_files() runs gen_vx_mask (and so first checks
+        that it works) only for a name that is not "FULL" and has no file.
+        With a gen_vx_mask that fails for every name, "FULL" and names with
+        files are identified without error, and a grid name raises
+        RuntimeError (see check_gen_vx_mask_works())."""
+        conus_file = self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
+        # Replace the fake gen_vx_mask with one that fails for every name.
+        with open(self.gen_vx_mask, "w", encoding="utf-8") as f:
+            f.write("#!/bin/sh\nexit 1\n")
+        self.assertEqual(get_vx_mask_grids_and_files(self._make_cfg(["FULL", "CONUS"])),
+                         (["FULL"], [conus_file]))
+        with self.assertRaises(RuntimeError):
+            get_vx_mask_grids_and_files(self._make_cfg(["FULL", "CONUS", KNOWN_MET_GRID_NAME]))
+
+    def test_check_empty_vx_masks(self):
+        """check_vx_mask_settings() raises ValueError if VX_MASKS is empty."""
+        with self.assertRaises(ValueError) as ctx:
+            check_vx_mask_settings(self._make_cfg([]))
+        self.assertIn("VX_MASKS is empty", str(ctx.exception))
+
+    def test_check_grids_and_files(self):
+        """check_vx_mask_settings() accepts as elements of VX_MASKS the
+        string "FULL", the names of grids built into MET, and the names of
+        mask files, and it raises a FileNotFoundError for a name that is
+        none of these."""
+        self._touch(os.path.join(self.met_poly_dir, "CONUS.poly"))
+        check_vx_mask_settings(self._make_cfg(["FULL", "CONUS", KNOWN_MET_GRID_NAME]))
+        with self.assertRaises(FileNotFoundError) as ctx:
+            check_vx_mask_settings(self._make_cfg(["FULL", "G999"]))
+        self.assertIn('"G999"', str(ctx.exception))
 
     def test_check_relative_vx_mask_dir(self):
         """check_vx_mask_settings() raises ValueError if VX_MASK_DIR is a
@@ -249,6 +310,70 @@ class TestVxMaskFiles(unittest.TestCase):
         used, not_used = msg.split("and not:")
         self.assertIn(user_file, used)
         self.assertIn(met_file, not_used)
+
+    def test_vx_masks_for_mode(self):
+        """get_vx_masks_for_mode() returns the first grid and the first mask
+        file ("" if there are none), and a warning naming the grids and mask
+        files that MODE ignores (None if there are none).  The cases are the
+        examples in parm/metplus/config_templates/MODE.conf."""
+        east, west = "/masks/EAST.poly", "/masks/WEST.poly"
+        # Each case is (grids, files, expected grid, expected file, the grids
+        # and files expected to be named as ignored in the warning).  The
+        # grids and files are what get_vx_mask_grids_and_files() returns for
+        # the VX_MASKS in the comment.
+        cases = (
+            # ["FULL"]
+            (["FULL"], [], "FULL", "", []),
+            # ["EAST"]
+            ([], [east], "", east, []),
+            # ["FULL","EAST"]
+            (["FULL"], [east], "FULL", east, []),
+            # ["EAST","WEST"]
+            ([], [east, west], "", east, [west]),
+            # ["FULL","G212"]
+            (["FULL", "G212"], [], "FULL", "", ["G212"]),
+            # ["G212","EAST"]
+            (["G212"], [east], "G212", east, []),
+        )
+        for grids, files, grid, file, ignored in cases:
+            with self.subTest(grids=grids, files=files):
+                got_grid, got_file, warning = get_vx_masks_for_mode(grids, files)
+                self.assertEqual((got_grid, got_file), (grid, file))
+                if not ignored:
+                    self.assertIsNone(warning)
+                    continue
+                # The grid and file used come before "They ignore", and the
+                # ignored ones after.
+                used, not_used = warning.split("They ignore")
+                self.assertIn(grid or "(none)", used)
+                self.assertIn(file or "(none)", used)
+                for name in ignored:
+                    self.assertIn(name, not_used)
+
+    def test_check_mode_warning(self):
+        """check_vx_mask_settings() logs a warning saying which grids and mask
+        files MODE ignores only if the workflow contains MODE tasks and MODE
+        ignores some of them."""
+        east_file = self._touch(os.path.join(self.met_poly_dir, "EAST.poly"))
+        west_file = self._touch(os.path.join(self.met_poly_dir, "WEST.poly"))
+        # See test_check_logs_overridden_mask() for how assertNoLogs() and
+        # assertLogs() work.
+        logger_name = "python_utils.vx_mask_files"
+        cfg = self._make_cfg(["FULL", "EAST", "WEST"])
+        # MODE would ignore WEST, but there are no MODE tasks.
+        with self.assertNoLogs(logger_name, level="WARNING"):
+            check_vx_mask_settings(cfg)
+        # MODE ignores nothing.
+        with self.assertNoLogs(logger_name, level="WARNING"):
+            check_vx_mask_settings(self._make_cfg(["FULL", "EAST"]),
+                                   mode_tasks_in_wflow=True)
+        # MODE ignores WEST.
+        with self.assertLogs(logger_name, level="WARNING") as ctx:
+            check_vx_mask_settings(cfg, mode_tasks_in_wflow=True)
+        self.assertEqual(len(ctx.records), 1)
+        used, not_used = ctx.records[0].getMessage().split("They ignore")
+        self.assertIn(east_file, used)
+        self.assertIn(west_file, not_used)
 
     def test_is_met_builtin_grid(self):
         """is_met_builtin_grid() returns True for the names that gen_vx_mask
@@ -448,6 +573,35 @@ class TestWorkflowVxMasks(unittest.TestCase):
             if path.suffix in VX_MASK_FILE_EXTENSIONS
             and RESERVED_VX_MASK_NAME_REGEX.match(path.stem))
         self.assertEqual(files_with_reserved_names, [])
+
+
+class TestRocotoTasksContain(unittest.TestCase):
+    """Tests for rocoto_tasks_contain() in setup.py."""
+
+    def test_nested_tasks(self):
+        """A task is found at the top level and in nested metatasks, and a
+        prefix that matches only a metatask or nothing is not found."""
+        tasks = {
+            "task_a": {"command": "a"},
+            "metatask_outer": {
+                "var": {"x": "1 2"},
+                "metatask_inner": {"task_run_b_#x#": {"command": "b"}},
+            },
+        }
+        self.assertTrue(rocoto_tasks_contain(tasks, "task_a"))
+        self.assertTrue(rocoto_tasks_contain(tasks, "task_run_b_"))
+        self.assertFalse(rocoto_tasks_contain(tasks, "task_outer"))
+        self.assertFalse(rocoto_tasks_contain(tasks, "task_run_c_"))
+
+    def test_mode_tasks(self):
+        """The prefix that setup.py uses to find MODE tasks, "task_run_MODE_",
+        matches a task in parm/wflow/mode.yaml (so this test fails if the MODE
+        tasks are renamed) and none in parm/wflow/verify_det.yaml."""
+        wflow_dir = TOP_DIR / "parm" / "wflow"
+        mode_tasks = get_yaml_config(wflow_dir / "mode.yaml")
+        det_tasks = get_yaml_config(wflow_dir / "verify_det.yaml")
+        self.assertTrue(rocoto_tasks_contain(mode_tasks, "task_run_MODE_"))
+        self.assertFalse(rocoto_tasks_contain(det_tasks, "task_run_MODE_"))
 
 
 if __name__ == "__main__":

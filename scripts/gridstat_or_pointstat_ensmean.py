@@ -18,7 +18,7 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     get_file_for_each_vx_mask, make_ensmean_var_list, merge_field_configs,
+     get_vx_mask_grids_and_files, make_ensmean_var_list, merge_field_configs,
      get_metplus_common_conf_fp, render_metplus_confs, run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
@@ -156,7 +156,7 @@ def gridstat_or_pointstat_ensmean(
             f"{obtype=}, {field_group=}"
         )
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
 
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}_ensmean.conf"
     metplus_config_fn = (
@@ -225,6 +225,7 @@ def gridstat_or_pointstat_ensmean(
         "accum_no_pad": accum_hh,
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
+        "vx_mask_grids": ", ".join(vx_mask_grids),
         "vx_mask_files": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
         # Variable list

@@ -7,6 +7,7 @@ import logging
 import os
 import subprocess
 import tempfile
+from typing import Optional
 
 # Extensions of the mask files to look for: a .poly file is a list of the
 # latitudes and longitudes of the corners of a polygon, and a .nc file is a
@@ -213,13 +214,20 @@ def find_all_files_for_single_vx_mask(vx_mask_dirs: list[str], mask: str) -> lis
     return paths_found
 
 
-def get_file_for_each_vx_mask(cfg) -> list[str]:
-    """Get the paths to the files that define the verification masks listed in VX_MASKS.
+def get_vx_mask_grids_and_files(cfg) -> tuple[list[str], list[str]]:
+    """Identify each name in VX_MASKS as a grid or a mask file, and return them separately.
 
-    For each mask name in VX_MASKS, look for the file <name>.poly or <name>.nc in each of the
-    directories returned by get_vx_mask_dirs(), in order, and use the first file found.  Thus,
-    a file in VX_MASK_DIR takes precedence over a file of the same name that comes with the
-    workflow or with MET.
+    Each name in VX_MASKS must be one of the following, which are checked in this order:
+
+    1. "FULL", MET's keyword for the whole verification domain.  It is put in the list of grids.
+    2. The name of a mask file, i.e. there is a file <name>.poly or <name>.nc in one of the
+       directories returned by get_vx_mask_dirs().  The first such file found, in the order of
+       those directories, is put in the list of files.  Thus, a file in VX_MASK_DIR takes
+       precedence over a file of the same name that comes with the workflow or with MET.
+    3. The name of a grid built into MET (see is_met_builtin_grid()), e.g. "G212".  It is put in
+       the list of grids.
+
+    The grids are passed to MET's mask.grid config entry, and the files to mask.poly.
 
     Parameters
     ----------
@@ -228,30 +236,118 @@ def get_file_for_each_vx_mask(cfg) -> list[str]:
 
     Returns
     -------
-    list[str]
-        The path to the file for each mask in VX_MASKS, in the same order as in VX_MASKS.  The list
-        is empty if VX_MASKS is empty.
+    tuple[list[str], list[str]]
+        The grids (names) and the files (paths), each in the same order as in VX_MASKS.  Both
+        lists are empty if VX_MASKS is empty.
 
     Raises
     ------
     FileNotFoundError
-        If no file is found for a mask in VX_MASKS.  The message lists the directories searched.
+        If a name in VX_MASKS is not "FULL", not the name of a mask file, and not that of a grid
+        built into MET (the message lists the directories searched), or if MET's gen_vx_mask
+        tool is needed but not found (see is_met_builtin_grid()).
     ValueError
         If a directory contains both <name>.poly and <name>.nc for a mask in VX_MASKS (see
         find_all_files_for_single_vx_mask()).
+    RuntimeError
+        If gen_vx_mask is needed but doesn't work (see check_gen_vx_mask_works()).
     """
     vx_mask_dirs = get_vx_mask_dirs(cfg)
+    vx_mask_grids = []
     vx_mask_files = []
+    gen_vx_mask_checked = False
+    #
+    # For each name, look for a mask file before checking whether the name is
+    # that of a grid built into MET.  This order is used because:
+    #
+    # - It gives the same result as checking for a grid first, except for
+    #   files in MET's share/met/poly.  During experiment generation,
+    #   check_vx_mask_settings() rejects any file in VX_MASK_DIR or
+    #   parm/metplus/vx_masks whose name is reserved (see
+    #   find_vx_mask_files_with_reserved_names()), before it calls this
+    #   function itself and before any task does.  So no name can be both
+    #   that of a file there and that of a grid built into MET.
+    #   share/met/poly is not checked, on the assumption that MET's own mask
+    #   files don't have reserved names.
+    #
+    # - gen_vx_mask (which takes a fraction of a second per name) is run only
+    #   for the names that have no file, rather than for every name in
+    #   VX_MASKS each time a task runs.
+    #
     for mask in cfg["verification"]["VX_MASKS"]:
-        # paths_found contains at most one path per directory in vx_mask_dirs.
+        if mask == FULL_DOMAIN_MASK_NAME:
+            vx_mask_grids.append(mask)
+            continue
+        # paths_found contains at most one path per directory in
+        # vx_mask_dirs.  If it contains more than one, the first one (from
+        # the earliest directory in the search order) is used, and
+        # check_vx_mask_settings() says so in a message at level INFO during
+        # experiment generation.
         paths_found = find_all_files_for_single_vx_mask(vx_mask_dirs, mask)
-        if not paths_found:
-            raise FileNotFoundError(
-                f'No file {mask}.poly or {mask}.nc found for the verification mask "{mask}" in '
-                "VX_MASKS.  The following directories were searched, in this order:\n  "
-                + "\n  ".join(vx_mask_dirs))
-        vx_mask_files.append(paths_found[0])
-    return vx_mask_files
+        if paths_found:
+            vx_mask_files.append(paths_found[0])
+            continue
+        # Make sure that gen_vx_mask works before using it to check the name,
+        # since otherwise no name would be found to be that of a built-in
+        # grid.  This is done once, for the first name that needs it.
+        if not gen_vx_mask_checked:
+            check_gen_vx_mask_works(cfg)
+            gen_vx_mask_checked = True
+        if is_met_builtin_grid(cfg, mask):
+            vx_mask_grids.append(mask)
+            continue
+        raise FileNotFoundError(
+            f'The name "{mask}" in VX_MASKS is not "{FULL_DOMAIN_MASK_NAME}", not the name of a '
+            f"mask file, and not the name of a grid built into MET.  No file {mask}.poly or "
+            f"{mask}.nc was found in the following directories, which were searched in this "
+            "order:\n  "
+            + "\n  ".join(vx_mask_dirs)
+            + f'\nand MET\'s gen_vx_mask tool did not recognize "{mask}" as a grid.')
+    return vx_mask_grids, vx_mask_files
+
+
+def get_vx_masks_for_mode(vx_mask_grids: list[str],
+                          vx_mask_files: list[str]) -> tuple[str, str, Optional[str]]:
+    """Select the grid and the mask file that MODE uses from those listed in VX_MASKS.
+
+    Unlike Grid-Stat, Point-Stat and Ensemble-Stat, MODE takes at most one grid and one mask
+    file, and verifies over the area where they overlap (or over just one of them if VX_MASKS
+    contains no names of the other kind).  MODE uses the first grid and the first mask file, and
+    ignores any others.
+
+    Parameters
+    ----------
+    vx_mask_grids : list of str
+        The grids in VX_MASKS, in order, as returned by get_vx_mask_grids_and_files().
+    vx_mask_files : list of str
+        The paths to the mask files for the other names in VX_MASKS, in order, as returned by
+        get_vx_mask_grids_and_files().
+
+    Returns
+    -------
+    tuple of (str, str, str or None)
+        The grid that MODE uses ("" if there are no grids), the mask file that MODE uses (""
+        if there are no mask files), and a warning message saying which grids and mask files
+        MODE ignores (None if it ignores none).
+    """
+    vx_mask_grid = vx_mask_grids[0] if vx_mask_grids else ""
+    vx_mask_file = vx_mask_files[0] if vx_mask_files else ""
+
+    ignored = vx_mask_grids[1:] + vx_mask_files[1:]
+    if not ignored:
+        return vx_mask_grid, vx_mask_file, None
+
+    warning = (
+        "MODE takes at most one grid and one mask file, so the MODE tasks use only the first "
+        "grid and the first mask file in VX_MASKS:\n"
+        f"  grid: {vx_mask_grid or '(none)'}\n"
+        f"  mask file: {vx_mask_file or '(none)'}\n"
+        "and verify over the area where they overlap.  They ignore the following:\n  "
+        + "\n  ".join(ignored)
+        + "\nTo have MODE use a different grid or mask file, list it before the other grids or "
+        "mask files in VX_MASKS.  (The other verification tasks use all of them.)  See "
+        "parm/metplus/config_templates/MODE.conf for examples.")
+    return vx_mask_grid, vx_mask_file, warning
 
 
 def find_vx_mask_files_with_reserved_names(cfg) -> list[str]:
@@ -341,28 +437,34 @@ def find_vx_mask_files_with_reserved_names(cfg) -> list[str]:
     return sorted(reserved_mask_name_paths)
 
 
-def check_vx_mask_settings(cfg) -> None:
+def check_vx_mask_settings(cfg, mode_tasks_in_wflow: bool = False) -> None:
     """Check the verification mask settings VX_MASK_DIR and VX_MASKS.
 
-    Check that VX_MASK_DIR, if set, is an absolute path to an existing directory, that no mask file
-    has a reserved name, i.e. "FULL" or the name of a grid built into MET (see
-    find_vx_mask_files_with_reserved_names()), and that a file can be found for each mask in
-    VX_MASKS (see get_file_for_each_vx_mask()).  If a mask has a file in more than one of the
-    directories searched, log (at level INFO) which one is used.
+    Check that VX_MASK_DIR, if set, is an absolute path to an existing directory, that VX_MASKS
+    is not empty, that no mask file has a reserved name, i.e. "FULL" or the name of a grid built
+    into MET (see find_vx_mask_files_with_reserved_names()), and that each name in VX_MASKS is
+    "FULL", the name of a mask file, or the name of a grid built into MET (see
+    get_vx_mask_grids_and_files()).  If a mask has a file in more than one of the directories
+    searched, log (at level INFO) which one is used.  If the workflow contains MODE tasks and
+    MODE ignores some of the grids or mask files in VX_MASKS, log (at level WARNING) which ones
+    (see get_vx_masks_for_mode()).
 
     Parameters
     ----------
     cfg : dict
         The experiment configuration.
+    mode_tasks_in_wflow : bool, optional
+        Whether the workflow contains MODE tasks.  The default is False.
 
     Raises
     ------
     ValueError
-        If VX_MASK_DIR is a relative path, if a mask file has a reserved name, or if a
-        directory contains both <name>.poly and <name>.nc for a mask in VX_MASKS.
+        If VX_MASK_DIR is a relative path, if VX_MASKS is empty, if a mask file has a reserved
+        name, or if a directory contains both <name>.poly and <name>.nc for a mask in VX_MASKS.
     FileNotFoundError
-        If VX_MASK_DIR is not an existing directory, if no file is found for a mask in VX_MASKS,
-        or if MET's gen_vx_mask tool is not found (see is_met_builtin_grid()).
+        If VX_MASK_DIR is not an existing directory, if a name in VX_MASKS is not "FULL", not the
+        name of a mask file, and not that of a grid built into MET, or if MET's gen_vx_mask tool
+        is not found (see is_met_builtin_grid()).
     RuntimeError
         If MET's gen_vx_mask tool doesn't work (see check_gen_vx_mask_works()).
     """
@@ -385,6 +487,11 @@ def check_vx_mask_settings(cfg) -> None:
         if not os.path.isdir(vx_mask_dir):
             raise FileNotFoundError(f"VX_MASK_DIR is not an existing directory: {vx_mask_dir}")
 
+    if not cfg["verification"]["VX_MASKS"]:
+        raise ValueError(
+            "VX_MASKS is empty, so there is no region to verify over.  To verify over the whole "
+            f'verification domain, set it to ["{FULL_DOMAIN_MASK_NAME}"] (the default).')
+
     files_with_reserved_names = find_vx_mask_files_with_reserved_names(cfg)
     if files_with_reserved_names:
         raise ValueError(
@@ -393,17 +500,24 @@ def check_vx_mask_settings(cfg) -> None:
             f'"{KNOWN_MET_GRID_NAME}"):\n  ' + "\n  ".join(files_with_reserved_names)
             + "\nRename these files (and the masks in VX_MASKS that refer to them).")
 
-    # The following call to get_file_for_each_vx_mask() raises an error if no
-    # file is found for any one of the masks in VX_MASKS, or if a directory
-    # contains more than one file for a mask.  If all goes well, it returns a
-    # list containing the path to each mask's .poly or .nc file, but that
-    # return value is not needed here (the individual task scripts call
-    # get_file_for_each_vx_mask() again when the tasks run).
-    get_file_for_each_vx_mask(cfg)
+    # The following call to get_vx_mask_grids_and_files() raises an error if
+    # a name in VX_MASKS is not "FULL", not the name of a mask file, and not
+    # that of a grid built into MET, or if a directory contains more than one
+    # file for a mask.  If all goes well, it returns the lists of grids and of
+    # mask files.  Here they are used only for the MODE warning below (the
+    # individual task scripts call get_vx_mask_grids_and_files() again when
+    # the tasks run).
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
+
+    if mode_tasks_in_wflow:
+        _, _, mode_warning = get_vx_masks_for_mode(vx_mask_grids, vx_mask_files)
+        if mode_warning:
+            logger.warning(mode_warning)
 
     # If a mask has a file in more than one of the directories searched, say
     # which one is used, in case the user didn't intend the others to be
-    # overridden.
+    # overridden.  (FULL and the grids built into MET have no files, so
+    # nothing is logged for them.)
     vx_mask_dirs = get_vx_mask_dirs(cfg)
     for mask in cfg["verification"]["VX_MASKS"]:
         paths_found = find_all_files_for_single_vx_mask(vx_mask_dirs, mask)

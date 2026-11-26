@@ -521,7 +521,11 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     # a problem with a given mask (e.g. its file is missing, or a directory
     # contains both a .poly and a .nc file for it), it is reported during
     # experiment generation rather than later when a verification task runs.
-    check_vx_mask_settings(expt_config)
+    # If the workflow contains MODE tasks, also warn if MODE will ignore some
+    # of the masks (MODE takes at most one grid and one mask file).
+    check_vx_mask_settings(
+        expt_config,
+        mode_tasks_in_wflow=rocoto_tasks_contain(rocoto_tasks, "task_run_MODE_"))
 
     def _remove_tag(tasks, tag, only_if_empty=False):
         """Remove the given XML tag from all the tasks in the workflow, or, if only_if_empty is
@@ -1131,6 +1135,30 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
 
 
     return expt_config
+
+
+def rocoto_tasks_contain(rocotodict, prefix):
+    """Returns True if ``rocotodict`` contains a task whose name starts with ``prefix``, either
+    at the top level or in a metatask (at any depth), and False otherwise.
+
+    Args:
+        rocotodict (dict): A dictionary of Rocoto tasks and metatasks, e.g. the "tasks" section
+            of the Rocoto workflow settings
+        prefix (str): The beginning of the task name, including the ``task_`` part
+    """
+    for key, value in rocotodict.items():
+        if key.startswith(prefix):
+            return True
+        # Check whether key names a metatask.  split("_", maxsplit=1) splits
+        # key only at its first underscore, so e.g.
+        # "metatask_GridStat_APCP_all_mems" gives
+        # ["metatask", "GridStat_APCP_all_mems"], and [0] is "metatask".  This
+        # is the same test that clean_rocoto_dict() uses, so the two functions
+        # agree on what counts as a metatask.
+        if key.split("_", maxsplit=1)[0] == "metatask" and isinstance(value, dict) \
+                and rocoto_tasks_contain(value, prefix):
+            return True
+    return False
 
 
 def clean_rocoto_dict(rocotodict):
