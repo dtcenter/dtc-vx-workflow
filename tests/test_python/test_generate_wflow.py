@@ -13,7 +13,7 @@ from uwtools.api.config import get_yaml_config
 
 from python_utils import set_env_var
 from python_utils.parse_test_list import ALL_TESTS
-from python_utils.vx_mask_files import VX_MASK_FILE_EXTENSIONS
+from python_utils.vx_mask_files import KNOWN_MET_GRID_NAME, VX_MASK_FILE_EXTENSIONS
 
 from generate_wflow import generate_wflow
 
@@ -76,6 +76,16 @@ class Testing(unittest.TestCase):
         #   in the GitHub CI).  Its share/met/poly directory contains an empty
         #   <name>.poly file for each mask in VX_MASKS that doesn't come with
         #   the workflow (i.e. isn't in parm/metplus/vx_masks), e.g. CONUS.
+        #   Its bin directory contains a fake gen_vx_mask tool, a shell script
+        #   that succeeds only for KNOWN_MET_GRID_NAME (which
+        #   check_gen_vx_mask_works() uses to check that gen_vx_mask works),
+        #   so that no mask file's name is taken to be the name of a grid
+        #   built into MET.  (setup.py runs gen_vx_mask to check that no mask
+        #   file has a reserved name.)  That is the right result here, since
+        #   none of the mask files that come with the workflow (in
+        #   parm/metplus/vx_masks) has a reserved name.  test_no_reserved_names
+        #   in test_vx_mask_files.py checks this, and the other tests there
+        #   test the check itself, with a fake that recognizes some grids.
         #
         # update_from() adds these four settings to the test config's user and
         # platform sections (creating the sections if necessary), replacing any
@@ -92,6 +102,12 @@ class Testing(unittest.TestCase):
         with tempfile.TemporaryDirectory() as met_install_dir:
             met_poly_dir = Path(met_install_dir, "share", "met", "poly")
             met_poly_dir.mkdir(parents=True)
+            gen_vx_mask = Path(met_install_dir, "bin", "gen_vx_mask")
+            gen_vx_mask.parent.mkdir()
+            gen_vx_mask.write_text(
+                f'#!/bin/sh\n[ "$1" = {KNOWN_MET_GRID_NAME} ] && exit 0\nexit 1\n',
+                encoding="utf-8")
+            gen_vx_mask.chmod(0o755)
             # Get the list of masks in the test's config.  config.get() returns
             # None if there is no verification section, and also if the
             # section is empty ("verification:" with nothing under it).  If a
