@@ -44,9 +44,15 @@ user:
   # PARMdir: 
   # The path to the user's parm directory in their vx workflow clone.
   # 
-  # METPLUS_CONF: 
-  # The path to the user's final METplus configuration file. By default, 
-  # METplus configuration files reside in parm/metplus.
+  # METPLUS_PARMdir:
+  # The directory containing the METplus files needed by the workflow.
+  # These consist of:
+  # - The file common.conf, containing the settings that all the METplus
+  #   tools share.
+  # - The Jinja templates of the METplus config files (in the
+  #   config_templates directory).
+  # - The verification masks that come with the workflow (in the vx_masks
+  #   directory).
   #  
   #-----------------------------------------------------------------------
   MACHINE: "BIG_COMPUTER"
@@ -57,7 +63,7 @@ user:
   SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
   JOBSdir: '{{ user.HOMEdir }}/jobs'
   PARMdir: '{{ user.HOMEdir }}/parm'
-  METPLUS_CONF: '{{ user.PARMdir }}/metplus'
+  METPLUS_PARMdir: '{{ user.PARMdir }}/metplus'
 
 #----------------------------
 # PLATFORM config parameters
@@ -783,17 +789,6 @@ verification:
   #
   VX_ASNOW_ACCUMS_HRS: [ 6, 24 ]
   #
-  # VX_CONFIG_[DET|ENS]_FN:
-  # Names of configuration files for deterministic and ensemble verification
-  # that specify the field groups, field names, levels, and (if applicable)
-  # thresholds for which to run verification.  These are relative to the
-  # directory METPLUS_CONF in which the METplus config templates are
-  # located.  They may include leading relative paths before the file
-  # names, e.g. "some_dir/another_dir/vx_config_det.yaml".
-  #
-  VX_CONFIG_DET_FN: 'vx_configs/vx_config_det.yaml'
-  VX_CONFIG_ENS_FN: 'vx_configs/vx_config_ens.yaml'
-  #
   # VX_OUTPUT_BASEDIR:
   # Template for base (i.e. top-level) directory in which METplus will place
   # its output.
@@ -1214,21 +1209,40 @@ verification:
   # VX_MASKS:
   # Names of the verification masks, i.e. the regions to verify over.  The
   # workflow does not check that each region overlaps the forecast domain.
-  # For each name, the workflow uses the file <name>.poly or <name>.nc in
-  # the first of the following directories that contains one:
+  # VX_MASKS may not be empty.  Each name must be one of the following,
+  # which are checked in this order:
   #
-  # - VX_MASK_DIR (if set)
-  # - parm/metplus/vx_masks, which contains the masks that come with the
-  #   workflow
-  # - share/met/poly in the MET installation (MET_INSTALL_DIR), which
-  #   contains the masks that come with MET; see
-  #   https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids
+  # - FULL, the whole verification domain.
   #
-  # A .poly file lists the latitudes and longitudes of the vertices of a
-  # polygon, and a .nc file contains a gridded mask, e.g. one made by MET's
-  # gen_vx_mask tool.  A directory may not contain both files for a mask.
+  # - The name of a mask file.  The workflow uses the file <name>.poly or
+  #   <name>.nc in the first of the following directories that contains one:
   #
-  VX_MASKS: []
+  #   - VX_MASK_DIR (if set)
+  #   - parm/metplus/vx_masks, which contains the masks that come with the
+  #     workflow
+  #   - share/met/poly in the MET installation (MET_INSTALL_DIR), which
+  #     contains the masks that come with MET; see
+  #     https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids
+  #
+  #   A .poly file lists the latitudes and longitudes of the vertices of a
+  #   polygon, and a .nc file contains a gridded mask, e.g. one made by
+  #   MET's gen_vx_mask tool.  A directory may not contain both files for a
+  #   mask.
+  #
+  # - The name of a grid built into MET, e.g. the NCEP grid G212, in which
+  #   case the region is the area of that grid.  The workflow uses MET's
+  #   gen_vx_mask tool to check that MET knows the grid.
+  #
+  # FULL and the names of the grids built into MET are reserved: no mask
+  # file in VX_MASK_DIR or parm/metplus/vx_masks may have one of these
+  # names.
+  #
+  # Grid-Stat, Point-Stat and Ensemble-Stat verify over each region
+  # separately.  MODE takes only one region, so it uses only the first grid
+  # and the first mask file in VX_MASKS, and verifies over the area where
+  # they overlap (see parm/metplus/config_templates/MODE.conf).
+  #
+  VX_MASKS: ['FULL']
 
   # VX_MASK_DIR:
   # Directory containing the user's own verification mask files (see

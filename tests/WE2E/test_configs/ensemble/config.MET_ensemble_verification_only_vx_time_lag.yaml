@@ -33,7 +33,7 @@ verification:
   FCST_FN_TEMPLATE:
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem1/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
     - '{init?fmt=%Y%m%d%H?shift=-${time_lag}}/mem2/postprd/{{ verification.VX_FCST_MODEL_NAME }}.t{init?fmt=%H?shift=-${time_lag}}z.bgdawpf{lead?fmt=%HHH?shift=${time_lag}}.tm00.grib2'
-  VX_MASKS: ["CONUS"]
+  VX_MASKS: ["FULL","CONUS"]
   VX_NPROCS: 6
 gridstat:
   NPROCS: 8

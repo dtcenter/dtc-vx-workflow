@@ -13,7 +13,9 @@ from uwtools.api.config import get_yaml_config
 
 from python_utils import set_env_var
 from python_utils.parse_test_list import ALL_TESTS
-from python_utils.vx_mask_files import VX_MASK_FILE_EXTENSIONS
+from python_utils.vx_mask_files import (
+    FULL_DOMAIN_MASK_NAME, KNOWN_MET_GRID_NAME, VX_MASK_FILE_EXTENSIONS
+)
 
 from generate_wflow import generate_wflow
 
@@ -76,6 +78,16 @@ class Testing(unittest.TestCase):
         #   in the GitHub CI).  Its share/met/poly directory contains an empty
         #   <name>.poly file for each mask in VX_MASKS that doesn't come with
         #   the workflow (i.e. isn't in parm/metplus/vx_masks), e.g. CONUS.
+        #   Its bin directory contains a fake gen_vx_mask tool, a shell script
+        #   that succeeds only for KNOWN_MET_GRID_NAME (which
+        #   check_gen_vx_mask_works() uses to check that gen_vx_mask works),
+        #   so that no mask file's name is taken to be the name of a grid
+        #   built into MET.  (setup.py runs gen_vx_mask to check that no mask
+        #   file has a reserved name.)  That is the right result here, since
+        #   none of the mask files that come with the workflow (in
+        #   parm/metplus/vx_masks) has a reserved name.  test_no_reserved_names
+        #   in test_vx_mask_files.py checks this, and the other tests there
+        #   test the check itself, with a fake that recognizes some grids.
         #
         # update_from() adds these four settings to the test config's user and
         # platform sections (creating the sections if necessary), replacing any
@@ -92,18 +104,37 @@ class Testing(unittest.TestCase):
         with tempfile.TemporaryDirectory() as met_install_dir:
             met_poly_dir = Path(met_install_dir, "share", "met", "poly")
             met_poly_dir.mkdir(parents=True)
+            gen_vx_mask = Path(met_install_dir, "bin", "gen_vx_mask")
+            gen_vx_mask.parent.mkdir()
+            gen_vx_mask.write_text(
+                f'#!/bin/sh\n[ "$1" = {KNOWN_MET_GRID_NAME} ] && exit 0\nexit 1\n',
+                encoding="utf-8")
+            gen_vx_mask.chmod(0o755)
             # Get the list of masks in the test's config.  config.get() returns
             # None if there is no verification section, and also if the
             # section is empty ("verification:" with nothing under it).  If a
             # None is returned by config.get("verification"), the "or {}"
             # turns that None into an empty dict, so that .get("VX_MASKS", [])
-            # still works (the .get() can't operate on a None).  If the test's
+            # still works (the .get() can't operate on a None).  If a test's
             # config doesn't set VX_MASKS, an empty list is returned instead of
-            # a None (since the second argument to get() is []).  Thus, in this
-            # case, vx_masks gets set to [], the same as the default in
-            # config_defaults.yaml.
+            # a None (since the second argument to get() is []).  Thus, in such
+            # a case, vx_masks gets set to [], so no files are created below.
+            # (setup.py then uses the default in config_defaults.yaml,
+            # ["FULL"], which needs no file.)
             vx_masks = (config.get("verification") or {}).get("VX_MASKS", [])
+            # Create an empty file for each mask that needs it.  "FULL", the
+            # names of grids built into MET, and any masks that already have
+            # files in WFLOW_MASK_DIR don't need a file.  The fake gen_vx_mask
+            # written above currently recognizes only KNOWN_MET_GRID_NAME as a
+            # grid built into MET, so if a WE2E test config that uses another
+            # such grid is ever added, that grid needs to be added to the fake
+            # gen_vx_mask and to the tuple in the if-statement below that
+            # checks for FULL and the grids built into MET.
             for mask in vx_masks:
+                # FULL and the names of grids built into MET are not names of
+                # mask files, so no file is created for them.
+                if mask in (FULL_DOMAIN_MASK_NAME, KNOWN_MET_GRID_NAME):
+                    continue
                 # The paths that the mask's file would have if the mask came
                 # with the workflow, one for each allowed extension (e.g.
                 # .../vx_masks/AZCA.poly and .../vx_masks/AZCA.nc).  These are

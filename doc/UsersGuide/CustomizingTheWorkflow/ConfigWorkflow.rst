@@ -90,8 +90,12 @@ Workflow Directories
 ``PARMdir``: (Default: ``'{{ user.HOMEdir }}/parm'``)
    The path to the user's ``parm`` directory in their ``dtc-vx-workflow`` clone.
 
-``METPLUS_CONF``: (Default: ``'{{ user.PARMdir }}/metplus'``)
-   The path to the directory where the user's final METplus configuration file resides. By default, METplus configuration files reside in ``dtc-vx-workflow/parm/metplus``. 
+``METPLUS_PARMdir``: (Default: ``'{{ user.PARMdir }}/metplus'``)
+   The directory containing the METplus files needed by the workflow.  These consist of:
+
+   * The file ``common.conf``, containing the settings that all the METplus tools share.
+   * The Jinja templates of the METplus config files (in the ``config_templates`` directory).
+   * The verification masks that come with the workflow (in the ``vx_masks`` directory; see ``VX_MASKS``).
 
 .. _PlatformConfig:
 
@@ -442,14 +446,6 @@ General VX Parameters
    accumulated snowfall (ASNOW).  If ``VX_FIELD_GROUPS`` contains ``"ASNOW"``,
    then ``VX_ASNOW_ACCUMS_HRS`` must contain at least one element.  Otherwise,
    ``VX_ASNOW_ACCUMS_HRS`` will be ignored.  Valid values: ``6`` | ``12`` | ``18`` | ``24``
-
-``VX_CONFIG_[DET|ENS]_FN``: (Default: ``vx_configs/vx_config_[det|ens].yaml``)
-   Names of configuration files for deterministic and ensemble verification
-   that specify the field groups, field names, levels, and (if applicable)
-   thresholds for which to run verification.  These are relative to the
-   directory ``METPLUS_CONF`` in which the METplus config templates are
-   located.  They may include leading relative paths before the file
-   names, e.g. ``some_dir/another_dir/vx_config_det.yaml``.
 
 ``VX_OUTPUT_BASEDIR``: (Default: ``'{{ workflow.EXPTDIR }}'``)
    Template for base (i.e. top-level) directory in which METplus will place
@@ -854,25 +850,68 @@ VX Parameters for Forecasts
    If more than this number are missing, the verification task will exit
    with an error.
 
-``VX_MASKS``: (Default: [])
+``VX_MASKS``: (Default: ``['FULL']``)
    Names of the verification masks, i.e. the regions to verify over.  The workflow does not check
-   that each region overlaps the forecast domain.  Each name may be listed only once.  For each
-   name, the workflow uses the file ``<name>.poly`` or ``<name>.nc`` in the first of the following
-   directories that contains one:
+   that each region overlaps the forecast domain.  ``VX_MASKS`` may not be empty, and each name
+   may be listed only once.  Each name must be one of the following, which are checked in this
+   order:
 
-   #. ``VX_MASK_DIR`` (if set), which contains the user's own masks.
-   #. ``parm/metplus/vx_masks`` in the workflow, which contains the masks that come with the
-      workflow.
-   #. ``share/met/poly`` in the MET installation (``MET_INSTALL_DIR``), which contains the masks
-      that come with MET, e.g. ``CONUS``, ``EAST`` and ``WEST`` (see the
-      `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__).
+   * ``FULL``, the whole verification domain.  The whole domain is verified only if ``VX_MASKS``
+     lists ``FULL``.
 
-   A ``.poly`` file lists the latitudes and longitudes of the vertices of a polygon.  A ``.nc``
-   file is a NetCDF file containing a gridded mask, e.g. one made with MET's ``gen_vx_mask`` tool
-   (see ``VX_MASK_DIR``).  A directory may not contain both a ``.poly`` and a ``.nc`` file for the
-   same mask.  If a mask has a file in more than one of the directories, the first one found is
-   used, and the experiment generation log says which.  If no file is found for a mask,
-   experiment generation stops with an error that lists the directories searched.
+   * The name of a mask file.  The workflow uses the file ``<name>.poly`` or ``<name>.nc`` in the
+     first of the following directories that contains one:
+
+     #. ``VX_MASK_DIR`` (if set), which contains the user's own masks.
+     #. ``parm/metplus/vx_masks`` in the workflow, which contains the masks that come with the
+        workflow.
+     #. ``share/met/poly`` in the MET installation (``MET_INSTALL_DIR``), which contains the masks
+        that come with MET, e.g. ``CONUS``, ``EAST`` and ``WEST`` (see the
+        `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__).
+
+     A ``.poly`` file lists the latitudes and longitudes of the vertices of a polygon.  A ``.nc``
+     file is a NetCDF file containing a gridded mask, e.g. one made with MET's ``gen_vx_mask``
+     tool (see ``VX_MASK_DIR``).  A directory may not contain both a ``.poly`` and a ``.nc`` file
+     for the same mask.  If a mask has a file in more than one of the directories, the first one
+     found is used, and the experiment generation log says which.
+
+   * The name of a grid built into MET, e.g. the NCEP grid ``G212``, in which case the region is
+     the area of that grid (see the
+     `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/appendixB.html#grids>`__
+     for the grids built into MET).  For each name that is not ``FULL`` and has no mask file, the
+     workflow runs MET's ``gen_vx_mask`` tool during experiment generation to check whether MET
+     knows a grid of that name.
+
+   If a name is none of these, experiment generation stops with an error that lists the
+   directories searched.  ``FULL`` and the names of the grids built into MET are reserved: no mask
+   file in ``VX_MASK_DIR`` or ``parm/metplus/vx_masks`` may have one of these names.
+
+   Grid-Stat, Point-Stat and Ensemble-Stat verify over each region separately.  MODE takes at
+   most one grid (``FULL`` or a grid built into MET) and one mask file, so it uses only the first
+   grid and the first mask file in ``VX_MASKS``, and verifies over the area where they overlap.
+   If ``VX_MASKS`` contains other grids or mask files, MODE ignores them, and a warning naming
+   them is written to the experiment generation log (if the workflow contains MODE tasks) and to
+   the MODE task's log.  To have MODE use a different grid or mask file, list it before the other
+   grids or mask files.  For example, with ``EAST`` and ``WEST`` the names of mask files and
+   ``G212`` the name of a grid built into MET:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - ``VX_MASKS``
+        - Region MODE verifies
+      * - ``['FULL']``
+        - The whole domain
+      * - ``['EAST']``
+        - ``EAST``
+      * - ``['FULL', 'EAST']``
+        - ``EAST``
+      * - ``['EAST', 'WEST']``
+        - ``EAST`` (``WEST`` is ignored)
+      * - ``['FULL', 'G212']``
+        - The whole domain (``G212`` is ignored)
+      * - ``['G212', 'EAST']``
+        - The overlap of ``G212`` and ``EAST``
 
    The script ``parm/metplus/vx_masks/plot_met_poly_points.py`` plots the polygon in a ``.poly``
    file on a map.
@@ -910,6 +949,17 @@ VX Parameters for Forecasts
    the verification grid: Grid-Stat and Point-Stat both accept a mask on a different grid, and
    Grid-Stat regrids it to the verification grid using nearest-neighbor interpolation.  A mask on
    a finer grid gives more accurate region edges.
+
+   A grid built into MET can be listed in ``VX_MASKS`` by name and needs no mask file.  To verify
+   over the area of any other grid, e.g. the domain of a different model, make a mask of it with
+   ``gen_vx_mask -type grid``, giving a file that contains data on that grid (e.g. one of the
+   model's output files) in place of the shapefile above, for example:
+
+   .. code-block:: console
+
+      gen_vx_mask G184 model_output.grib2 MODEL_DOMAIN.nc -type grid -name MODEL_DOMAIN
+
+   Then list ``MODEL_DOMAIN`` in ``VX_MASKS`` and put ``MODEL_DOMAIN.nc`` in ``VX_MASK_DIR``.
 
 ``VX_NPROCS``: (Default: 1)
    Number of processes to run in parallel within each job that runs a METplus tool on a set of

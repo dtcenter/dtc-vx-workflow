@@ -18,8 +18,8 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     get_file_for_each_vx_mask, make_ensmean_var_list, merge_field_configs,
-     render_metplus_confs, run_metplus, setup_logging
+     get_vx_mask_grids_and_files, make_ensmean_var_list, merge_field_configs,
+     get_metplus_common_conf_fp, render_metplus_confs, run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -156,7 +156,7 @@ def gridstat_or_pointstat_ensmean(
             f"{obtype=}, {field_group=}"
         )
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
 
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}_ensmean.conf"
     metplus_config_fn = (
@@ -223,9 +223,9 @@ def gridstat_or_pointstat_ensmean(
         "vx_gdas_sfc_include_sfcshp": vxcfg["VX_GDAS_SFC_INCLUDE_SFCSHP"],
         "accum_hh": f"{accum_hh:02}",
         "accum_no_pad": accum_hh,
-        "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
+        "vx_mask_grids": ", ".join(vx_mask_grids),
         "vx_mask_files": ", ".join(vx_mask_files),
         "vx_config_dict": vx_config_dict,
         # Variable list
@@ -241,9 +241,12 @@ def gridstat_or_pointstat_ensmean(
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case}_ensmean with METplus with {numprocs} processes")
-    common_conf = os.path.join(cfg["user"]["METPLUS_CONF"], "common.conf")
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
+    # Call run_metplus function for as many processors as specified
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus, [(common_conf, fn) for fn in conf_files])
+        pool.starmap(run_metplus,mpargs)
 
     lgr.info(f"{metplus_tool_camel_case}_ensmean completed successfully.")
 

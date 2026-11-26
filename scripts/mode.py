@@ -16,8 +16,8 @@ from string import Template
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-    get_ensmem_info, get_file_for_each_vx_mask, setup_logging, render_metplus_confs,
-    make_var_list, run_metplus
+    get_ensmem_info, get_vx_mask_grids_and_files, get_vx_masks_for_mode, setup_logging,
+    get_metplus_common_conf_fp, render_metplus_confs, make_var_list, run_metplus
 )
 from set_leadhrs import set_leadhrs
 
@@ -117,7 +117,12 @@ def mode(config_file,cdate,field_group,obtype):
     if not vx_leadhr_list:
         raise RuntimeError(f"Call to {slh_string}\nreturned an empty list.")
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    # MODE takes at most one grid and one mask file, so use the first of each
+    # in VX_MASKS, and warn if there are others (which MODE ignores).
+    vx_mask_grid, vx_mask_file, mode_warning \
+        = get_vx_masks_for_mode(*get_vx_mask_grids_and_files(cfg))
+    if mode_warning:
+        lgr.warning(mode_warning)
 
     # Set the names of the template METplus configuration file, the resulting rendered conf file,
     # and the METplus log file
@@ -162,7 +167,8 @@ def mode(config_file,cdate,field_group,obtype):
                # Field information.
                'obtype': obtype,
                # Verification mask settings
-               'vx_mask_files': ', '.join(vx_mask_files),
+               'vx_mask_grid': vx_mask_grid,
+               'vx_mask_file': vx_mask_file,
                # MODE object generation settings
                'conv_radius': modecfg["CONV_RADIUS"],
                'conv_thresh': modecfg["CONV_THRESH"],
@@ -176,13 +182,12 @@ def mode(config_file,cdate,field_group,obtype):
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
-    args = []
-    for config_fn in conf_files:
-        args.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{args=}")
     with Pool(processes=numprocs) as pool:
-        pool.starmap(run_metplus,args)
+        pool.starmap(run_metplus,mpargs)
 
     lgr.info(f"{metplus_tool_camel_case} completed successfully.")
 

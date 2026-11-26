@@ -19,8 +19,8 @@ from textwrap import dedent
 import uwtools.api.config as uwconfig
 
 from python_utils import (
-     get_ensmem_info, get_file_for_each_vx_mask, make_var_list, merge_field_configs,
-     render_metplus_confs, run_metplus, setup_logging
+     get_ensmem_info, get_vx_mask_grids_and_files, make_var_list, merge_field_configs,
+     get_metplus_common_conf_fp, render_metplus_confs, run_metplus, setup_logging
      )
 from set_leadhrs import set_leadhrs
 from set_vx_params import set_vx_params
@@ -191,7 +191,7 @@ def genensprod_or_ensemblestat(
             f"{obtype=}, {field_group=}"
         )
 
-    vx_mask_files = get_file_for_each_vx_mask(cfg)
+    vx_mask_grids, vx_mask_files = get_vx_mask_grids_and_files(cfg)
 
     metplus_config_tmpl_fn = f"{metplus_tool_camel_case}.conf"
     metplus_config_fn = f"{metplus_tool_camel_case}_{met_filedir_name}_{cdate}.conf.0"
@@ -241,9 +241,9 @@ def genensprod_or_ensemblestat(
         "obtype": obtype,
         "accum_hh": f"{accum_hh:02}",
         "accum_no_pad": accum_hh,
-        "metplus_templates_dir": cfg["user"]["METPLUS_CONF"],
         "input_field_group": field_group,
         "input_level_fcst": fcst_level,
+        "vx_mask_grids": ", ".join(vx_mask_grids),
         "vx_mask_files": ", ".join(vx_mask_files),
         # Variable list
         'var_list': var_list,
@@ -258,11 +258,10 @@ def genensprod_or_ensemblestat(
     lgr.debug(f"{conf_files=}")
 
     lgr.info(f"Running {metplus_tool_camel_case} with METplus with {numprocs} processes")
-    mpargs = []
-    for config_fn in conf_files:
-        mpargs.append( (os.path.join(cfg['user']['METPLUS_CONF'], "common.conf"),config_fn) )
+    common_conf = get_metplus_common_conf_fp(cfg)
+    mpargs = [(common_conf, config_fn) for config_fn in conf_files]
+    lgr.debug(f"{mpargs=}")
     # Call run_metplus function for as many processors as specified
-        lgr.debug(f"{mpargs=}")
     with Pool(processes=numprocs) as pool:
         pool.starmap(run_metplus,mpargs)
 

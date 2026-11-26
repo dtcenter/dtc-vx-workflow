@@ -113,6 +113,7 @@ Setting up the experiment
            EXPT_SUBDIR: tutorial_case
          verification:
            VX_MASKS:
+           - FULL
            - CONUS
            - EAST
            - EAST_OF_ROCKIES

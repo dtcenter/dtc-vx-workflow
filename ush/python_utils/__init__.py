@@ -40,10 +40,15 @@ from .config_parser import (
     cfg_to_yaml_str,
     extend_yaml,
 )
-from .metplus_conf_utils import render_metplus_confs, make_var_list, make_ensprob_var_list, make_ensmean_var_list, merge_field_configs
+from .metplus_conf_utils import (
+    get_metplus_common_conf_fp, render_metplus_confs, make_var_list, make_ensprob_var_list,
+    make_ensmean_var_list, merge_field_configs
+)
 from .eval_metplus_tmpl import eval_metplus_timestr_tmpl, eval_metplus_dt_tmpl
 from .parse_test_list import get_tests_to_run, get_pretty_list, get_test_name
 from .ensmem_info import EnsmemInfo, get_ensmem_info
 from .duplicate_yaml_keys import find_duplicate_yaml_keys
 from .unknown_config_keys import find_unknown_config_keys
-from .vx_mask_files import check_vx_mask_settings, get_file_for_each_vx_mask
+from .vx_mask_files import (
+    check_vx_mask_settings, get_vx_mask_grids_and_files, get_vx_masks_for_mode
+)
