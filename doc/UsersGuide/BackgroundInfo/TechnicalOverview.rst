@@ -81,7 +81,6 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
 .. code-block:: console
 
    dtc-vx-workflow
-   ├── data_environment.yml
    ├── doc/
    │   └── UsersGuide/
    ├── environment.yml
