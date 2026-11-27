@@ -142,9 +142,9 @@ metatask_GenEnsProd_EnsembleStat_REFC_RETOP:
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
       and:
-        metataskdep_check_post_output: &check_post_output
+        metataskdep_check_fcst_files: &check_fcst_files
           attrs:
-            metatask: check_post_output_all_mems
+            metatask: check_fcst_files_all_mems
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_MRMS
     attrs:
@@ -193,8 +193,8 @@ metatask_GenEnsProd_EnsembleStat_SFC_UPA:
     nodes: '{{ verification_resources.execution.nodes }}:ppn={{ genensprod.NPROCS }}'
     walltime: "{{ genensprod.execution.walltime }}"
     dependency:
-      metataskdep_check_post_output:
-         <<: *check_post_output
+      metataskdep_check_fcst_files:
+         <<: *check_fcst_files
   task_run_MET_EnsembleStat_vx_#FIELD_GROUP#:
     <<: *task_GenEnsProd_SFC_UPA
     attrs:

@@ -42,6 +42,17 @@ task_run_MET_Pb2nc_obs_NDAS:
     and:
       datadep:
         value: "&NDAS_OBS_DIR;"
+      #
+      # Check that the get_obs_ndas task (for the current obs day only) is
+      # complete before launching the Pb2nc task that converts that obs day's
+      # NDAS prepbufr files to netcdf format.
+      #
+      # Note that we do not need to check completion of ALL get_obs_ndas tasks
+      # (i.e. for all obs days) because the Pb2nc tasks are obs-day-based, i.e.
+      # each such task will only operate on one day's worth of NDAS obs.  Thus,
+      # we only need the get_obs_ndas task for that day to be complete (recall
+      # that the get_obs_ndas tasks are also obs-day-based).
+      #
       or:
         not:
           taskvalid:
@@ -209,25 +220,19 @@ metatask_PcpCombine_ASNOW_all_accums_obs_NOHRSC:
             "get_obs_nohrsc_*_complete.txt"
             {{ workflow.OBS_DAYS_ALL_CYCLES_CUMUL|join(" ") }}'
 
-metatask_check_post_output_all_mems:
+metatask_check_fcst_files_all_mems:
   var:
     mem: '{% for m in range(ensemble.ENSMEM_INDX_MIN, ensemble.ENSMEM_INDX_MAX+1) %}{{ "%03d "%m }}{%- endfor -%}'
-  task_check_post_output_mem#mem#:
+  task_check_fcst_files_mem#mem#:
     <<: *default_task_preprocessing
     attrs:
       cycledefs: forecast
       maxtries: 1
-    command: "&JOBSdir;/CHECK_POST_OUTPUT.sh"
+    command: "&JOBSdir;/CHECK_FCST_FILES.sh"
     envars:
       <<: *default_vars
       ENSMEM_INDX: '#mem#'
-    walltime: "{{ verification_resources.execution.check_post_output.walltime }}"
-    dependency:
-      # Metataskdep here is for the default running standalone post tasks. When running inline post,
-      # or no forecast tasks at all, this section is replaced by logic in setup.py.
-      metataskdep:
-        attrs:
-          metatask: run_post_mem#mem#_all_fhrs
+    walltime: "{{ verification_resources.execution.check_fcst_files.walltime }}"
 
 metatask_PcpCombine_APCP_all_accums_all_mems:
   var:
@@ -257,7 +262,7 @@ metatask_PcpCombine_APCP_all_accums_all_mems:
             age: 00:00:00:30
           value:
             cyclestr:
-              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/fcst_files_exist_mem#mem#.txt'
 
 metatask_PcpCombine_ASNOW_all_accums_all_mems:
   var:
@@ -287,7 +292,7 @@ metatask_PcpCombine_ASNOW_all_accums_all_mems:
             age: 00:00:00:30
           value:
             cyclestr:
-              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/fcst_files_exist_mem#mem#.txt'
 
 metatask_PcpCombine_fcst_PM_all_mems:
   var:
@@ -317,4 +322,4 @@ metatask_PcpCombine_fcst_PM_all_mems:
             age: 00:00:00:30
           value:
             cyclestr:
-              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+              value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/fcst_files_exist_mem#mem#.txt'

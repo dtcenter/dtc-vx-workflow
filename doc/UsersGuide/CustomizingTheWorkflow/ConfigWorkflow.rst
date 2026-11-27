@@ -850,9 +850,8 @@ VX Parameters for Forecasts
 
 ``NUM_MISSING_FCST_FILES_MAX``: (Default: 0)
    For verification tasks that need forecast data, this specifies the
-   maximum number of post-processed forecast files that may be missing. 
-   If more than this number are missing, the verification task will exit
-   with an error.
+   maximum number of forecast files that may be missing.  If more than
+   this number are missing, the verification task will exit with an error.
 
 ``VX_MASKS``: (Default: [])
    Names of the verification masks, i.e. the regions to verify over.  The workflow does not check

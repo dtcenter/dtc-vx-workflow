@@ -2,7 +2,7 @@
 #
 #-----------------------------------------------------------------------
 #
-# The J-Job script for checking the post output.
+# The J-Job script for checking for the presence of forecast files.
 #
 # Run-time environment variables:
 #
@@ -62,17 +62,17 @@ In directory:     \"${scrfunc_dir}\"
 #
 # Call the run script
 #
-python $SCRIPTSdir/check_post_output.py ${VERBOSE_FLAG} \
+python $SCRIPTSdir/check_fcst_files.py ${VERBOSE_FLAG} \
   --config="${GLOBAL_VAR_DEFNS_FP}" \
   --cycle_date="${YYMMDD}${HH}" \
   ${ENSMEM_ARG} || \
 print_err_msg_exit "\
-Call to \"check_post_output.py\" from \"${scrfunc_fn}\" failed."
+Call to \"check_fcst_files.py\" from \"${scrfunc_fn}\" failed."
 
 #
 #-----------------------------------------------------------------------
 #
-# Create a flag file to make rocoto aware that the check_post_output task
+# Create a flag file to make rocoto aware that the check_fcst_files task
 # has successfully completed (so that other tasks that depend on it can
 # be launched).  
 #
@@ -81,4 +81,4 @@ Call to \"check_post_output.py\" from \"${scrfunc_fn}\" failed."
 ensmem_name="mem${ENSMEM_INDX}"
 cycle_dir="$EXPTDIR/${YYMMDD}${HH}"
 mkdir -p "${cycle_dir}"
-touch "${cycle_dir}/post_files_exist_${ensmem_name}.txt"
+touch "${cycle_dir}/fcst_files_exist_${ensmem_name}.txt"

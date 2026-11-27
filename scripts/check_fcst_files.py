@@ -1,10 +1,9 @@
 # pylint: disable=logging-fstring-interpolation
 """
-Converted from scripts/check_post_output.sh, this script checks that the expected
-post-processed forecast output files exist on disk, up to the allowed maximum
-number of missing files.
+This script checks that the expected forecast output files exist on disk,
+up to the allowed maximum number of missing files.
 
-The script is intended to be called from jobs/CHECK_POST_OUTPUT.sh.
+The script is intended to be called from jobs/CHECK_FCST_FILES.sh.
 """
 
 import argparse
@@ -17,8 +16,8 @@ from python_utils import get_ensmem_info, setup_logging
 from set_leadhrs import set_leadhrs
 
 
-def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
-    """Check that post-processed forecast output files exist for a given cycle and member.
+def check_fcst_files(config_file: str, cdate: str, ensmem_index: int) -> None:
+    """Check that forecast output files exist for a given cycle and member.
 
     Calls set_leadhrs() to verify that no more than NUM_MISSING_FCST_FILES_MAX files
     are absent from disk. Raises an exception if the missing-file threshold is exceeded.
@@ -52,7 +51,7 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
     fn_template = Template(ensmem_info.fcst_fn_template).substitute(subvars)
     lgr.debug(f"{fn_template=}")
     lgr.info(
-        f"Checking post-processed output files for cycle {cdate}, "
+        f"Checking forecast output files for cycle {cdate}, "
         f"member index {ensmem_index}"
     )
 
@@ -70,12 +69,12 @@ def check_post_output(config_file: str, cdate: str, ensmem_index: int) -> None:
         verbose=True,
     )
 
-    lgr.info(f"Post-processed output file check completed successfully for cycle {cdate}.")
+    lgr.info(f"Forecast output file check completed successfully for cycle {cdate}.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Check that post-processed forecast output files exist on disk"
+        description="Check that forecast output files exist on disk"
     )
     parser.add_argument(
         "--config", default="config.yaml", type=str,
@@ -97,4 +96,4 @@ if __name__ == "__main__":
 
     setup_logging(debug=args.verbose)
 
-    check_post_output(args.config, args.cycle_date, args.ensmem_index)
+    check_fcst_files(args.config, args.cycle_date, args.ensmem_index)

@@ -111,7 +111,7 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
    ├── README.md
    ├── scripts/
    │   ├── ascii2nc_obs.sh*
-   │   ├── check_post_output.sh*
+   │   ├── check_fcst_files.py*
    │   ├── genensprod_or_ensemblestat.sh*
    │   ├── get_verif_obs.sh*
    │   ├── gridstat_or_pointstat_ensmean.sh*
