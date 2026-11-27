@@ -18,7 +18,7 @@
 #    USHdir
 #
 #  workflow:
-#    EXPTDIR
+#    WFLOW_FLAG_FILES_DIR
 #
 #-----------------------------------------------------------------------
 #
@@ -44,7 +44,7 @@ done
 #
 #-----------------------------------------------------------------------
 #
-# Get the full path to the file in which this script/function is located 
+# Get the full path to the file in which this script/function is located
 # (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
 # which the file is located (scrfunc_dir).
 #
@@ -74,11 +74,10 @@ Call to \"check_fcst_files.py\" from \"${scrfunc_fn}\" failed."
 #
 # Create a flag file to make rocoto aware that the check_fcst_files task
 # has successfully completed (so that other tasks that depend on it can
-# be launched).  
+# be launched).
 #
 #-----------------------------------------------------------------------
 #
 ensmem_name="mem${ENSMEM_INDX}"
-cycle_dir="$EXPTDIR/${YYMMDD}${HH}"
-mkdir -p "${cycle_dir}"
-touch "${cycle_dir}/fcst_files_exist_${ensmem_name}.txt"
+mkdir -p "${WFLOW_FLAG_FILES_DIR}"
+touch "${WFLOW_FLAG_FILES_DIR}/fcst_files_exist_${ensmem_name}_${YYMMDD}${HH}.txt"

@@ -128,7 +128,7 @@ metatask_GridStat_REFC_RETOP_all_mems:
               age: 00:00:00:30
             value:
               cyclestr:
-                value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/fcst_files_exist_mem#mem#.txt'
+                value: '{{ workflow.WFLOW_FLAG_FILES_DIR }}/fcst_files_exist_mem#mem#_@Y@m@d@H.txt'
 
 metatask_PointStat:
   var:
@@ -171,7 +171,7 @@ metatask_PointStat:
               age: 00:00:00:30
             value:
               cyclestr:
-                value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/fcst_files_exist_mem#mem#.txt'
+                value: '{{ workflow.WFLOW_FLAG_FILES_DIR }}/fcst_files_exist_mem#mem#_@Y@m@d@H.txt'
           or:
             not:
               taskvalid:
