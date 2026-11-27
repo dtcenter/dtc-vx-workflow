@@ -132,8 +132,8 @@ The |topdir| structure follows the standards laid out in the :term:`NCEP` Centra
    │       │   └── verification/
    │       │       ├── config.<testname>.yaml
    │       ├── utils.py*
-   │       ├── WE2E_summary.py*
-   │       └── WE2E_tests.yaml
+   │       ├── WE2E_status.example.yaml
+   │       └── WE2E_summary.py*
    └── ush/
        ├── bash_utils/
        ├── check_python_version.py*

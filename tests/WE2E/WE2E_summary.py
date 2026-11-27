@@ -51,7 +51,7 @@ if __name__ == "__main__":
     req = parser.add_mutually_exclusive_group(required=True)
     req.add_argument('-y', '--yaml_file', type=str,
                      help='YAML-format file specifying the information of jobs to be summarized; '\
-                          'for an example file, see WE2E_tests.yaml')
+                          'for an example file, see WE2E_status.example.yaml')
     req.add_argument('-e', '--expt_dir', type=str,
                      help='The full path of an experiment directory, containing one or more '\
                           'subdirectories with verification experiments in them')

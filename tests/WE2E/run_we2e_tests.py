@@ -162,7 +162,7 @@ def run_we2e_tests(args) -> None:
         logging.info("To view running experiments in cron try `crontab -l`")
         return
 
-    monitor_file = f"WE2E_tests_{starttime_string}.yaml"
+    monitor_file = f"WE2E_status_{starttime_string}.yaml"
     write_monitor_file(monitor_file, monitor_yaml)
     logging.info("All experiments have been generated;")
     logging.info(f"Experiment file {monitor_file} created")

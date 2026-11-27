@@ -22,7 +22,7 @@ TOP_DIR = Path(__file__).resolve().parents[2]
 FILES_WITH_KNOWN_DUPLICATES = {
     # An example of the files written by monitor_jobs.py, with one entry per
     # job status, all for the same experiment.  It is not read by any code.
-    "tests/WE2E/WE2E_tests.yaml",
+    "tests/WE2E/WE2E_status.example.yaml",
 }
 
 

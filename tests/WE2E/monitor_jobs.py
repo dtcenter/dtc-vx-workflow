@@ -32,7 +32,7 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
     # Write monitor_file, which will contain information on each monitored experiment
     monitor_start_string = monitor_start.strftime("%Y%m%d%H%M%S")
     if not monitor_file:
-        monitor_file = f'WE2E_tests_{monitor_start_string}.yaml'
+        monitor_file = f'WE2E_status_{monitor_start_string}.yaml'
     logging.info(f"Writing information for all experiments to {monitor_file}")
 
     write_monitor_file(monitor_file,expts_dict)

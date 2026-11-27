@@ -33,7 +33,7 @@ def print_WE2E_summary(expts_dict: dict, debug: bool = False):
 
     Args:
         expts_dict (dict): A dictionary containing the information needed to run
-                           one or more experiments. See example file ``WE2E_tests.yaml``.
+                           one or more experiments. See example file ``WE2E_status.example.yaml``.
         debug      (bool): [optional] Enable extra output for debugging
 
     Returns:
@@ -115,7 +115,9 @@ def create_expts_dict(expt_dir: str, delay: int = DEFAULT_DELAY):
         expt_dir (str): Experiment directory name
         delay    (int): [optional] Delay in seconds between calls to rocotorun.
     Returns:
-        (summary_file, expts_dict): A tuple including the name of the summary file (``WE2E_tests_YYYYMMDDHHmmSS.yaml``) and the experiment dictionary
+        (summary_file, expts_dict): A tuple including the name of the summary file
+                                    (``WE2E_status_YYYYMMDDHHmmSS.yaml``) and the experiment
+                                    dictionary
     """
     contents = sorted(os.listdir(expt_dir))
 
@@ -149,7 +151,7 @@ def create_expts_dict(expt_dir: str, delay: int = DEFAULT_DELAY):
         #Update the experiment dictionary
         logging.debug(f"Reading status of experiment {item}")
         update_expt_status(expts_dict[item],item,True,delay,False,False)
-    summary_file = f'WE2E_tests_{datetime.now().strftime("%Y%m%d%H%M%S")}.yaml'
+    summary_file = f'WE2E_status_{datetime.now().strftime("%Y%m%d%H%M%S")}.yaml'
 
     return summary_file, expts_dict
 
@@ -159,7 +161,8 @@ def calculate_core_hours(expts_dict: dict) -> dict:
     and calculates the core hours used by each task, updating ``expts_dict`` with this information
 
     Args:
-        expts_dict (dict): The information needed to run one or more experiments. See example file ``WE2E_tests.yaml``
+        expts_dict (dict): The information needed to run one or more experiments. See example
+                           file ``WE2E_status.example.yaml``
 
     Returns:
         expts_dict: Experiment dictionary updated with core hours
