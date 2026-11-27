@@ -18,12 +18,9 @@ TOP_DIR = Path(__file__).resolve().parents[2]
 #
 # YAML files in the repository that contain duplicate keys and are therefore
 # not checked by test_repo_yaml_files(), each with the reason it is allowed.
+# There are none at present.
 #
-FILES_WITH_KNOWN_DUPLICATES = {
-    # An example of the files written by monitor_jobs.py, with one entry per
-    # job status, all for the same experiment.  It is not read by any code.
-    "tests/WE2E/WE2E_status.example.yaml",
-}
+FILES_WITH_KNOWN_DUPLICATES = set()
 
 
 class TestFindDuplicateKeys(unittest.TestCase):

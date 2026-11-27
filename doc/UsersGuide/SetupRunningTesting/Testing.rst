@@ -329,6 +329,12 @@ The "Status" as specified by the above summary is explained below:
 * ``ERROR``
    Could not read the rocoto database file. This will require manual intervention to solve, so we will no longer monitor this experiment.
 
+* ``STALLED``
+   All submitted jobs are status SUCCEEDED, but one or more jobs have not been submitted yet. This is usually a normal state; we will continue to monitor this experiment. If it lasts for another cycle of monitoring, the status becomes STUCK.
+
+* ``STUCK``
+   All submitted jobs are status SUCCEEDED, but one or more jobs have still not been submitted after more than one cycle of monitoring. This can mean that jobs are being throttled at the system level, or that some task dependencies have not been met. We will continue to monitor this experiment, and print a warning that lists the jobs that have not been submitted.
+
 * ``RUNNING``
    One or more jobs are at status RUNNING, and the rest are either status QUEUED, SUBMITTED, or SUCCEEDED. This is a normal state; we will continue to monitor this experiment.
 
