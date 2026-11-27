@@ -327,13 +327,11 @@ Forecast Parameters
 Pre-Existing Directory Parameter
 ------------------------------------
 ``PREEXISTING_DIR_METHOD``: (Default: "quit")
-   This variable determines how to deal with pre-existing directories (resulting from previous calls to the experiment generation script using the same experiment name [``EXPT_SUBDIR``] as the current experiment). This variable must be set to one of four valid values: ``"delete"``, ``"rename"``, ``"reuse"``, or ``"quit"``.  The behavior for each of these values is as follows:
+   This variable determines how to deal with pre-existing directories (resulting from previous calls to the experiment generation script using the same experiment name [``EXPT_SUBDIR``] as the current experiment). This variable must be set to one of three valid values: ``"delete"``, ``"rename"``, or ``"quit"``.  The behavior for each of these values is as follows:
 
    * **"delete":** The preexisting directory is deleted and a new directory (having the same name as the original preexisting directory) is created.
 
    * **"rename":** The preexisting directory is renamed and a new directory (having the same name as the original pre-existing directory) is created. The new name of the preexisting directory consists of its original name and the suffix "_old_YYYYMMDD_HHmmss", where ``YYYYMMDD_HHmmss`` is the full date and time of the rename
-
-   * **"reuse":** This method will keep the preexisting directory intact. However, when the preexisting directory is ``$EXPDIR``, this method will save all old files to a subdirectory ``oldxxx/`` and then populate new files into the ``$EXPDIR`` directory. This is useful to keep ongoing runs uninterrupted; rocotoco ``*db`` files and previous cycles will stay and hence there is no need to manually copy or move ``*db`` files and previous cycles back, and there is no need to manually restart related rocoto tasks failed during the workflow generation process. This method may be best suited for incremental system reuses.
 
    * **"quit":** The preexisting directory is left unchanged, but execution of the currently running script is terminated. In this case, the preexisting directory must be dealt with manually before rerunning the script.
 

@@ -44,7 +44,7 @@ class Testing(unittest.TestCase):
         util.find_pattern_in_str(pattern, content)
         self.assertEqual(("lsm_ruc",), match)
 
-    def test_check_for_preexist_dir_file(self):
+    def test_handle_preexisting_path(self):
         """ Test that when an existing directory should be renamed, it
         still exists and that a new directory is made"""
 
@@ -57,9 +57,53 @@ class Testing(unittest.TestCase):
             # exist.
             existing_dir = os.path.join(tmp_dir, "dir")
             os.makedirs(existing_dir)
-            util.check_for_preexist_dir_file(existing_dir, "rename")
+            util.handle_preexisting_path(existing_dir, "rename")
             dirs = glob.glob(f"{existing_dir}_*")
             self.assertEqual(len(dirs), 1)
+
+    def test_handle_preexisting_path_invalid_method(self):
+        """ Test that an invalid method, e.g. the removed "reuse", raises a
+        ValueError and leaves an existing directory untouched"""
+
+        # Make a scratch directory that is deleted, with its contents, when
+        # the "with" block ends, even if the test fails.  As in the rename
+        # test above, it goes in the current directory (the top-level
+        # directory of the repo, when the tests are run as the docstring at
+        # the top of this file says), and its name starts with
+        # "preexist_space" followed by random characters.  Its path is saved
+        # in tmp_dir as a string.
+        with tempfile.TemporaryDirectory(
+            dir=os.path.abspath("."),
+            prefix="preexist_space",
+            ) as tmp_dir:
+
+            # Create a directory that stands in for an existing EXPTDIR.  The
+            # function acts on a path only if it exists, so this is the case
+            # in which an invalid method must stop it before it acts.
+            existing_dir = os.path.join(tmp_dir, "dir")
+            os.makedirs(existing_dir)
+
+            # Try the removed "reuse" method and an arbitrary invalid value.
+            for method in ("reuse", "not_a_method"):
+                # The "with self.subTest(method=method)" block causes each
+                # pass through the for-loop to be reported separately.  Thus,
+                # if "reuse" failed, the report would say which method= value
+                # failed, and the loop would still go on to try "not_a_method".
+                # Without it, the first failure would end the test, and the
+                # message wouldn't say which value caused it.
+                with self.subTest(method=method):
+                    # Called with only the exception type and a regex,
+                    # assertRaisesRegex() returns a context manager.  The
+                    # code inside the "with" block must raise a ValueError
+                    # whose message matches the regex "Valid methods are".
+                    # If it raises nothing, or a different exception, or a
+                    # ValueError with another message, the test fails.
+                    with self.assertRaisesRegex(ValueError, "Valid methods are"):
+                        util.handle_preexisting_path(existing_dir, method)
+                    # The existing directory must be untouched: not deleted,
+                    # renamed or copied.  This check is outside the
+                    # assertRaisesRegex block because the exception ends it.
+                    self.assertEqual(os.listdir(tmp_dir), ["dir"])
 
     def test_check_var_valid_value(self):
         """ Test that a string is available in a given list. """

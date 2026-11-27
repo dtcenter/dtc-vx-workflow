@@ -9,14 +9,6 @@ python\_utils package
 Submodules
 ----------
 
-python\_utils.check\_for\_preexist\_dir\_file module
-----------------------------------------------------
-
-.. automodule:: python_utils.check_for_preexist_dir_file
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 python\_utils.check\_var\_valid\_value module
 ---------------------------------------------
 
@@ -61,6 +53,14 @@ python\_utils.fv3write\_parms\_lambert module
 ---------------------------------------------
 
 .. automodule:: python_utils.fv3write_parms_lambert
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+python\_utils.handle\_preexisting\_path module
+----------------------------------------------
+
+.. automodule:: python_utils.handle_preexisting_path
    :members:
    :undoc-members:
    :show-inheritance:
