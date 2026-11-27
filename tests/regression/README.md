@@ -176,6 +176,13 @@ python3 ./tests/regression/run_diff.py \
   --regression_dir ${regression_dir}
 ```
 
+`setup_conda.sh vx_diff` creates the `vx_diff` conda environment from
+`tests/regression/environment.yml` the first time it's run. If `vx_diff` already exists,
+the script asks whether to update it from `environment.yml`. Answer `y` if
+`environment.yml` has changed since you built the environment (for example, after pulling
+new commits), or if `run_diff.py` fails with `ModuleNotFoundError`. Otherwise, there is
+no need to update the environment, so answer `n` to keep it as it is.
+
 ### Diffing a Subset of Tests
 
 The `--tests` argument can be provided to the `run_diff.py` script

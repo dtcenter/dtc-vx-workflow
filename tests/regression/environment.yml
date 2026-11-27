@@ -5,3 +5,4 @@ dependencies:
   - pandas~=3.0.3
   - netcdf4~=1.7.4
   - pillow~=12.2.0
+  - pyyaml~=6.0
