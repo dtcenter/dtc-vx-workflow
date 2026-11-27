@@ -17,7 +17,7 @@ def check_for_preexist_dir_file(path, method):
 
     Args:
         path   (str): Path to directory
-        method (str): Could be any of [ ``'delete'``, ``'reuse'``, ``'rename'``, ``'quit'`` ]
+        method (str): Could be any of [ ``'delete'``, ``'rename'``, ``'quit'`` ]
     Returns:
         None
     Raises:
@@ -25,13 +25,15 @@ def check_for_preexist_dir_file(path, method):
         FileExistsError: If the specified directory or file already exists
     """
 
+    valid_methods = ["delete", "rename", "quit"]
     try:
-        check_var_valid_value(method, ["delete", "reuse", "rename", "quit"])
+        check_var_valid_value(method, valid_methods)
     except ValueError:
         errmsg = dedent(
             f"""
             Invalid method for dealing with pre-existing directory specified
             method = {method}
+            Valid methods are: {valid_methods}
             """
         )
         raise ValueError(errmsg) from None
@@ -39,7 +41,7 @@ def check_for_preexist_dir_file(path, method):
     if path.exists():
         if method == "delete":
             shutil.rmtree(path)
-        elif method in ("rename", "reuse"):
+        elif method == "rename":
             now = datetime.now()
             suffix = now.strftime("_old_%Y%m%d_%H%M%S")
             new_path = path.parent / (path.name + suffix)
@@ -50,10 +52,7 @@ def check_for_preexist_dir_file(path, method):
                 Moving (renaming) preexisting directory or file to:
                     {new_path}"""
             )
-            if method == "rename":
-                path.rename(new_path)
-            else:
-                shutil.copytree(path, new_path, symlinks=True)
+            path.rename(new_path)
         else:
             raise FileExistsError(
                 dedent(
