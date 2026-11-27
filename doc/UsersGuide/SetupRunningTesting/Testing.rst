@@ -186,8 +186,8 @@ The progress of ``monitor_jobs()`` is tracked in a file ``WE2E_tests_{datetime}.
    get_obs_ccpa_202105120000                 SUCCEEDED          21.0           0.01
    get_obs_mrms_202105120000                 SUCCEEDED          20.0           0.01
    get_obs_ndas_202105120000                 SUCCEEDED          20.0           0.01
-   check_post_output_mem001_202105121200     SUCCEEDED          23.0           0.01
-   check_post_output_mem002_202105121200     SUCCEEDED          23.0           0.01
+   check_fcst_files_mem001_202105121200      SUCCEEDED          23.0           0.01
+   check_fcst_files_mem002_202105121200      SUCCEEDED          23.0           0.01
    run_MET_Pb2nc_obs_NDAS_202105120000       SUCCEEDED          32.0           0.01
    run_MET_PcpCombine_APCP01h_obs_CCPA_2021  SUCCEEDED          15.0           0.00
    run_MET_PcpCombine_APCP03h_obs_CCPA_2021  SUCCEEDED          11.0           0.00

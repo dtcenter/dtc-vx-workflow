@@ -640,7 +640,7 @@ The VX (meta)tasks in the ``verify_*.yaml`` taskgroup files are described in det
 <VXWorkflowTasksTable>`.  They are organized as follows.
 
 The (meta)tasks in ``verify_pre.yaml`` each
-operate on a single observation (obs) type (except for ``metatask_check_post_output_all_mems``, which operates on the
+operate on a single observation (obs) type (except for ``metatask_check_fcst_files_all_mems``, which operates on the
 forecast(s) and checks for the presence of all necessary forecast files), while the ones in ``verify_det.yaml``
 and ``verify_ens.yaml`` operate on one or more verification field groups.  A verification field group
 represents one or more meteorologial fields that are operated on (e.g. verified) together in a single
@@ -1078,10 +1078,10 @@ The METplus verification tasks and metatasks that are included by default in ``v
        PM 2.5 and PM10. This metatask is included in the workflow only if ``'PM25'`` or ``'PM10'`` is included in
        ``VX_FIELD_GROUPS``.
 
-   * - :bolditalic:`metatask_check_post_output_all_mems` (``preprocessing.yaml``)
+   * - :bolditalic:`metatask_check_fcst_files_all_mems` (``preprocessing.yaml``)
      - Set of tasks that ensure that the post-processed forecast files required for verification exist in
        the locations specified by ``VX_FCST_INPUT_BASEDIR``, ``FCST_SUBDIR_TEMPLATE``, and ``FCST_FN_TEMPLATE``.
-       In Rocoto, the tasks under this metatask are named ``check_post_output_mem{mem_indx}``, where ``{mem_indx}``
+       In Rocoto, the tasks under this metatask are named ``check_fcst_files_mem{mem_indx}``, where ``{mem_indx}``
        is the index of the ensemble forecast member.  This takes on the values ``001``, ``002``, ... for an
        ensemble of forecasts or just ``000`` for a single deterministic forecast.  This metatask is included
        in the workflow if at least one other verification task or metatask is included.

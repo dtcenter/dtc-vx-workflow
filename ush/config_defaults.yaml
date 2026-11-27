@@ -707,7 +707,7 @@ verification_resources:
         walltime: 00:30:00
       obs:
         walltime: 00:10:00
-    check_post_output:
+    check_fcst_files:
       walltime: 00:30:00
 
 #----------------------------
@@ -1205,9 +1205,9 @@ verification:
   #
   # NUM_MISSING_FCST_FILES_MAX:
   # For verification tasks that need forecast data, this specifies the
-  # maximum number of post-processed forecast files that may be missing. 
-  # If more than this number are missing, the verification task will exit
-  # with an error.
+  # maximum number of forecast files that may be missing.  If more than
+  # this number are missing, the verification task will exit with an
+  # error.
   #
   NUM_MISSING_FCST_FILES_MAX: 0
 

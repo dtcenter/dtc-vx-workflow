@@ -123,12 +123,12 @@ metatask_GridStat_REFC_RETOP_all_mems:
               "{{ workflow.WFLOW_FLAG_FILES_DIR }}"
               "get_obs_mrms_*_complete.txt"
               {{ workflow.OBS_DAYS_ALL_CYCLES_INST|join(" ") }}'
-          datadep_post_files_exist:
+          datadep_fcst_files_exist:
             attrs:
               age: 00:00:00:30
             value:
               cyclestr:
-                value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+                value: '{{ workflow.WFLOW_FLAG_FILES_DIR }}/fcst_files_exist_mem#mem#_@Y@m@d@H.txt'
 
 metatask_PointStat:
   var:
@@ -166,12 +166,12 @@ metatask_PointStat:
               "{{ workflow.WFLOW_FLAG_FILES_DIR }}"
               "#METAOBTYPE#_nc_obs_*_ready.txt"
               {{ workflow.OBS_DAYS_ALL_CYCLES_INST|join(" ") }}'
-          datadep_post_files_exist:
+          datadep_fcst_files_exist:
             attrs:
               age: 00:00:00:30
             value:
               cyclestr:
-                value: '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+                value: '{{ workflow.WFLOW_FLAG_FILES_DIR }}/fcst_files_exist_mem#mem#_@Y@m@d@H.txt'
           or:
             not:
               taskvalid:
