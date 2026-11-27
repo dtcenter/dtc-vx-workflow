@@ -11,7 +11,7 @@ from textwrap import dedent
 from .check_var_valid_value import check_var_valid_value
 
 
-def check_for_preexist_dir_file(path, method):
+def handle_preexisting_path(path, method):
     """Checks for a preexisting directory or file and, if present, deals with it
     according to the specified method
 

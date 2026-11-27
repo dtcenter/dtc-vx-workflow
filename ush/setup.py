@@ -21,10 +21,10 @@ from uwtools.api.config import get_yaml_config, validate
 from uwtools.api.template import render
 
 from python_utils import (
-    check_for_preexist_dir_file,
     check_vx_mask_settings,
     find_duplicate_yaml_keys,
     find_unknown_config_keys,
+    handle_preexisting_path,
 )
 
 from set_cycle_and_obs_timeinfo import (
@@ -442,7 +442,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     exptdir = workflow_config["EXPTDIR"]
     preexisting_dir_method = workflow_config["PREEXISTING_DIR_METHOD"]
     try:
-        check_for_preexist_dir_file(exptdir, preexisting_dir_method)
+        handle_preexisting_path(exptdir, preexisting_dir_method)
     except ValueError:
         logger.exception(
             f"""

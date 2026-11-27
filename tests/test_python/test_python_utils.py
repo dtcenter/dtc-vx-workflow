@@ -44,7 +44,7 @@ class Testing(unittest.TestCase):
         util.find_pattern_in_str(pattern, content)
         self.assertEqual(("lsm_ruc",), match)
 
-    def test_check_for_preexist_dir_file(self):
+    def test_handle_preexisting_path(self):
         """ Test that when an existing directory should be renamed, it
         still exists and that a new directory is made"""
 
@@ -57,11 +57,11 @@ class Testing(unittest.TestCase):
             # exist.
             existing_dir = os.path.join(tmp_dir, "dir")
             os.makedirs(existing_dir)
-            util.check_for_preexist_dir_file(existing_dir, "rename")
+            util.handle_preexisting_path(existing_dir, "rename")
             dirs = glob.glob(f"{existing_dir}_*")
             self.assertEqual(len(dirs), 1)
 
-    def test_check_for_preexist_dir_file_invalid_method(self):
+    def test_handle_preexisting_path_invalid_method(self):
         """ Test that an invalid method, e.g. the removed "reuse", raises a
         ValueError and leaves an existing directory untouched"""
 
@@ -99,7 +99,7 @@ class Testing(unittest.TestCase):
                     # If it raises nothing, or a different exception, or a
                     # ValueError with another message, the test fails.
                     with self.assertRaisesRegex(ValueError, "Valid methods are"):
-                        util.check_for_preexist_dir_file(existing_dir, method)
+                        util.handle_preexisting_path(existing_dir, method)
                     # The existing directory must be untouched: not deleted,
                     # renamed or copied.  This check is outside the
                     # assertRaisesRegex block because the exception ends it.
