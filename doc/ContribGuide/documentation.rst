@@ -13,17 +13,17 @@ Locally Building and Previewing Documentation
 
 To locally build the docs:
 
-#. Install ``sphinx``, ``sphinx-rtd-theme``, and ``sphinxcontrib-bibtex`` on your system if they are not already installed. 
-#. From the root of your clone: ``cd doc``
-#. Build the docs: ``make doc``
+#. From the top-level directory of your clone, create (the first time) and activate the ``vx_docs`` conda environment, which has the packages needed to build the documentation (see :ref:`doc-dependencies`): ``source setup_conda.sh vx_docs``
+#. ``cd doc``
+#. Build the docs: ``make html``
 
-The ``make doc`` command will build the documentation under ``doc/build/html``, after which you can preview them in your web browser at the URL:
+The ``make html`` command builds the documentation under ``doc/build/html`` and writes any errors and warnings to ``doc/build/warnings.log``. The documentation can then be previewed in a web browser at the URL:
 
 .. code-block:: text
 
    file://<filesystem-path-to-your-clone>/doc/build/html/index.html
 
-Rerun ``make doc`` and refresh your browser after making and saving changes.
+Rerun ``make html`` and refresh your browser after making and saving changes. The ``make doc`` command does more: it first removes the previous build, then checks the links in the documentation (which needs internet access), then builds the HTML.
 
 .. _doc-dependencies:
 
@@ -44,7 +44,7 @@ The Python packages needed to build the documentation are listed in two files in
      - The packages that the documentation uses itself, i.e., Sphinx and the theme and extensions that ``doc/conf.py`` loads, with loose version limits (e.g., ``sphinx_rtd_theme>=3.0.0``). It is used only to regenerate ``requirements.txt``.
    * - ``requirements.txt``
      - ``pip-compile``
-     - Every package needed, including those needed only by the packages in ``requirements.in`` (for each package, a ``# via`` comment says which package needs it), each pinned to an exact version (e.g., ``docutils==0.20.1``). Read the Docs installs from this file.
+     - Every package needed, including those needed only by the packages in ``requirements.in`` (for each package, a ``# via`` comment says which package needs it), each pinned to an exact version (e.g., ``docutils==0.20.1``). Read the Docs (as set in ``.readthedocs.yaml`` in the top-level directory of the repo) and the ``vx_docs`` conda environment install from this file.
 
 Both files are kept in the repository because each holds something the other doesn't:
 
@@ -108,10 +108,7 @@ Please follow these guidelines when contributing to the documentation:
 Troubleshooting Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In the SRW App documentation Makefile (``ufs-srweather-app/doc/Makefile``), the ``-W`` option causes documentation builds to fail when there are errors or warnings in the build. 
-This ensures that the documentation remains up-to-date and notifies developers of any new issues (like failing links). However, the build will fail when it hits the first error without showing subsequent errors. 
-When troubleshooting, it can be useful to see all warnings and errors. 
-To see all warnings and errors, comment out the ``-W`` flag in ``SPHINXOPTS`` in the Makefile and build the documentation by running ``make doc`` from the ``doc`` directory. 
+The documentation Makefile (``doc/Makefile``) runs Sphinx with the ``--keep-going`` option, so a build continues past errors and reports all errors and warnings, both on the screen and in ``doc/build/warnings.log``. A build with warnings still succeeds, so check that file for new warnings before opening a PR.
 
 Technical Documentation Guidelines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -136,17 +133,17 @@ Each Python script should include:
    Python does not have truly private methods, but methods that start with an underscore are the closest equivalent. In the SRW App, the underscore signals that this method is only accessed by the script within which it is called. 
 
 After updating the docstrings, developers need to update the corresponding RST files. 
-To do this successfully, developers must have *sphinx>=7.4.0* installed on their system. To update the RST files, run: 
+To do this successfully, developers need Sphinx 7.4.0 or later, for the ``--remove-old`` option used below; the ``vx_docs`` environment has a newer one (its exact version is in ``doc/requirements.txt``). To update the RST files, run the following from the top-level directory of your clone:
 
 .. code-block:: console
 
-   cd ufs-srweather-app/doc/TechDoc
+   cd doc/TechDocs
    sphinx-apidoc -fM --remove-old -o ./ush ../../ush
    sphinx-apidoc -fM --remove-old -o ./tests/WE2E ../../tests/WE2E
 
 .. note:: 
 
-   Developers who do not have *sphinx>=7.4.0* installed may issue the following commands from ``ufs-srweather-app/doc/TechDoc`` before running the sphinx-apidoc commands above: 
+   Developers who do not have *sphinx>=7.4.0* installed may issue the following commands from ``doc/TechDocs`` before running the sphinx-apidoc commands above:
 
    .. code-block:: console
 

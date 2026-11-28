@@ -1,39 +1,9 @@
-Steps to build and use the Sphinx documentation tool:
+To build the documentation, from the top-level directory of the repository:
 
-1) Get Sphinx, sphinxcontrib-bibtex, and the RTD theme installed on your desktop from
-    http://www.sphinx-doc.org/en/master/usage/installation.html
-    https://sphinxcontrib-bibtex.readthedocs.io/en/latest/quickstart.html#installation
-    https://pypi.org/project/sphinx-rtd-theme/
-    
-    For example: 
-    pip install sphinx
-    pip install sphinxcontrib-bibtex
-    pip install sphinx-rtd-theme
-    pip install sphinxcontrib.autoyaml
+    source setup_conda.sh vx_docs
+    cd doc
+    make html
 
-    One approach that has worked to resolve "Module Not Found" errors for users with MacPorts package manager: 
-    $ sudo port install py-six  # may not be necessary
-    $ sudo port install py310-sphinxcontrib-bibtex
-    $ sudo port select --set sphinx py310-sphinx
-    $ sudo port install py310-sphinx_rtd_theme
-
-    py310 can be replaced with the user's version of Python (e.g., py39) 
-
-    If your system supports conda, you can instead create and activate a new conda environment from the provided requirements.txt file:
-
-    $ conda create --name vxdocs --file requirements.txt
-    $ conda activate vxdocs
-
-To build html:
-
-$ cd ufs-srweather-app/doc
-$ make clean && sphinx-build -b html . build
-
-The "make html" command can often be used in place of the previous command.
-"make doc" will both build the html and run the linkchecker. 
-
-Sphinx uses Latex to export the documentation as a PDF file.  To build pdf:
-
-make latexpdf
-
-It will generate a PDF file in ./build/latex/<sphinx-project-name>.pdf
+The result is in doc/build/html/index.html.  For details, see the
+"Locally Building and Previewing Documentation" section of the
+Contributor's Guide (doc/ContribGuide/documentation.rst).
