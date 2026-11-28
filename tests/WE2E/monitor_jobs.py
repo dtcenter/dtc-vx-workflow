@@ -10,32 +10,39 @@ from datetime import datetime
 sys.path.append("../../ush")
 from python_utils import check_python_version, load_config_file
 
-from utils import calculate_core_hours, write_monitor_file, update_expt_status,\
+from utils import calculate_core_hours, write_status_file, update_expt_status,\
                   update_expt_status_parallel, print_WE2E_summary, DEFAULT_DELAY
 
-def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
+def monitor_jobs(expts_dict: dict, status_file: str = '', procs: int = 1,
                  mode: str = 'continuous', delay: int = DEFAULT_DELAY, debug: bool = False) -> str:
     """Monitors and runs jobs for the specified experiment using Rocoto
 
     Args:
-        expts_dict  (dict): A dictionary containing the information needed to run one or more experiments. See example file ``monitor_jobs.yaml``.
-        monitor_file (str): [optional] Name of the file used to monitor experiment results. Default is ``monitor_jobs.yaml``. 
+        expts_dict  (dict): A dictionary containing the information needed to run one or more
+                            experiments. See example file ``WE2E_status.example.yaml``.
+        status_file  (str): [optional] Name of the WE2E status file to write and update. Default is
+                            ``WE2E_status_YYYYMMDDHHmmSS.yaml``, with the time stamp indicating
+                            the time at which monitoring started.
         procs        (int): [optional] The number of parallel processes to run
-        mode         (str): [optional] Mode of job monitoring. Options: (1) ``'continuous'`` (default): monitor jobs continuously until complete or (2) ``'advance'``: increment jobs once, then quit.
-        delay        (int): [optional] Delay in seconds between calls to rocotorun. Very large experiments may result in system slowdowns if this value is too low.
+        mode         (str): [optional] Mode of job monitoring. Options: (1) ``'continuous'``
+                            (default): monitor jobs continuously until complete or
+                            (2) ``'advance'``: increment jobs once, then quit.
+        delay        (int): [optional] Delay in seconds between calls to rocotorun. Very large
+                            experiments may result in system slowdowns if this value is too low.
         debug       (bool): [optional] Enable extra output for debugging
 
     Returns:
-        monitor_file: The name of the file used for job monitoring (when script is finished, this contains results/summary)
+        status_file: The name of the WE2E status file (when the script is finished, it contains the
+                     final status of each experiment)
     """
     monitor_start = datetime.now()
-    # Write monitor_file, which will contain information on each monitored experiment
+    # Write the WE2E status file, which will contain information on each monitored experiment
     monitor_start_string = monitor_start.strftime("%Y%m%d%H%M%S")
-    if not monitor_file:
-        monitor_file = f'WE2E_tests_{monitor_start_string}.yaml'
-    logging.info(f"Writing information for all experiments to {monitor_file}")
+    if not status_file:
+        status_file = f'WE2E_status_{monitor_start_string}.yaml'
+    logging.info(f"Writing information for all experiments to {status_file}")
 
-    write_monitor_file(monitor_file,expts_dict)
+    write_status_file(status_file,expts_dict)
 
     # Perform initial setup for each experiment
     logging.info("Checking tests available for monitoring...")
@@ -46,7 +53,9 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
     dirlist = []
     for expt in expts_dict:
          if expts_dict[expt]['expt_dir'] in dirlist:
-             raise ValueError(f"Found duplicate experiment directory \n    {expts_dict[expt]['expt_dir']}\nin experiments yaml file {monitor_file}; experiments can not share a working directory!")
+             raise ValueError(f"Found duplicate experiment directory \n    "
+                              f"{expts_dict[expt]['expt_dir']}\nin WE2E status file "
+                              f"{status_file}; experiments can not share a working directory!")
          else:
              dirlist.append(expts_dict[expt]['expt_dir'])
 
@@ -58,11 +67,11 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
             logging.info(f"Starting experiment {expt} running")
             expts_dict[expt] = update_expt_status(expts_dict[expt], expt, True, delay, debug)
 
-    write_monitor_file(monitor_file,expts_dict)
+    write_status_file(status_file,expts_dict)
 
     if mode != 'continuous':
         logging.debug("All experiments have been updated")
-        return monitor_file
+        return status_file
     else:
         logging.debug("Continuous mode: will monitor jobs until all are complete")
 
@@ -112,7 +121,7 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
                 continue
             logging.debug(f'Experiment {expt} status is {expts_dict[expt]["status"]}')
 
-        write_monitor_file(monitor_file,expts_dict)
+        write_status_file(status_file,expts_dict)
         endtime = datetime.now()
         total_walltime = endtime - monitor_start
 
@@ -122,14 +131,14 @@ def monitor_jobs(expts_dict: dict, monitor_file: str = '', procs: int = 1,
     logging.info(f'All {len(expts_dict)} experiments finished')
     logging.info('Calculating core-hour usage and printing final summary')
 
-    # Calculate core hours and update yaml
+    # Calculate core hours and update the status file
     expts_dict = calculate_core_hours(expts_dict)
-    write_monitor_file(monitor_file,expts_dict)
+    write_status_file(status_file,expts_dict)
 
     #Call function to print summary
     print_WE2E_summary(expts_dict, debug)
 
-    return monitor_file
+    return status_file
 
 
 def setup_logging(logfile: str = "log.run_WE2E_tests", debug: bool = False) -> None:
@@ -174,8 +183,8 @@ if __name__ == "__main__":
                                                  "configuration file\n")
 
     parser.add_argument('-y', '--yaml_file', type=str,
-                        help='YAML-format file specifying the information of jobs to be run; '\
-                             'for an example file, see monitor_jobs.yaml', required=True)
+                        help='WE2E status file (yaml format) of the jobs to be run; '\
+                             'for an example file, see WE2E_status.example.yaml', required=True)
     parser.add_argument('--delay', type=int,
                         help='Pause this number of seconds between calls to rocotorun',
                         default=DEFAULT_DELAY)
@@ -204,7 +213,7 @@ if __name__ == "__main__":
     #Call main function
 
     try:
-        monitor_jobs(expts_dict=expts_dict,monitor_file=args.yaml_file,procs=args.procs,
+        monitor_jobs(expts_dict=expts_dict,status_file=args.yaml_file,procs=args.procs,
                      mode=args.mode,delay=args.delay,debug=args.debug)
     except KeyboardInterrupt:
         logging.info("\n\nUser interrupted monitor script; to resume monitoring jobs run:\n")

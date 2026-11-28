@@ -136,8 +136,8 @@ For each specified test, ``run_we2e_tests.py`` will generate a new experiment di
    /user/home/expt_dirs/HAFS-A
    
    All experiments have been generated;
-   Experiment file WE2E_tests_20260403181012.yaml created
-   Writing information for all experiments to WE2E_tests_20260403181012.yaml
+   WE2E status file WE2E_status_20260403181012.yaml created
+   Writing information for all experiments to WE2E_status_20260403181012.yaml
    Checking tests available for monitoring...
    Starting experiment MET_ensemble_verification_20260403181001 running
    Starting experiment HAFS-A_20260403181012 running
@@ -163,7 +163,7 @@ For each specified test, ``run_we2e_tests.py`` will generate a new experiment di
 
 As the script runs, detailed debug output is written to the file ``log.run_WE2E_tests``. This can be useful for debugging if something goes wrong. Adding the ``-d`` flag will print all this output to the screen while the tests run, but this can get quite cluttered on the command line.
 
-The progress of ``monitor_jobs()`` is tracked in a file ``WE2E_tests_{datetime}.yaml``, where {datetime} is the date and time (in ``YYYYMMDDHHmmSS`` format) that the file was created. The final job summary is written by the ``print_WE2E_summary()``; this prints a short summary of experiments to the screen and prints a more detailed summary of all jobs for all experiments in the indicated ``.txt`` file.
+The progress of ``monitor_jobs()`` is tracked in a WE2E status file, ``WE2E_status_{datetime}.yaml``, where {datetime} is the date and time (in ``YYYYMMDDHHmmSS`` format) when ``run_we2e_tests.py`` was launched. ``monitor_jobs()`` updates this one file as the jobs run. For an example of its contents, see ``tests/WE2E/WE2E_status.example.yaml``. The final job summary is written by the ``print_WE2E_summary()``; this prints a short summary of experiments to the screen and prints a more detailed summary of all jobs for all experiments in the indicated ``.txt`` file.
 
 .. code-block:: console
 
@@ -263,7 +263,7 @@ One might have noticed the line during the experiment run that reads "Use ctrl-c
 
    User interrupted monitor script; to resume monitoring jobs run:
 
-   ./monitor_jobs.py -y=WE2E_tests_20260331125827.yaml
+   ./monitor_jobs.py -y=WE2E_status_20260331125827.yaml
 
 Checking Test Status and Summary
 ----------------------------------
@@ -288,6 +288,28 @@ We use the ``-e`` option to point to the experiment directory and get the curren
    
    Detailed summary written to /user/home/expt_dirs/test1/WE2E_summary_20260404200815.txt
 
+**How to tell when a set of tests is done:** By default (``--launch python``), ``run_we2e_tests.py`` returns only when all the experiments have finished, and it writes the summary file ``WE2E_summary_{datetime}.txt`` at that point. So the summary file shows that the set of tests is done. With ``--launch cron``, ``run_we2e_tests.py`` exits as soon as the experiments are generated, and the status file isn't updated after that: every experiment in it stays at ``CREATED``. In that case, an experiment is done when its line disappears from the crontab (see ``crontab -l``) and its ``log.launch_vx_wflow`` file ends with ``Workflow status:  SUCCESS`` or ``Workflow status:  FAILURE``. When all of them are done, run ``WE2E_summary.py -e`` as above to write a status file and a summary file for the set.
+
+**Running in the background:** ``run_we2e_tests.py`` keeps monitoring the jobs, and updating the status file, if it is run in the background. To keep it running after logging out, use ``nohup`` (or run it inside ``screen`` or ``tmux``), and send its output to a file:
+
+.. code-block:: console
+
+   nohup ./run_we2e_tests.py -t my_tests.txt -m hera -a gsd-fv3 > run_we2e_tests.out 2>&1 &
+
+Ctrl-c doesn't reach a process in the background, so stop it with ``kill`` if needed. While it is stopped, no new jobs are submitted, though jobs already in the batch queue keep running. To resume job submissions, run ``monitor_jobs.py -y=<status file>``, as described above. It continues from where the stopped run left off: it submits the remaining jobs and keeps updating the same status file until all the experiments have finished. It too can be run in the background with ``nohup``:
+
+.. code-block:: console
+
+   nohup ./monitor_jobs.py -y=WE2E_status_20260403181012.yaml > monitor_jobs.out 2>&1 &
+
+While either script runs, the status file shows how far each experiment has got. Each experiment's ``status`` is one of the values described below, and the experiment has finished when its status is ``COMPLETE``, ``DEAD`` or ``ERROR``. The following command counts the experiments in each status. In the status file, the ``status`` lines of the experiments are indented by two spaces, and those of their tasks by four.
+
+.. code-block:: console
+
+   grep '^  status:' WE2E_status_20260403181012.yaml | sort | uniq -c
+
+The set of tests is done when the process has exited, which is also when the summary file is written.
+
 As with all python scripts in the verification workflow, additional options for this script can be viewed by calling with the ``-h`` argument.
 
 The "Status" as specified by the above summary is explained below:
@@ -306,6 +328,12 @@ The "Status" as specified by the above summary is explained below:
 
 * ``ERROR``
    Could not read the rocoto database file. This will require manual intervention to solve, so we will no longer monitor this experiment.
+
+* ``STALLED``
+   All submitted jobs are status SUCCEEDED, but one or more jobs have not been submitted yet. This is usually a normal state; we will continue to monitor this experiment. If it lasts for another cycle of monitoring, the status becomes STUCK.
+
+* ``STUCK``
+   All submitted jobs are status SUCCEEDED, but one or more jobs have still not been submitted after more than one cycle of monitoring. This can mean that jobs are being throttled at the system level, or that some task dependencies have not been met. We will continue to monitor this experiment, and print a warning that lists the jobs that have not been submitted.
 
 * ``RUNNING``
    One or more jobs are at status RUNNING, and the rest are either status QUEUED, SUBMITTED, or SUCCEEDED. This is a normal state; we will continue to monitor this experiment.
