@@ -19,12 +19,18 @@ jobs:
         run: sudo apt-get update --yes && sudo apt-get install --yes plantuml
       - name: Checkout repository
         uses: actions/checkout@v4
+      # Use the same Python version as Read the Docs (.readthedocs.yaml).
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Install the pinned versions in doc/requirements.txt, which Read the
+      # Docs also uses, so that both build the documentation the same way.
       - name: Setup Sphinx build
         run: |
-          pip install Sphinx==7.4.7
-          pip install sphinx-rtd-theme
-          pip install sphinxcontrib-bibtex
-          pip install sphinxcontrib-plantuml
+          python -m pip install -r doc/requirements.txt
+          python --version
+          sphinx-build --version
 
 #      - name: Check tech docs
 #        run: .github/scripts/check_tech_doc.sh
