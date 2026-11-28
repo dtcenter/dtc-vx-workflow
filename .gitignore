@@ -1,6 +1,7 @@
 conda/
 sorc/*/
 tests/WE2E/WE2E_status_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].yaml
+tests/WE2E/.WE2E_status_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].yaml.tmp
 tests/WE2E/*.txt
 tests/WE2E/*.log
 tests/WE2E/log.*

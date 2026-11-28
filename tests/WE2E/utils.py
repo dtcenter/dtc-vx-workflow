@@ -206,6 +206,11 @@ def calculate_core_hours(expts_dict: dict) -> dict:
 def write_status_file(status_file: str, expts_dict: dict):
     """Writes the WE2E status file
 
+    The contents are first written to a temporary file in the same directory, which then
+    replaces the status file in one step.  So anyone reading the status file sees either the
+    previous version or the new one, never a partly written file, and an interruption leaves
+    the previous version in place.
+
     Args:
         status_file   (str): Name of the WE2E status file
         expts_dict   (dict): Experiments being monitored
@@ -215,12 +220,17 @@ def write_status_file(status_file: str, expts_dict: dict):
         KeyboardInterrupt: If a user attempts to disrupt program execution (e.g., with ``Ctrl+C``)
                            while program is writing information to ``status_file``.
     """
+    tmp_file = os.path.join(os.path.dirname(status_file),
+                            f".{os.path.basename(status_file)}.tmp")
     try:
-        with open(status_file,"w", encoding="utf-8") as f:
+        with open(tmp_file,"w", encoding="utf-8") as f:
             f.write("### WARNING ###\n")
             f.write("### THIS FILE IS AUTO_GENERATED AND REGULARLY OVER-WRITTEN BY WORKFLOW SCRIPTS\n")
             f.write("### EDITS MAY RESULT IN MISBEHAVIOR OF EXPERIMENTS RUNNING\n")
             f.writelines(cfg_to_yaml_str(expts_dict))
+        # Replace the status file in one step (os.replace() is atomic within a
+        # directory), so that it is never empty or partly written.
+        os.replace(tmp_file, status_file)
     except KeyboardInterrupt:
         logging.warning("\nRefusing to interrupt during file write; try again\n")
         write_status_file(status_file,expts_dict)
@@ -228,7 +238,7 @@ def write_status_file(status_file: str, expts_dict: dict):
         logging.fatal("\n********************************\n")
         logging.fatal(f"WARNING WARNING WARNING\n")
         logging.fatal(f"Failure occurred while writing WE2E status file {status_file}")
-        logging.fatal("File may be corrupt or invalid for re-run!!")
+        logging.fatal("The status file was not updated; any previous version is unchanged.")
         logging.fatal("\n********************************\n")
         raise
 
