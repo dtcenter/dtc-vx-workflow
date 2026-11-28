@@ -1,4 +1,21 @@
-sphinx=8.0.0
+# The Python packages needed to build the documentation, for pip-compile.
+#
+# This file lists only the packages the documentation uses itself, i.e.,
+# Sphinx and the theme and extensions that doc/conf.py loads, with loose
+# version limits.  requirements.txt, next to it, is generated from it
+# by pip-compile (from the pip-tools package) and pins every package needed,
+# including the dependencies of these, to an exact version.  Read the Docs
+# (as set in .readthedocs.yaml in the top-level directory of the repo) and
+# the vx_docs conda environment install requirements.txt, so that every
+# build uses the same versions.
+#
+# Edit this file, not requirements.txt.  After editing it, regenerate
+# requirements.txt from the doc directory with:
+#
+#   pip-compile requirements.in
+#
+sphinx~=8.0.0
 sphinx_rtd_theme>=3.0.0
 sphinxcontrib-bibtex>=2.6.4
+sphinxcontrib-plantuml
 setuptools<81.0.0

@@ -10,8 +10,8 @@ SCRIPT_DIR=$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Parse arguments.  This script accepts the following (in any order):
 #
-# - The name of the conda environment to activate (vx_workflow or vx_diff;
-#   default: vx_workflow).
+# - The name of the conda environment to activate (vx_workflow, vx_diff or
+#   vx_docs; default: vx_workflow).
 # - The flag --non-interactive.  When sourcing this script from other
 #   scripts that run non-interactively (e.g. from a cron job or a batch
 #   job), this script should also run non-interactively.  With this flag,
@@ -117,11 +117,13 @@ fi
 
 conda activate
 
-# if the environment name argument is vx_diff, create that environment
-# otherwise create vx_workflow
+# If the environment name argument is vx_diff or vx_docs, create that
+# environment; otherwise create vx_workflow.
 ENV_YAML=${SCRIPT_DIR}/environment.yml
 if [ "${ENV_NAME}" == vx_diff ]; then
   ENV_YAML=${SCRIPT_DIR}/tests/regression/environment.yml
+elif [ "${ENV_NAME}" == vx_docs ]; then
+  ENV_YAML=${SCRIPT_DIR}/doc/environment.yml
 else
   ENV_NAME=vx_workflow
 fi

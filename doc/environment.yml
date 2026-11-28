@@ -1,0 +1,16 @@
+# The conda environment for building the documentation, vx_docs.  Create
+# and activate it from the top-level directory of the repository with
+#
+#   source setup_conda.sh vx_docs
+#
+# The documentation packages and their versions are in requirements.txt,
+# which Read the Docs also installs (see requirements.in for how to change
+# them).  Python is the version Read the Docs uses (.readthedocs.yaml).
+name: vx_docs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+    - -r requirements.txt
