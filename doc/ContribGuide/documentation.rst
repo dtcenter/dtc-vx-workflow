@@ -25,6 +25,40 @@ The ``make doc`` command will build the documentation under ``doc/build/html``, 
 
 Rerun ``make doc`` and refresh your browser after making and saving changes.
 
+.. _doc-dependencies:
+
+Documentation Dependencies
+--------------------------
+
+The Python packages needed to build the documentation are listed in two files in the ``doc`` directory:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 50
+
+   * - File
+     - Written by
+     - Contents and use
+   * - ``requirements.in``
+     - Developers
+     - The packages that the documentation uses itself, i.e., Sphinx and the theme and extensions that ``doc/conf.py`` loads, with loose version limits (e.g., ``sphinx_rtd_theme>=3.0.0``). It is used only to regenerate ``requirements.txt``.
+   * - ``requirements.txt``
+     - ``pip-compile``
+     - Every package needed, including those needed only by the packages in ``requirements.in`` (for each package, a ``# via`` comment says which package needs it), each pinned to an exact version (e.g., ``docutils==0.20.1``). Read the Docs installs from this file.
+
+Both files are kept in the repository because each holds something the other doesn't:
+
+* ``requirements.txt`` makes builds reproducible. If builds installed from ``requirements.in`` instead, each build would get the newest versions allowed on that day, so the documentation could change or fail to build without any change in the repository. With ``requirements.txt``, every build of a given commit uses the same versions, until someone deliberately regenerates the file.
+* ``requirements.in`` records which packages the documentation actually needs, as opposed to those that are there only as dependencies of others, and makes upgrading easy: change it, then regenerate ``requirements.txt``, and ``pip-compile`` works out a consistent set of versions.
+
+To change the packages or their versions, edit ``requirements.in``, not ``requirements.txt``: ``pip-compile`` overwrites ``requirements.txt``, so any change made to it by hand is lost the next time it is regenerated. Then regenerate ``requirements.txt`` by running the following from the ``doc`` directory, in an environment that has the ``pip-tools`` package installed:
+
+.. code-block:: console
+
+   pip-compile requirements.in
+
+After regenerating ``requirements.txt`` from ``requirements.in``, include the two in the same commit so that they remain consistent.
+
 Viewing Online Documentation
 ----------------------------
 
