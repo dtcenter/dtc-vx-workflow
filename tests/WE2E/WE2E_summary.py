@@ -14,7 +14,7 @@ except ModuleNotFoundError:
     print("tests/WE2E\n\n")
     raise
 
-from utils import calculate_core_hours, create_expts_dict, print_WE2E_summary, write_monitor_file
+from utils import calculate_core_hours, create_expts_dict, print_WE2E_summary, write_status_file
 
 def setup_logging(debug: bool = False) -> None:
     """
@@ -45,12 +45,12 @@ if __name__ == "__main__":
     #Parse arguments
     parser = argparse.ArgumentParser(
                      description="Script for creating a job summary printed to screen and a file, "\
-                     "either from a yaml experiment file created by monitor_jobs() or from a "\
-                     "provided directory of experiments\n")
+                     "either from a WE2E status file written by run_we2e_tests.py or "\
+                     "monitor_jobs.py, or from a provided directory of experiments\n")
 
     req = parser.add_mutually_exclusive_group(required=True)
     req.add_argument('-y', '--yaml_file', type=str,
-                     help='YAML-format file specifying the information of jobs to be summarized; '\
+                     help='WE2E status file (yaml format) of the jobs to be summarized; '\
                           'for an example file, see WE2E_status.example.yaml')
     req.add_argument('-e', '--expt_dir', type=str,
                      help='The full path of an experiment directory, containing one or more '\
@@ -62,20 +62,20 @@ if __name__ == "__main__":
 
     setup_logging(args.debug)
 
-    yaml_file = args.yaml_file
+    status_file = args.yaml_file
 
     # Set up dictionary of experiments
     if args.expt_dir:
-        yaml_file, expts_dict = create_expts_dict(args.expt_dir)
+        status_file, expts_dict = create_expts_dict(args.expt_dir)
     elif args.yaml_file:
         expts_dict = load_config_file(args.yaml_file)
     else:
         raise ValueError(f'Bad arguments; run {__file__} -h for more information')
 
     if expts_dict:
-        # Calculate core hours and update yaml
+        # Calculate core hours and update the status file
         expts_dict = calculate_core_hours(expts_dict)
-        write_monitor_file(yaml_file,expts_dict)
+        write_status_file(status_file,expts_dict)
 
         #Call function to print summary
         print_WE2E_summary(expts_dict, args.debug)

@@ -19,7 +19,7 @@ from textwrap import dedent
 USH_DIR = Path(__file__).absolute().parents[2] / "ush"
 sys.path.insert(0, str(USH_DIR))
 
-from monitor_jobs import monitor_jobs, write_monitor_file
+from monitor_jobs import monitor_jobs, write_status_file
 from utils import DEFAULT_DELAY
 
 from uwtools.api.config import get_yaml_config
@@ -62,7 +62,7 @@ def run_we2e_tests(args) -> None:
 
     starttime_string = datetime.now().strftime("%Y%m%d%H%M%S")
 
-    monitor_yaml = {}
+    status_dict = {}
     for test in tests_to_run:
         # Starting with test yaml template, fill in user-specified and machine- and
         # test-specific options, then write resulting complete config.yaml
@@ -144,7 +144,7 @@ def run_we2e_tests(args) -> None:
         if not test_cfg["workflow"]["USE_CRON_TO_RELAUNCH"]:
             logging.debug(f"Creating entry for job {test_name} in job monitoring dict")
             workflow_id = f"{test_name}_{starttime_string}"
-            monitor_yaml.update({
+            status_dict.update({
                 workflow_id: {
                     "expt_dir": expt_dir,
                     "status": "CREATED",
@@ -162,22 +162,22 @@ def run_we2e_tests(args) -> None:
         logging.info("To view running experiments in cron try `crontab -l`")
         return
 
-    monitor_file = f"WE2E_status_{starttime_string}.yaml"
-    write_monitor_file(monitor_file, monitor_yaml)
+    status_file = f"WE2E_status_{starttime_string}.yaml"
+    write_status_file(status_file, status_dict)
     logging.info("All experiments have been generated;")
-    logging.info(f"Experiment file {monitor_file} created")
+    logging.info(f"WE2E status file {status_file} created")
 
     if args.launch == "none":
         logging.info("To automatically run and monitor experiments, use:\n")
-        logging.info(f"./monitor_jobs.py -y={monitor_file}\n")
+        logging.info(f"./monitor_jobs.py -y={status_file}\n")
         return
 
-    write_monitor_file(monitor_file, monitor_yaml)
+    write_status_file(status_file, status_dict)
     logging.debug("calling function that monitors jobs, prints summary")
     try:
-        monitor_file = monitor_jobs(
-            monitor_yaml,
-            monitor_file=monitor_file,
+        status_file = monitor_jobs(
+            status_dict,
+            status_file=status_file,
             procs=args.procs,
             debug=args.debug,
             delay=args.delay,
@@ -186,7 +186,7 @@ def run_we2e_tests(args) -> None:
         logging.info(
             "\n\nUser interrupted monitor script; to resume monitoring jobs run:\n"
         )
-        rerun_string=f"./monitor_jobs.py -y={monitor_file}"
+        rerun_string=f"./monitor_jobs.py -y={status_file}"
         if args.procs>1:
             rerun_string+=f" -p={args.procs}"
         if args.delay!=DEFAULT_DELAY:

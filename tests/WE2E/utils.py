@@ -115,9 +115,9 @@ def create_expts_dict(expt_dir: str, delay: int = DEFAULT_DELAY):
         expt_dir (str): Experiment directory name
         delay    (int): [optional] Delay in seconds between calls to rocotorun.
     Returns:
-        (summary_file, expts_dict): A tuple including the name of the summary file
-                                    (``WE2E_status_YYYYMMDDHHmmSS.yaml``) and the experiment
-                                    dictionary
+        (status_file, expts_dict): A tuple including the name of the WE2E status file
+                                   (``WE2E_status_YYYYMMDDHHmmSS.yaml``) and the experiment
+                                   dictionary
     """
     contents = sorted(os.listdir(expt_dir))
 
@@ -151,9 +151,9 @@ def create_expts_dict(expt_dir: str, delay: int = DEFAULT_DELAY):
         #Update the experiment dictionary
         logging.debug(f"Reading status of experiment {item}")
         update_expt_status(expts_dict[item],item,True,delay,False,False)
-    summary_file = f'WE2E_status_{datetime.now().strftime("%Y%m%d%H%M%S")}.yaml'
+    status_file = f'WE2E_status_{datetime.now().strftime("%Y%m%d%H%M%S")}.yaml'
 
-    return summary_file, expts_dict
+    return status_file, expts_dict
 
 def calculate_core_hours(expts_dict: dict) -> dict:
     """
@@ -203,30 +203,31 @@ def calculate_core_hours(expts_dict: dict) -> dict:
     return expts_dict
 
 
-def write_monitor_file(monitor_file: str, expts_dict: dict):
-    """Writes status of tests to file
+def write_status_file(status_file: str, expts_dict: dict):
+    """Writes the WE2E status file
 
     Args:
-        monitor_file  (str): File name
+        status_file   (str): Name of the WE2E status file
         expts_dict   (dict): Experiments being monitored
     Returns:
         None
     Raises: 
-        KeyboardInterrupt: If a user attempts to disrupt program execution (e.g., with ``Ctrl+C``) while program is writing information to ``monitor_file``.  
+        KeyboardInterrupt: If a user attempts to disrupt program execution (e.g., with ``Ctrl+C``)
+                           while program is writing information to ``status_file``.
     """
     try:
-        with open(monitor_file,"w", encoding="utf-8") as f:
+        with open(status_file,"w", encoding="utf-8") as f:
             f.write("### WARNING ###\n")
             f.write("### THIS FILE IS AUTO_GENERATED AND REGULARLY OVER-WRITTEN BY WORKFLOW SCRIPTS\n")
             f.write("### EDITS MAY RESULT IN MISBEHAVIOR OF EXPERIMENTS RUNNING\n")
             f.writelines(cfg_to_yaml_str(expts_dict))
     except KeyboardInterrupt:
         logging.warning("\nRefusing to interrupt during file write; try again\n")
-        write_monitor_file(monitor_file,expts_dict)
+        write_status_file(status_file,expts_dict)
     except:
         logging.fatal("\n********************************\n")
         logging.fatal(f"WARNING WARNING WARNING\n")
-        logging.fatal("Failure occurred while writing monitor file {monitor_file}")
+        logging.fatal(f"Failure occurred while writing WE2E status file {status_file}")
         logging.fatal("File may be corrupt or invalid for re-run!!")
         logging.fatal("\n********************************\n")
         raise

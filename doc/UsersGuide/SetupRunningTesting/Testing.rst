@@ -136,7 +136,7 @@ For each specified test, ``run_we2e_tests.py`` will generate a new experiment di
    /user/home/expt_dirs/HAFS-A
    
    All experiments have been generated;
-   Experiment file WE2E_status_20260403181012.yaml created
+   WE2E status file WE2E_status_20260403181012.yaml created
    Writing information for all experiments to WE2E_status_20260403181012.yaml
    Checking tests available for monitoring...
    Starting experiment MET_ensemble_verification_20260403181001 running
